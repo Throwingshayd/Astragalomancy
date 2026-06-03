@@ -38,7 +38,7 @@ const ScorecardRenderer = {
                     row.style.display = 'none';
                     return;
                 }
-                row.style.display = 'flex';
+                row.style.removeProperty('display');
             }
             if (category === "Pandora's Box") {
                 const isUnlocked = gameState.unlockedCategories?.["Pandora's Box"];

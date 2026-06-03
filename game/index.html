@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="css/card-present.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=IM+Fell+English+SC&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="ART/Title art.png" type="image/png">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -135,7 +135,6 @@
                 <div class="right-boon-bar inventory-panel-boons" id="rightBoonBar">
                     <div class="boon-slots card-area-squish card-area-vertical" id="boonSlots"></div>
                     <span class="inventory-counter boon-bar-counter" id="boonSlotCounter">0/5</span>
-                    <span class="boon-reorder-hint" aria-hidden="true">Drag to gold to sell · onto another boon to reorder</span>
                 </div>
 
                 <!-- 4. CENTER GAME AREA — dice/shop stage swap + felt gnosis labels (siblings so they persist across stage swap) -->
@@ -147,14 +146,14 @@
                     <div class="consumable-zone consumable-zone-worship" id="consumableZoneWorship" aria-hidden="true"></div>
                     <div class="consumable-zone consumable-zone-libation" id="consumableZoneLibation" aria-hidden="true"></div>
 
-                    <!-- Score stones (top rim): Total left · Required right. Hidden when .main-game.shop-active -->
-                    <div class="felt-stone felt-area-btn felt-stone-total" id="gnosisScorePanel" data-felt="total">
-                        <span class="felt-stone-label">Total</span>
-                        <span class="felt-stone-value" id="totalScore">0</span>
+                    <!-- Score on felt (top rim): Total left · Required right -->
+                    <div class="felt-label felt-score-felt felt-stone-total" id="gnosisScorePanel" data-felt="total">
+                        <span class="felt-label-name">Total</span>
+                        <span class="felt-label-value" id="totalScore">0</span>
                     </div>
-                    <div class="felt-stone felt-area-btn felt-stone-required" data-felt="threshold">
-                        <span class="felt-stone-label">Required</span>
-                        <span class="felt-stone-value" id="scoreThresholdDisplay">500</span>
+                    <div class="felt-label felt-score-felt felt-stone-required" data-felt="threshold">
+                        <span class="felt-label-name">Required</span>
+                        <span class="felt-label-value" id="scoreThresholdDisplay">500</span>
                     </div>
 
                     <!-- Live score: printed on felt, under the dice -->
@@ -191,9 +190,21 @@
                         <span class="felt-stone-label">Trial</span>
                         <span class="felt-stone-value" id="trialDisplay">1</span>
                     </div>
+                    <button type="button" class="shop-continue-btn" id="shopContinueBtn" title="Continue to next round" aria-label="Continue to next round">
+                        <span class="shop-continue-label">Continue</span>
+                        <span class="shop-continue-arrow" aria-hidden="true">→</span>
+                    </button>
                     <div class="felt-stone felt-stone-gold" data-felt="gold" id="goldStone">
                         <span class="felt-stone-label">Gold</span>
                         <span class="felt-stone-value" id="goldDisplay">0</span>
+                    </div>
+                    <!-- Artifacts chest: closed at rest, open on click — holds purchased artifacts -->
+                    <div class="artifacts-chest" id="artifactsChest" data-count="0">
+                        <button type="button" class="artifacts-chest-toggle" id="artifactsChestToggle" aria-expanded="false" aria-label="Artifacts chest">
+                            <img class="artifacts-chest-skin artifacts-chest-skin--closed" src="/ART/artifacts-chest-closed.png" alt="" draggable="false">
+                            <img class="artifacts-chest-skin artifacts-chest-skin--open" src="/ART/artifacts-chest-open.png" alt="" draggable="false">
+                            <span class="artifacts-chest-slots" id="artifactSlots" aria-hidden="true"></span>
+                        </button>
                     </div>
                     <div class="felt-stone felt-stone-turn" data-felt="turn">
                         <span class="felt-stone-label">Turn</span>
@@ -207,9 +218,8 @@
                         <div class="play-stage-spacer"></div>
                     </div>
 
-                    <!-- SHOP: Shop area replaces play area; Continue tucked in top-right corner -->
+                    <!-- SHOP: Shop area replaces play area -->
                     <div id="shopStage" class="game-stage hidden">
-                        <button class="divine-button shop-continue-corner" id="shopContinueBtn" title="Continue to next round">Continue →</button>
                         <div class="shop-header">
                             <h2 class="shop-title"></h2>
                         </div>
@@ -323,6 +333,7 @@
     <script defer src="js/utils/GameTiming.js"></script>
     <script defer src="js/ui/LiveScoreController.js"></script>
     <script defer src="js/ui/ScoringAnimation.js"></script>
+    <script defer src="js/game/GameEngineTestModes.js"></script>
     <script defer src="js/game/GameEngine.js"></script>
     <script defer src="js/ui/renderers/InfoBarRenderer.js"></script>
     <script defer src="js/ui/renderers/DiceRenderer.js"></script>

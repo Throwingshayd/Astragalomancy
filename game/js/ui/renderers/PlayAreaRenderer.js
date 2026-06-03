@@ -1,5 +1,5 @@
 /**
- * PlayAreaRenderer - Boon bar, left bar (libations + worship), artifacts, drag-and-drop
+ * PlayAreaRenderer - Boon bar, left bar (libations + worship), artifacts chest, drag-and-drop
  * @module ui/renderers/PlayAreaRenderer
  * `consumables` in state = technical group for LibationCard + WorshipCard (see docs/GAME_TERMINOLOGY.md)
  */
@@ -16,7 +16,8 @@ const PlayAreaRenderer = {
 
         this.updateBoonUI(dom, gameState, gameEngine, uiManager);
         this.updateConsumableUI(dom, gameState, gameEngine, uiManager);
-        this.updateArtifactUI(dom);
+        this.updateArtifactUI(dom, gameState);
+        this.bindArtifactsChest(dom);
 
         const boonCount = (gameState.boons || []).length;
         const boonMax = gameState.boonSlots || (window.GAME_BALANCE?.STARTING_BOON_SLOTS ?? 5);
@@ -24,6 +25,22 @@ const PlayAreaRenderer = {
         const consumableMax = gameState.consumableSlots ?? (window.GAME_BALANCE?.STARTING_LIBATION_SLOTS ?? 5);
         if (dom.boonSlotCounter) dom.boonSlotCounter.textContent = `${boonCount}/${boonMax}`;
         if (dom.consumableSlotCounter) dom.consumableSlotCounter.textContent = `${consumableCount}/${consumableMax}`;
+    },
+
+    bindArtifactsChest(dom) {
+        const chest = dom.artifactsChest || document.getElementById('artifactsChest');
+        const toggle = dom.artifactsChestToggle || document.getElementById('artifactsChestToggle');
+        const slots = dom.artifactSlots || document.getElementById('artifactSlots');
+        if (!chest || !toggle || toggle.dataset.chestBound === '1') return;
+
+        toggle.addEventListener('click', (e) => {
+            if (e.target.closest('.artifact-chest-item')) return;
+            const open = chest.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (slots) slots.setAttribute('aria-hidden', open ? 'false' : 'true');
+        });
+
+        toggle.dataset.chestBound = '1';
     },
 
     updateBoonUI(dom, gameState, gameEngine, uiManager) {
@@ -56,10 +73,26 @@ const PlayAreaRenderer = {
         uiManager.bindConsumableHorizonDrag(container);
     },
 
-    updateArtifactUI(dom) {
+    updateArtifactUI(dom, gameState) {
         const container = dom.artifactSlots;
+        const chest = dom.artifactsChest || document.getElementById('artifactsChest');
         if (!container) return;
+
+        const artifacts = gameState?.artifacts || [];
         container.innerHTML = '';
+
+        if (chest) {
+            chest.dataset.count = String(artifacts.length);
+            chest.classList.toggle('has-artifacts', artifacts.length > 0);
+        }
+
+        artifacts.forEach((raw) => {
+            const card = raw instanceof Artifact ? raw : new Artifact(raw);
+            const el = card.render(false, false);
+            el.classList.add('artifact-chest-item');
+            el.addEventListener('click', (e) => e.stopPropagation());
+            container.appendChild(el);
+        });
     }
 };
 

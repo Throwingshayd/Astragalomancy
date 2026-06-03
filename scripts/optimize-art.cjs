@@ -17,7 +17,7 @@ const DRY_RUN = process.argv.includes('--dry-run');
 const RULES = [
     { test: (rel) => /(^|\/)die face \d+\.png$/i.test(rel) || rel.endsWith('dice face question mark.png'), max: 256 },
     { test: (rel) => rel.includes('/Music/'), max: 0 },
-    { test: (rel) => /(dice table|shopfront|background swirl|Title art|in game title|column scroll)/i.test(rel), max: 1024 },
+    { test: (rel) => /(dice table|game-board|play-stela|pantheon-frieze|shopfront|background swirl|Title art|in game title|column scroll)/i.test(rel), max: 1024 },
     { test: (rel) => rel.endsWith('.png'), max: 512 },
 ];
 

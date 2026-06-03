@@ -37,6 +37,34 @@
     --felt-stone-h: 64px;
     --layout-center-game-top: 260px;
     --layout-pantheon-top: -10px;
+    --layout-center-left: 260px;
+    --layout-center-w: 1400px;
+    --layout-center-h: 780px;
+    --layout-side-bar-outset: 20px;
+    --layout-main-w: 1920px;
+    --layout-trial-inner-left: calc(140px + 0.25 * var(--felt-die-size, 95px));
+    --layout-gold-inner-left: 1080px;
+    --side-stela-half-die: calc(0.5 * var(--felt-die-size, 95px));
+    --side-bar-w: 228px;
+    /* Game board (contain) — same math as .game-board-bg */
+    --game-board-contain-w: calc(var(--layout-center-h) * 1024 / 682);
+    --game-board-margin-x: calc((var(--layout-center-w) - var(--game-board-contain-w)) / 2);
+    --game-board-left-main: calc(var(--layout-center-left) + var(--game-board-margin-x));
+    --game-board-right-main: calc(var(--layout-center-left) + var(--layout-center-w) - var(--game-board-margin-x));
+    /* Card columns centered in gutter beside the game board */
+    --side-gutter-w: calc(var(--game-board-left-main) - var(--layout-side-bar-outset));
+    --side-bar-left-main: calc(var(--layout-side-bar-outset) + (var(--side-gutter-w) - var(--side-bar-w)) / 2);
+    --side-bar-right-main: calc(var(--game-board-right-main) + (var(--side-gutter-w) - var(--side-bar-w)) / 2);
+    /* Stelae may extend inward to ½ die width outside Trial (left) / Gold (right) outer edge */
+    --side-stela-left-w: calc(var(--layout-center-left) + var(--layout-trial-inner-left) - var(--side-stela-half-die) - var(--layout-side-bar-outset));
+    --side-stela-right-w: calc(var(--layout-main-w) - var(--layout-side-bar-outset) - (var(--layout-center-left) + var(--layout-gold-inner-left) + var(--felt-stone-w, 160px) + var(--side-stela-half-die)));
+    --side-stela-left-offset: calc(var(--layout-side-bar-outset) - var(--side-bar-left-main));
+    --side-stela-right-offset: calc((var(--side-bar-right-main) + var(--side-bar-w)) - (var(--layout-main-w) - var(--layout-side-bar-outset)));
+    --side-stela-bleed-top: 36px;
+    --side-stela-bleed-bottom: 12px;
+    --side-stela-paint-h: calc(var(--layout-center-h) + var(--side-stela-bleed-top) + var(--side-stela-bleed-bottom));
+    /* Vertical-only stretch: extend pillar downward by one die, width unchanged */
+    --side-stela-stretch-y: calc(1 + var(--felt-die-size) / var(--side-stela-paint-h));
     /* Measured frieze block height (padding + tiers + bottom meander); tune with pantheon edits */
     --layout-pantheon-frieze-height: 318px;
     /* Greek-key meander tiles (match pantheon frieze bands) */
@@ -58,11 +86,12 @@
 /* ── 3. PLAY ARENA — keep dice-table art; dice stack floats above (see DICE STACK) */
 .main-game .center-game-area .game-board-bg {
     background-color: transparent;
-    background-image: url("/ART/dice table.png");
-    background-size: 78% 126%;
+    background-image: url("/ART/game-board.png");
+    background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
-    opacity: 0.96;
+    opacity: 1;
+    filter: brightness(1.18) contrast(1.06) saturate(1.08);
 }
 
 /* Felt play oval — no decorative ring (keeps dice-roll-zone for layout/drag). */
@@ -71,7 +100,7 @@
     box-shadow: none;
 }
 
-/* ── 4. PANTHEON — rectangular marble frieze (photo reference); chips stay on arch via JS ─ */
+/* ── 4. PANTHEON — marble frieze (PNG art disabled until replacement asset is ready) ─ */
 .main-game .pantheon-frieze {
     top: -10px;
     min-height: 0;
@@ -214,7 +243,7 @@
 }
 
 .main-game .pantheon-frieze .pantheon-chip .pantheon-deity {
-    font-family: var(--font-display), var(--font-ui), serif;
+    font-family: var(--font-pantheon-caption);
     font-size: 11px;
     letter-spacing: 0.05em;
     color: var(--gk-bronze);
@@ -263,56 +292,75 @@
     filter: saturate(0.62) brightness(0.96);
 }
 
-/* ── 5. SIDE PANELS — vertical marble frieze (Consumables left, Boons right) ─ */
+/* ── 5. SIDE PANELS — marble pillar stelae (Consumables left, Boons right) ─ */
 .main-game .left-consumable-bar.inventory-panel-consumables,
 .main-game .right-boon-bar.inventory-panel-boons {
-    padding: 44px 30px 40px;
-    z-index: 8;
+    padding: 56px 6px 48px;
+    z-index: 10;
     position: absolute;
     box-sizing: border-box;
+    overflow: visible;
 }
 
-/* Marble slab + vertical meander bands on left and right edges only */
-.main-game .left-consumable-bar.inventory-panel-consumables::before,
+.main-game .left-consumable-bar.inventory-panel-consumables {
+    left: var(--side-bar-left-main);
+    right: auto;
+}
+
+.main-game .right-boon-bar.inventory-panel-boons {
+    left: var(--side-bar-right-main);
+    right: auto;
+}
+
+/* Full pillar — spans outward edge → ½ die past Trial / Gold; height fills bar + bleed */
+.main-game .left-consumable-bar.inventory-panel-consumables::before {
+    content: "";
+    position: absolute;
+    top: calc(-1 * var(--side-stela-bleed-top));
+    bottom: calc(-1 * var(--side-stela-bleed-bottom));
+    left: var(--side-stela-left-offset);
+    right: auto;
+    width: var(--side-stela-left-w);
+    z-index: 0;
+    border: none;
+    border-radius: 0;
+    background: url("/ART/play-stela-pillar.png") center top / auto 95% no-repeat;
+    box-shadow: none;
+    pointer-events: none;
+    transform-origin: top center;
+    transform: scaleY(var(--side-stela-stretch-y));
+}
+
 .main-game .right-boon-bar.inventory-panel-boons::before {
     content: "";
     position: absolute;
-    inset: 4px 2px 10px;
+    top: calc(-1 * var(--side-stela-bleed-top));
+    bottom: calc(-1 * var(--side-stela-bleed-bottom));
+    right: var(--side-stela-right-offset);
+    left: auto;
+    width: var(--side-stela-right-w);
     z-index: 0;
-    border-radius: 16px;
-    border: 2px solid var(--gk-gold-2);
-    background-color: var(--gk-marble-2);
-    background-image:
-        var(--gk-meander-v),
-        var(--gk-meander-v),
-        linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 38%),
-        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%);
-    background-repeat: repeat-y, repeat-y, no-repeat, no-repeat;
-    background-size: 16px auto, 16px auto, 100% 100%, 100% 100%;
-    background-position:
-        left 10px top 14px,
-        right 10px top 14px,
-        0 0,
-        0 0;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        inset 0 0 0 1px rgba(154, 119, 48, 0.25),
-        0 12px 34px rgba(0, 0, 0, 0.42);
+    border: none;
+    border-radius: 0;
+    background: url("/ART/play-stela-pillar.png") center top / auto 95% no-repeat;
+    box-shadow: none;
     pointer-events: none;
+    transform-origin: top center;
+    transform: scaleY(var(--side-stela-stretch-y)) scaleX(-1);
 }
 
-/* Manuscript caption at top of stela */
+/* Manuscript caption below pediment frieze */
 .main-game .left-consumable-bar.inventory-panel-consumables::after,
 .main-game .right-boon-bar.inventory-panel-boons::after {
     content: "";
     position: absolute;
-    top: 16px;
+    top: 48px;
     left: 50%;
     transform: translateX(-50%);
     font-family: var(--font-manuscript);
     font-weight: normal;
-    font-size: 15px;
-    letter-spacing: 0.1em;
+    font-size: 13px;
+    letter-spacing: 0.08em;
     color: var(--gk-ink-soft);
     opacity: 0.92;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
@@ -328,8 +376,8 @@
     color: var(--gk-ink);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
     z-index: 2;
-    bottom: 16px;
-    right: 22px;
+    bottom: 12px;
+    right: 18px;
 }
 
 /* Card names on stelae — manuscript face (readable vs IM Fell) */
@@ -369,14 +417,11 @@
 }
 
 .main-game .boon-reorder-hint {
-    z-index: 2;
-    color: var(--gk-ink-soft);
-    background: rgba(255, 255, 255, 0.45);
-    border: 1px solid rgba(154, 119, 48, 0.2);
+    display: none !important;
 }
 
-/* ── 6. STONES — carved marble medallions with gold rims ───────────────── */
-.center-game-area .felt-stone {
+/* ── 6. STONES — carved marble medallions (rolls / trial / gold / turn only) ─ */
+.center-game-area .felt-stone:not(.felt-score-felt) {
     width: var(--felt-stone-w, 160px);
     min-width: var(--felt-stone-w, 160px);
     max-width: var(--felt-stone-w, 160px);
@@ -394,15 +439,31 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.7),
         0 4px 12px rgba(0, 0, 0, 0.4);
 }
-.center-game-area .felt-stone .felt-stone-label {
+.center-game-area .felt-stone:not(.felt-score-felt) .felt-stone-label {
     color: var(--gk-ink-soft);
 }
-.center-game-area .felt-stone .felt-stone-value,
+.center-game-area .felt-stone:not(.felt-score-felt) .felt-stone-value,
 .center-game-area .felt-stone-rolls .felt-stone-value,
 .center-game-area .felt-stone-rolls .rolls-left,
 .center-game-area .felt-stone-gold .felt-stone-value {
     color: var(--gk-ink);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Total + Required — gold manuscript on felt (matches live gnosis row) */
+.center-game-area .felt-score-felt .felt-label-name {
+    font-family: var(--font-manuscript);
+    color: rgba(245, 230, 211, 0.9);
+    letter-spacing: 0.1em;
+}
+
+.center-game-area .felt-score-felt .felt-label-value {
+    font-family: var(--font-ui), sans-serif;
+    color: var(--gk-gold-1);
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        0 0 14px rgba(244, 214, 128, 0.22);
 }
 
 /* ============================================================================
@@ -454,7 +515,7 @@
 
 /* Live score reads clearly on dark felt. */
 .center-game-area .live-score-display.felt-live .gnosis-category-name {
-    font-family: "Cinzel", "Cormorant Garamond", serif;
+    font-family: var(--font-manuscript);
     color: var(--gk-gold-1);
     letter-spacing: 0.06em;
 }
@@ -534,6 +595,15 @@
     pointer-events: none;
 }
 
+.main-game.shop-active .left-consumable-bar.inventory-panel-consumables,
+.main-game.shop-active .right-boon-bar.inventory-panel-boons {
+    z-index: 14;
+}
+
+.main-game .center-game-area {
+    z-index: 6;
+}
+
 .main-game .center-game-area .dice-roll-zone {
     z-index: 1;
 }
@@ -574,7 +644,8 @@
     z-index: 18;
 }
 
-.main-game .center-game-area .felt-stone,
+.main-game .center-game-area .felt-stone:not(.felt-score-felt),
+.main-game .center-game-area .felt-score-felt,
 .main-game .center-game-area .live-score-display.felt-live {
     z-index: 14;
 }

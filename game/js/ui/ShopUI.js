@@ -171,8 +171,7 @@ class ShopUI {
     }
 
     attachShopEventListeners() {
-        // Reroll is handled by #rollButton in shop mode (see GameEngine roll-button listener).
-        // Only the corner Continue button needs its click wired here.
+        // Continue lives below Trial stone (#shopContinueBtn); rebind each openShop.
         const continueBtn = document.getElementById('shopContinueBtn');
         if (continueBtn) {
             const newBtn = continueBtn.cloneNode(true);

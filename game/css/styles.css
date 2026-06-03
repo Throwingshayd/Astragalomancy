@@ -545,7 +545,7 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    font-family: var(--font-manuscript);
     font-weight: 600;
     font-size: 20px;
     line-height: 1.28;
@@ -622,11 +622,32 @@ body::after {
 }
 
 #shopStage {
-    background: url('/ART/shopfront new (1).png') center center / 75% no-repeat;
-    padding: 12px 16px;
-    overflow: hidden;
+    position: relative;
+    background-color: transparent;
+    padding: 0;
+    overflow: visible;
     display: flex;
     flex-direction: column;
+    isolation: isolate;
+}
+
+#shopStage::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1024 / 682;
+    z-index: 0;
+    pointer-events: none;
+    background: url('/ART/shopfront-boons-libations.png') no-repeat center / 100% 100%;
+}
+
+#shopStage > * {
+    position: relative;
+    z-index: 1;
 }
 
 #shopStage .shop-header {
@@ -640,9 +661,13 @@ body::after {
     min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    /* ~¾ die below shop top (95px die − ¼ die) */
-    padding-top: 71px;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    overflow: visible;
+    /* Wares on counter shelf; packs sit lower with room above reroll */
+    padding-top: 72px;
+    padding-bottom: 168px;
 }
 
 #shopStage .shop-actions {
@@ -2080,7 +2105,8 @@ body::after {
 
 
 .modal-content {
-    background-image: url('/ART/shopfront new (1).png');
+    background-color: transparent;
+    background-image: url('/ART/shopfront-boons-libations.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -2108,11 +2134,11 @@ body::after {
 }
 
 .shop-title {
-    font-family: var(--font-ui), sans-serif;
-    color: white;
+    font-family: var(--font-manuscript);
+    color: var(--color-title);
     font-size: 27px;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    font-weight: normal;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
     margin-bottom: 8px;
     display: block !important;
     visibility: visible !important;
@@ -2173,21 +2199,22 @@ body::after {
 }
 
 #shopDefaultView .shop-items {
-    margin-top: 8px;
+    margin-top: 0;
+    flex: 0 0 auto;
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
 }
 
 #shopDefaultView .shop-packs {
-    margin-top: 4px;
+    margin-top: 8px;
+    flex: 0 0 auto;
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
-    flex: 1;
     min-height: 0;
     overflow: visible;
-    padding-bottom: 18px;
+    padding-bottom: 0;
 }
 
 #shopDefaultView .shop-cat {
@@ -3310,7 +3337,7 @@ body::after {
 
 .start-hero-title {
     margin: 0;
-    font-family: var(--font-display), var(--font-ui), serif;
+    font-family: var(--font-manuscript);
     font-size: 59px;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -3322,7 +3349,7 @@ body::after {
 
 .start-hero-sub {
     margin: 0;
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: var(--font-manuscript);
     font-size: 28px;
     font-style: italic;
     letter-spacing: 0.01em;
@@ -3718,11 +3745,33 @@ body::after {
     padding: 6px 12px;
     font-size: 0.85rem;
     min-width: auto;
+    font-family: var(--font-manuscript);
+    font-weight: normal;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-title-muted);
+    background: rgba(0, 0, 0, 0.22);
+    border: 2px solid var(--color-title-muted);
 }
 
 .run-info-tab.active {
-    background: var(--accent-green);
-    color: var(--stone-dark);
+    background: rgba(244, 214, 128, 0.14);
+    border-color: var(--color-title);
+    color: var(--color-title);
+}
+
+.run-info-ante-header {
+    font-weight: normal;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+    font-family: var(--font-manuscript);
+    color: var(--color-title);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.run-info-ante-current .run-info-ante-header {
+    color: var(--color-title);
 }
 
 .run-info-panels {
@@ -3756,16 +3805,6 @@ body::after {
     border-radius: 8px;
     padding: 10px 12px;
     border: 1px solid var(--stone-terracotta);
-}
-
-.run-info-ante-current .run-info-ante-header {
-    color: var(--accent-gold, #d4af37);
-}
-
-.run-info-ante-header {
-    font-weight: bold;
-    font-size: 0.9rem;
-    margin-bottom: 4px;
 }
 
 .run-info-ante-name,
@@ -3818,16 +3857,18 @@ body::after {
 
 .run-info-hand-score,
 .run-info-worship-level {
-    font-weight: bold;
-    color: var(--accent-gold, #d4af37);
-}
-
-.run-info-worship-row.has-level .run-info-worship-god {
-    color: var(--accent-green);
+    font-weight: normal;
+    color: var(--color-title);
 }
 
 .run-info-artifact-name {
-    font-weight: bold;
+    font-weight: normal;
+    font-family: var(--font-manuscript);
+    color: var(--color-title);
+}
+
+.run-info-worship-row.has-level .run-info-worship-god {
+    color: var(--color-title-muted);
 }
 
 .run-info-artifact-effect {
@@ -4056,12 +4097,13 @@ body::after {
 }
 
 .tooltip-title {
-    font-weight: bold;
-    color: #FFD700;
+    font-weight: normal;
+    font-family: var(--font-manuscript);
+    color: var(--color-title);
     margin-bottom: 6px;
     font-size: 19px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    letter-spacing: 0.5px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+    letter-spacing: 0.04em;
 }
 
 .tooltip-effect {
@@ -6966,18 +7008,20 @@ body::after {
     width: 1400px;
     height: 780px;
     overflow: visible;
+    z-index: 6;
     /* Total column — Rolls stacks under this x, toward Cast the Bones */
     --felt-col-total-left: calc(251px + (180px - 160px) / 2 + 1.5 * var(--felt-die-size, 95px));
     /* Required column — Turn mirrors Rolls on the right */
     --felt-col-required-left: calc(969px - 1.5 * var(--felt-die-size, 95px));
+    /* Total / Required on felt — centered on game-board PNG (not old stone columns) */
+    --felt-score-total-left: calc(var(--game-board-margin-x) + var(--game-board-contain-w) * 0.38);
+    --felt-score-required-left: calc(var(--game-board-margin-x) + var(--game-board-contain-w) * 0.62);
     --felt-inner-row-top: calc(589px + (1 / 3) * var(--felt-die-size, 95px));
 }
 
-/* ── 1. PANTHEON — free-floating tokens on a smooth arc (no frieze panel; no per-chip spin) ── */
+/* ── 1. PANTHEON — free-floating tokens on a smooth arc ── */
 .pantheon-frieze {
     position: absolute;
-    /* Same horizontal band as .center-game-area (1400px @ 260); keep band above felt Total/Required (~y260+) */
-    /* Move pantheon up as one unit so entered scores clear Total / Required */
     top: -24px;
     left: 260px;
     width: 1400px;
@@ -7072,7 +7116,7 @@ body::after {
     background: transparent;
     cursor: pointer;
     transition: transform 0.14s ease, box-shadow 0.14s ease;
-    font-family: var(--font-ui);
+    font-family: var(--font-manuscript);
     font-weight: 600;
     text-align: center;
     overflow: visible;
@@ -7194,7 +7238,7 @@ body::after {
     max-width: 100%;
     margin: 0;
     padding: 4px 4px 0;
-    font-family: var(--font-display), var(--font-ui), serif;
+    font-family: var(--font-pantheon-caption);
     font-size: 12px;
     line-height: 1.2;
     font-style: normal;
@@ -7382,9 +7426,9 @@ body::after {
 .left-consumable-bar.inventory-panel-consumables {
     position: absolute;
     top: 260px;
-    left: 20px;
+    left: var(--side-bar-left-main, 20px);
     right: auto;
-    width: 228px;
+    width: var(--side-bar-w, 228px);
     height: 780px;
     z-index: 6;
     flex: none;
@@ -7392,7 +7436,7 @@ body::after {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 18px 12px 32px;
+    padding: 8px 4px 16px;
     background: transparent;
     border: none;
     border-radius: 0;
@@ -7412,9 +7456,9 @@ body::after {
 .right-boon-bar.inventory-panel-boons {
     position: absolute;
     top: 260px;
-    left: auto;
-    right: 20px;
-    width: 228px;
+    left: var(--side-bar-right-main, 1672px);
+    right: auto;
+    width: var(--side-bar-w, 228px);
     height: 780px;
     z-index: 6;
     flex: none;
@@ -7422,7 +7466,7 @@ body::after {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 18px 12px 32px;
+    padding: 8px 4px 16px;
     background: transparent;
     border: none;
     border-radius: 0;
@@ -7527,6 +7571,45 @@ body::after {
         0 0 12px rgba(255, 215, 120, 0.25);
 }
 
+/* Total + Required — printed on the felt (no stone chrome) */
+.center-game-area .felt-score-felt {
+    width: auto;
+    min-width: 0;
+    max-width: min(220px, 28vw);
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    pointer-events: none;
+    z-index: 14;
+}
+
+.center-game-area .felt-score-felt .felt-label-name {
+    font-family: var(--font-manuscript);
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(245, 230, 211, 0.88);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+    margin-bottom: 4px;
+}
+
+.center-game-area .felt-score-felt .felt-label-value {
+    font-family: var(--font-ui), sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--gk-gold-1, #f4d680);
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        0 0 14px rgba(244, 214, 128, 0.22);
+}
+
 /* Total + Required — 2 die below pantheon lower border; inward of Gold / Ante columns. */
 .center-game-area .felt-stone-total,
 .center-game-area .felt-stone-required {
@@ -7536,16 +7619,16 @@ body::after {
         - var(--layout-center-game-top, 260px)
         + 0.5 * var(--felt-die-size, 95px)
     );
-    pointer-events: auto;
 }
 
 .center-game-area .felt-stone-total {
-    /* Gold column + 1.5 die inward (matches ½ die below pantheon) */
-    left: var(--felt-col-total-left);
+    left: var(--felt-score-total-left);
+    transform: translateX(-50%);
 }
 
 .center-game-area .felt-stone-required {
-    left: var(--felt-col-required-left);
+    left: var(--felt-score-required-left);
+    transform: translateX(-50%);
 }
 
 .felt-area-btn {
@@ -7764,6 +7847,118 @@ body::after {
      Inner row: Rolls (under Total) · Turn (under Required) */
 .center-game-area .felt-stone-trial { top: 355px; left: calc(140px + 0.25 * var(--felt-die-size, 95px)); }
 .center-game-area .felt-stone-gold  { top: 355px; left: 1080px; }
+
+/* Artifacts chest — right column under Gold; PNG alpha shows felt through */
+.center-game-area .artifacts-chest {
+    position: absolute;
+    top: 468px;
+    left: 1018px;
+    width: auto;
+    height: auto;
+    z-index: 14;
+    pointer-events: auto;
+}
+
+.artifacts-chest-toggle {
+    position: relative;
+    display: block;
+    width: 258px;
+    /* Match open-chest height so closed lid aligns to same baseline when toggled */
+    min-height: calc(258px * 421 / 451);
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    overflow: visible;
+    line-height: 0;
+}
+
+.artifacts-chest-toggle:focus-visible {
+    outline: 2px solid var(--color-title, #f4d680);
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+
+.artifacts-chest-skin {
+    display: block;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    max-width: 258px;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.artifacts-chest:not(.is-open) .artifacts-chest-skin--closed {
+    opacity: 1;
+    visibility: visible;
+}
+
+.artifacts-chest:not(.is-open) .artifacts-chest-skin--open {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.artifacts-chest.is-open .artifacts-chest-skin--closed {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.artifacts-chest.is-open .artifacts-chest-skin--open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.artifacts-chest-slots {
+    position: absolute;
+    left: 15%;
+    right: 15%;
+    top: 34%;
+    bottom: 18%;
+    z-index: 2;
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    gap: 5px;
+    pointer-events: auto;
+}
+
+.artifacts-chest.is-open .artifacts-chest-slots {
+    display: flex;
+}
+
+.artifacts-chest-slots .artifact-chest-item {
+    width: 52px !important;
+    height: 68px !important;
+    min-width: 0;
+    min-height: 0;
+    flex: 0 0 auto;
+    transform: none !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    cursor: help;
+}
+
+.artifacts-chest-slots .artifact-chest-item .card-type-indicator {
+    font-size: 7px;
+    line-height: 1.15;
+    padding: 2px 3px;
+    letter-spacing: 0.02em;
+}
+
+.artifacts-chest-slots .artifact-chest-item .artifact-name,
+.artifacts-chest-slots .artifact-chest-item .card-frame {
+    display: none;
+}
+
 .center-game-area .felt-stone-rolls { top: var(--felt-inner-row-top); left: var(--felt-col-total-left); }
 .center-game-area .felt-stone-turn  { top: var(--felt-inner-row-top); left: var(--felt-col-required-left); }
 
@@ -7844,20 +8039,91 @@ body::after {
     text-shadow: none;
 }
 
-/* ── 8. SHOP CONTINUE (top-right corner of shop stage) ── */
-.shop-continue-corner {
+/* ── 8. SHOP CONTINUE (below Trial stone, left column) ── */
+.shop-continue-btn {
+    display: none;
     position: absolute;
-    top: 14px;
-    right: 16px;
-    z-index: 30;
-    font-size: 0.95rem;
-    padding: 8px 18px;
+    top: calc(355px + var(--felt-stone-h, 64px) + 12px);
+    left: calc(140px + 0.25 * var(--felt-die-size, 95px));
+    width: var(--felt-stone-w, 160px);
+    min-height: 54px;
+    padding: 8px 12px 10px;
+    box-sizing: border-box;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    z-index: 16;
+    cursor: pointer;
+    border: 2px solid var(--gk-gold-2, #cda24c);
+    border-radius: 10px;
+    background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(180deg, #fffdf6 0%, #f4ebd6 58%, #e8dcc0 100%);
+    box-shadow:
+        inset 0 1px 0 #fffef8,
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+        0 4px 14px rgba(0, 0, 0, 0.38);
+    font-family: var(--font-manuscript);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gk-ink, #34250f);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.main-game.shop-active .shop-continue-btn {
+    display: flex;
+}
+
+.shop-continue-btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--gk-gold-1, #f4d680);
+    box-shadow:
+        inset 0 1px 0 #fffef8,
+        0 6px 18px rgba(0, 0, 0, 0.42),
+        0 0 14px rgba(205, 162, 76, 0.4);
+}
+
+.shop-continue-btn:active {
+    transform: translateY(0);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+.shop-continue-btn:focus-visible {
+    outline: 2px solid var(--gk-gold-1, #f4d680);
+    outline-offset: 3px;
+}
+
+.shop-continue-btn .shop-continue-label {
+    line-height: 1.15;
+}
+
+.shop-continue-btn .shop-continue-arrow {
+    font-size: 17px;
+    line-height: 1;
+    color: var(--gk-bronze, #7d5a2e);
+    letter-spacing: 0;
 }
 
 /* Reserve bottom padding inside shopStage so shop content doesn't hide behind the Reroll button */
 .main-game .center-game-area #shopStage {
-    padding-top: 56px;
-    padding-bottom: 200px;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: visible;
+}
+
+/* Side inventory pillars sit above the shop stage in shop mode */
+.main-game.shop-active .left-consumable-bar.inventory-panel-consumables,
+.main-game.shop-active .right-boon-bar.inventory-panel-boons {
+    z-index: 14;
+}
+
+.main-game.shop-active .center-game-area .game-stage {
+    overflow: visible;
 }
 
 /* In shop mode, move the Reroll button back to the bottom of the felt so it
@@ -7923,11 +8189,12 @@ body::after {
 /* ── 11. FELT BACKGROUND PLACEHOLDER (plain, art swap later) ── */
 .center-game-area .game-board-bg {
     background-color: transparent;
-    background-image: url('/ART/dice table.png');
-    background-size: 78% 126%;
+    background-image: url('/ART/game-board.png');
+    background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
-    opacity: 0.95;
+    opacity: 1;
+    filter: brightness(1.18) contrast(1.06) saturate(1.08);
 }
 
 /* ── 12. GNOSIS MESSAGE under the action button ── */
@@ -7994,7 +8261,7 @@ body::after {
     text-align: center;
     font-size: 0.88rem;
     color: #e8f4ef;
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: var(--font-manuscript);
     border-radius: 8px;
     background: rgba(8, 32, 28, 0.45);
     border: 1px solid rgba(106, 170, 158, 0.3);

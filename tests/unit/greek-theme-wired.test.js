@@ -20,7 +20,16 @@ describe('Greek theme wiring', () => {
 
     it('greek-theme.css defines marble pantheon frieze and side stelae', () => {
         const css = readFileSync('game/css/greek-theme.css', 'utf8');
+        const tokens = readFileSync('game/css/visual-tokens.css', 'utf8');
+        const fonts = readFileSync('game/css/fonts-morris.css', 'utf8');
+        const styles = readFileSync('game/css/styles.css', 'utf8');
         expect(css).toContain('.main-game .pantheon-frieze');
+        expect(css).toContain('var(--font-manuscript)');
+        expect(tokens).toContain("--font-stack: 'Morris Roman'");
+        expect(tokens).toContain('--color-title:');
+        expect(fonts).toContain("font-family: 'Morris Roman'");
+        expect(fonts).toContain('/fonts/MorrisRoman-Black.ttf');
+        expect(styles).toMatch(/\.pantheon-frieze \.pantheon-chip[\s\S]*font-family: var\(--font-manuscript\)/);
         expect(css).toContain('var(--gk-marble-1)');
         expect(css).toContain('CONSUMABLES');
         expect(css).toContain('BOONS');

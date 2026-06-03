@@ -45,6 +45,8 @@ class UIManager {
             artifactSlots: document.getElementById('artifactSlots'),
             boonSlotCounter: document.getElementById('boonSlotCounter'),
             consumableSlotCounter: document.getElementById('consumableSlotCounter'),
+            artifactsChest: document.getElementById('artifactsChest'),
+            artifactsChestToggle: document.getElementById('artifactsChestToggle'),
             
             // Shop stage (replaces rolling area per 6-translator)
             playStage: document.getElementById('playStage'),

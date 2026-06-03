@@ -4,14 +4,22 @@
  * Reference: .cursor/context/BALATRO_DESIGN_PRINCIPLES.md
  */
 
-/* Typography (Google Fonts in index.html — no missing local files) */
+/* Typography — Morris Roman bundled in fonts-morris.css */
 :root {
-    --font-ui: 'IM Fell English SC', serif;
-    --font-display: 'Cinzel', serif;
-    --font-body: 'Cormorant Garamond', Georgia, serif;
-    /* Pantheon scores + sidebar card names (Morris Roman bundled in fonts-morris.css) */
-    --font-manuscript: 'Morris Roman', 'Cormorant Garamond', Georgia, serif;
-    --font-numeric: 'VT323', monospace;
+    --font-stack: 'Morris Roman', 'Cormorant Garamond', Georgia, serif;
+    --font-ui: var(--font-stack);
+    --font-display: var(--font-stack);
+    --font-body: var(--font-stack);
+    --font-manuscript: var(--font-stack);
+    --font-numeric: var(--font-stack);
+    /* Deity caption under pantheon tablets (Cinzel — separate from Morris category/score) */
+    --font-pantheon-caption: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+    /* Tooltips — Morris Roman, sized up for readability in small popovers */
+    --font-tooltip: var(--font-manuscript);
+    /* Gilt titles (tabs, info headers, tooltip names) — matches greek-theme --gk-gold-* */
+    --color-title: #f4d680;
+    --color-title-muted: #cda24c;
+    --color-title-on-light: #7d5a2e;
     /* ~12.5% above former 16px root; rem-based UI inherits this */
     --font-size-base: 18px;
     --type-scale: 1.125;

@@ -27,6 +27,9 @@
     "convert-music": "node scripts/convert-music-ogg.cjs",
     "build-dice-spritesheet": "node scripts/build-dice-spritesheet.cjs",
     "generate-sw-precache": "node scripts/generate-sw-precache.cjs",
+    "fix-shopfront-bg": "node scripts/remove-shopfront-black.cjs",
+    "process-artifacts-chest": "node scripts/process-artifacts-chest.cjs",
+    "trim-artifacts-chest": "node scripts/trim-artifacts-chest.cjs",
     "prebuild": "node scripts/build-dice-spritesheet.cjs && node scripts/generate-sw-precache.cjs",
     "type-check": "tsc --noEmit"
   },

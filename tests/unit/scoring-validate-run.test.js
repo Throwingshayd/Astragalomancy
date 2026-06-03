@@ -37,6 +37,17 @@ describe('ScoringEngine.validateRun wiring', () => {
         expect(engine).toContain('ensureLiveScore()?.schedulePreview');
     });
 
+    it('GameEngineTestModes extracted from GameEngine', () => {
+        const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
+        const modes = readFileSync('game/js/game/GameEngineTestModes.js', 'utf8');
+        const html = readFileSync('game/index.html', 'utf8');
+        expect(engine).toContain('GameEngineTestModes.applyFromUrl');
+        expect(engine).not.toContain('applyWinningHandsTestMode');
+        expect(modes).toContain('class GameEngineTestModes');
+        expect(modes).toContain('applyWinningHands');
+        expect(html.indexOf('GameEngineTestModes.js')).toBeLessThan(html.indexOf('GameEngine.js'));
+    });
+
     it('ScoringAnimation extracted from GameEngine', () => {
         const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
         const anim = readFileSync('game/js/ui/ScoringAnimation.js', 'utf8');

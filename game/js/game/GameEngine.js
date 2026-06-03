@@ -49,10 +49,6 @@ class GameEngine {
     }
 
     initializeGameState(seed) {
-        // Check for test mode in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const testMode = urlParams.get('test');
-        
         this.state = {
             /** Seed for determinism; stored for save/load (Balatro: G.GAME.pseudorandom.seed) */
             seed: seed || 'NEWRUN',
@@ -160,186 +156,11 @@ class GameEngine {
             /** Resume point: 'play' | 'shop' — where player was when saved */
             resumePhase: 'play'
         };
-        
-        // Apply test mode if enabled
-        if (testMode === 'highfaces') {
-            this.applyHighFacesTestMode();
-        }
-        if (testMode === 'seven_sided') {
-            this.applySevenSidedTestMode();
-        }
-        // Seed 42067: roll Yahtzee 1–9 in sequence to test dice mechanics
-        if (seed === '42067') {
-            this.applyYahtzeeTestMode();
-        }
-        if (testMode === 'winning') {
-            this.applyWinningHandsTestMode();
-            this.state.winningTestMode = true; // Skips mid-ante shop for playtests
+
+        if (typeof GameEngineTestModes !== 'undefined') {
+            GameEngineTestModes.applyFromUrl(this, seed);
         }
         this.updateMaxTurns();
-        // ?test=boon:boonid or ?test=boon:id1,id2 - inject boon(s) for playtesting
-        if (testMode && testMode.startsWith('boon:')) {
-            const boonIds = testMode.replace('boon:', '').trim().split(',').map(s => s.trim()).filter(Boolean);
-            boonIds.forEach(id => this.applyBoonTestMode(id));
-        }
-        // ?test=libation:libationid - inject libation for playtesting
-        if (testMode && testMode.startsWith('libation:')) {
-            const libId = testMode.replace('libation:', '').trim();
-            this.applyLibationTestMode(libId);
-        }
-        // ?enhance=iron (or parchment, gold) - add enhancements to dice for playtesting
-        const enhanceParam = urlParams.get('enhance');
-        if (enhanceParam) {
-            this.applyEnhancementTestMode(enhanceParam);
-        }
-    }
-
-    /**
-     * Test mode: Add enhancements to dice for playtesting (e.g. ?enhance=iron)
-     * @param {string} enhancement - 'iron', 'parchment', or 'gold'
-     */
-    applyEnhancementTestMode(enhancement) {
-        const valid = ['iron', 'parchment', 'gold'];
-        if (!valid.includes(enhancement)) return;
-        const dice = this.state.dice || [];
-        if (dice.length < 2) return;
-        dice[0].addFaceEnhancement(6, enhancement);
-        dice[1].addFaceEnhancement(5, enhancement);
-        if (dice.length >= 3) dice[2].addFaceEnhancement(4, enhancement);
-        if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Added ${enhancement} to dice faces 6,5,4`);
-    }
-
-    /**
-     * Test mode: Inject a boon for playtesting
-     * @param {string} boonId - e.g. 'hestias_hearth', 'the_gambler'
-     */
-    applyBoonTestMode(boonId) {
-        const boonData = typeof CardData !== 'undefined' && CardData.boons
-            ? CardData.boons.find(j => j.id === boonId)
-            : null;
-        if (!boonData) {
-            if (typeof Logger !== 'undefined') Logger.warn(`Test mode: Boon "${boonId}" not found`);
-            return;
-        }
-        const boon = new Boon(boonData);
-        this.state.boons.push(boon);
-        this.state.gold = Math.max(this.state.gold, 20); // Ensure enough gold for boons that cost per roll
-        if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected boon "${boonId}"`);
-    }
-
-    /**
-     * Test mode: Inject a libation for playtesting
-     * @param {string} libId - e.g. 'kyphi_mead', 'ambrosial_krasi'
-     */
-    applyLibationTestMode(libId) {
-        const libData = typeof CardData !== 'undefined' && CardData.libations
-            ? CardData.libations.find(l => l.id === libId)
-            : null;
-        if (!libData) {
-            if (typeof Logger !== 'undefined') Logger.warn(`Test mode: Libation "${libId}" not found`);
-            return;
-        }
-        const libation = new LibationCard(libData);
-        this.state.consumables.push(libation);
-        if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected libation "${libId}"`);
-    }
-    
-    /**
-     * Test mode: Set up dice with 7s, 8s, and 9s for testing
-     */
-    applyHighFacesTestMode() {
-        Logger.info('🧪 TEST MODE: High Faces (7s, 8s, 9s) enabled');
-        
-        // Unlock all high categories
-        this.state.unlockedCategories.Sevens = true;
-        this.state.unlockedCategories.Eights = true;
-        this.state.unlockedCategories.Nines = true;
-        
-        // Modify dice faces to have 7s, 8s, and 9s
-        // Die 1: Face 6 → 7
-        this.state.dice[0].faces[6].modifiedValue = 7;
-        Logger.debug('Die 1: Face 6 → 7');
-        
-        // Die 2: Face 6 → 8
-        this.state.dice[1].faces[6].modifiedValue = 8;
-        Logger.debug('Die 2: Face 6 → 8');
-        
-        // Die 3: Face 6 → 9
-        this.state.dice[2].faces[6].modifiedValue = 9;
-        Logger.debug('Die 3: Face 6 → 9');
-        
-        // Die 4: Face 5 → 7
-        this.state.dice[3].faces[5].modifiedValue = 7;
-        Logger.debug('Die 4: Face 5 → 7');
-        
-        // Die 5: Face 4 → 8
-        this.state.dice[4].faces[4].modifiedValue = 8;
-        Logger.debug('Die 5: Face 4 → 8');
-        
-        // Give extra gold for testing
-        this.state.gold = 50;
-        
-        Logger.info('✅ Test mode applied: Dice now have faces with values 7, 8, and 9');
-        Logger.info('📋 Test Setup:');
-        Logger.info('  - Die 1: Face 6 = 7');
-        Logger.info('  - Die 2: Face 6 = 8');
-        Logger.info('  - Die 3: Face 6 = 9');
-        Logger.info('  - Die 4: Face 5 = 7');
-        Logger.info('  - Die 5: Face 4 = 8');
-        Logger.info('  - Categories Sevens, Eights, Nines unlocked');
-        Logger.info('  - Starting gold: 50');
-    }
-
-    /**
-     * Test mode: 7-sided dice (bonus Yahtzee unlocked). First roll forced to [7,1,2,3,4].
-     * ?test=seven_sided
-     */
-    applySevenSidedTestMode() {
-        if (typeof Logger !== 'undefined') Logger.info('🧪 TEST MODE: 7-sided dice');
-        this.state.bonusYahtzees = 1;
-        this.state.unlockedCategories.Sevens = true;
-        this.state.forcedDiceValues = this.state.forcedDiceValues || {};
-        this.state.forcedDiceValues.sevenSidedFirstRoll = [7, 1, 2, 3, 4];
-    }
-
-    /**
-     * Test mode: Roll Yahtzee (all 5 same) for faces 1–9 to verify dice mechanics.
-     * Use seed 42067 + ?test=yahtzee in URL.
-     */
-    applyYahtzeeTestMode() {
-        if (typeof Logger !== 'undefined') Logger.info('🧪 TEST MODE: Yahtzee 1–9 — dice forced to [1,1,1,1,1] through [9,9,9,9,9]; 7/8/9 locked like normal');
-        this.state.forcedDiceValues = this.state.forcedDiceValues || {};
-        this.state.forcedDiceValues.winningSequence = [
-            [1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3], [4, 4, 4, 4, 4],
-            [5, 5, 5, 5, 5], [6, 6, 6, 6, 6], [7, 7, 7, 7, 7], [8, 8, 8, 8, 8], [9, 9, 9, 9, 9]
-        ];
-        this.state.winningTestMode = true;
-    }
-
-    /**
-     * Test mode: Force dice to produce valid hands for each category in order.
-     * Enables playtesting with guaranteed ante passes. ?test=winning
-     */
-    applyWinningHandsTestMode() {
-        if (typeof Logger !== 'undefined') Logger.info('🧪 TEST MODE: Winning Hands — dice forced to valid hands per turn');
-        this.state.forcedDiceValues = this.state.forcedDiceValues || {};
-        this.state.forcedDiceValues.winningSequence = [
-            [1, 2, 3, 4, 5],   // Chance (always valid)
-            [1, 1, 1, 1, 1],   // Ones
-            [2, 2, 2, 2, 2],   // Twos
-            [3, 3, 3, 3, 3],   // Threes
-            [4, 4, 4, 4, 4],   // Fours
-            [5, 5, 5, 5, 5],   // Fives
-            [6, 6, 6, 6, 6],   // Sixes
-            [2, 2, 2, 4, 5],   // Three of a Kind
-            [1, 2, 3, 4, 6],   // Small Straight
-            [3, 3, 3, 5, 5],   // Full House
-            [4, 4, 4, 4, 5],   // Four of a Kind
-            [1, 2, 3, 4, 5],   // Large Straight
-            [6, 6, 6, 6, 6]    // Yahtzee
-        ];
-        this.state.gold = Math.max(this.state.gold, 25);
-        if (typeof Logger !== 'undefined') Logger.info('  - 13 hands pre-set (Chance→Yahtzee), gold: 25');
     }
 
     setupEventListeners() {
@@ -462,7 +283,7 @@ class GameEngine {
             });
         }
         
-        // Shop corner Continue — ShopUI.attachShopEventListeners also rebinds on each openShop,
+        // Shop Continue — below Trial stone; ShopUI.attachShopEventListeners also rebinds on each openShop,
         // so this is a safety net for the initial bind.
         const continueBtn = document.getElementById('shopContinueBtn');
         if (continueBtn) {

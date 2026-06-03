@@ -1,6 +1,6 @@
 /**
  * Tooltip system — Balatro-inspired sizing, shape, and typography.
- * Fonts: --font-ui (IM Fell English SC), --font-numeric (VT323 die values).
+ * Fonts: Morris Roman (--font-tooltip); fixed px scale for legibility.
  * Loads last; hosts popovers in #tooltip-root.
  */
 
@@ -10,7 +10,7 @@
     pointer-events: none;
     z-index: 100000;
     /* Fixed type scale — not affected by html --font-size-base bump */
-    font-size: 12px;
+    font-size: 14px;
 }
 
 /* ── Shared shell (Balatro: ~6px radius, tight padding, soft shadow) ── */
@@ -18,9 +18,9 @@
     position: fixed;
     margin: 0;
     padding: 0;
-    font-family: var(--font-ui);
-    font-size: 12px;
-    line-height: 1.32;
+    font-family: var(--font-tooltip);
+    font-size: 14px;
+    line-height: 1.38;
     letter-spacing: 0.02em;
     border-radius: 6px;
     box-shadow: 0 5px 18px rgba(0, 0, 0, 0.28);
@@ -72,7 +72,7 @@
 }
 
 #tooltip-root .tooltip-inner {
-    padding: 7px 9px 8px;
+    padding: 9px 11px 10px;
 }
 
 /* ── Shop shelf only (pack products on rack — not .card wares/libations/boons) ── */
@@ -90,17 +90,17 @@
 }
 
 #tooltip-root .tooltip.tooltip-shop .tooltip-title {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: normal;
-    color: #141414 !important;
-    margin: 0 0 4px;
-    line-height: 1.2;
+    color: var(--color-title-on-light) !important;
+    margin: 0 0 5px;
+    line-height: 1.25;
     text-shadow: none;
 }
 
 #tooltip-root .tooltip.tooltip-shop .tooltip-effect {
-    font-size: 11px;
-    line-height: 1.35;
+    font-size: 14px;
+    line-height: 1.4;
     color: #4a4a4a !important;
     overflow-wrap: break-word;
     word-break: normal;
@@ -108,18 +108,18 @@
 }
 
 #tooltip-root .tooltip.tooltip-shop .tooltip-god {
-    margin-top: 5px;
-    padding-top: 5px;
+    margin-top: 6px;
+    padding-top: 6px;
     border-top: 1px solid rgba(0, 0, 0, 0.08);
-    font-size: 10px;
+    font-size: 12px;
     font-style: normal;
     color: #6a5a48 !important;
 }
 
 /* ── In-play cards: dark slate panel (Balatro run tooltip) ── */
 #tooltip-root .tooltip.tooltip-card:not(.tooltip-shop) {
-    min-width: 148px;
-    max-width: min(220px, calc(100vw - 24px));
+    min-width: 168px;
+    max-width: min(280px, calc(100vw - 24px));
     background: linear-gradient(180deg, #3d4f56 0%, #2e3d42 100%);
     color: #e8eef0;
     border: 2px solid #5a6d74;
@@ -134,31 +134,31 @@
 }
 
 #tooltip-root .tooltip.tooltip-card:not(.tooltip-shop) .tooltip-title {
-    font-size: 14px;
-    color: #ffe566;
-    margin: 0 0 5px;
+    font-size: 17px;
+    color: var(--color-title);
+    margin: 0 0 6px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 #tooltip-root .tooltip.tooltip-card:not(.tooltip-shop) .tooltip-effect {
-    font-size: 11px;
+    font-size: 14px;
     color: #c5d4d8;
-    line-height: 1.38;
+    line-height: 1.42;
 }
 
 #tooltip-root .tooltip.tooltip-card:not(.tooltip-shop) .tooltip-god {
-    margin-top: 6px;
-    padding-top: 6px;
+    margin-top: 7px;
+    padding-top: 7px;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
-    font-size: 10px;
+    font-size: 12px;
     color: #9eb5bc;
     font-style: normal;
 }
 
 /* Generic (artifacts etc.) — same dark panel */
 #tooltip-root .tooltip:not(.tooltip-shop):not(.tooltip-card):not(.tooltip-die-popup) {
-    min-width: 148px;
-    max-width: min(220px, calc(100vw - 24px));
+    min-width: 168px;
+    max-width: min(280px, calc(100vw - 24px));
     background: linear-gradient(180deg, #3d4f56 0%, #2e3d42 100%);
     color: #e8eef0;
     border: 2px solid #5a6d74;
@@ -170,24 +170,24 @@
 }
 
 #tooltip-root .tooltip:not(.tooltip-shop):not(.tooltip-card):not(.tooltip-die-popup) .tooltip-title {
-    font-size: 14px;
-    color: #ffe566;
-    margin: 0 0 5px;
+    font-size: 17px;
+    color: var(--color-title);
+    margin: 0 0 6px;
 }
 
 #tooltip-root .tooltip:not(.tooltip-shop):not(.tooltip-card):not(.tooltip-die-popup) .tooltip-effect {
-    font-size: 11px;
+    font-size: 14px;
     color: #c5d4d8;
 }
 
 #tooltip-root .tooltip-title {
-    font-family: var(--font-ui);
+    font-family: var(--font-tooltip);
     font-weight: normal;
 }
 
 #tooltip-root .tooltip-effect,
 #tooltip-root .tooltip-god {
-    font-family: var(--font-ui);
+    font-family: var(--font-tooltip);
 }
 
 /* ── Die: narrow column aligned to die (~95px + small pad) ── */
@@ -204,7 +204,7 @@
 }
 
 #tooltip-root .tooltip-die-popup .tooltip-inner {
-    padding: 6px 8px 7px;
+    padding: 8px 10px 9px;
 }
 
 #tooltip-root .tip-die {
@@ -217,8 +217,8 @@
     margin: 0;
     align-self: stretch;
     text-align: center;
-    font-family: var(--font-ui), sans-serif;
-    font-size: 10px;
+    font-family: var(--font-tooltip), sans-serif;
+    font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     line-height: 1.2;
@@ -244,8 +244,8 @@
 
 #tooltip-root .tip-die-face {
     margin: 0;
-    font-family: var(--font-ui), sans-serif;
-    font-size: 11px;
+    font-family: var(--font-tooltip), sans-serif;
+    font-size: 13px;
     line-height: 1.3;
     color: #141414;
     text-align: center;
@@ -255,8 +255,8 @@
 
 #tooltip-root .tip-die-note {
     margin: 0;
-    font-family: var(--font-ui), sans-serif;
-    font-size: 9px;
+    font-family: var(--font-tooltip), sans-serif;
+    font-size: 11px;
     line-height: 1.3;
     color: #6a5a48;
 }
@@ -271,8 +271,8 @@
 #tooltip-root .tip-die-enh {
     padding: 2px 0 2px 7px;
     border-left: 2px solid var(--enh-color, #5a6d74);
-    font-family: var(--font-ui), sans-serif;
-    font-size: 9px;
+    font-family: var(--font-tooltip), sans-serif;
+    font-size: 11px;
     line-height: 1.35;
     color: #444;
     overflow-wrap: break-word;
@@ -286,7 +286,7 @@
 #tooltip-root .tip-die-enh-name {
     display: block;
     color: #141414;
-    font-size: 10px;
+    font-size: 12px;
 }
 
 #tooltip-root .tip-die-enh-desc {
@@ -296,8 +296,8 @@
 }
 
 #tooltip-root .tip-die-footer {
-    font-family: var(--font-ui), sans-serif;
-    font-size: 10px;
+    font-family: var(--font-tooltip), sans-serif;
+    font-size: 12px;
     color: #555;
     padding-top: 5px;
     border-top: 1px solid rgba(0, 0, 0, 0.08);
@@ -328,7 +328,7 @@
 }
 
 .balatro-enhancement-modal .enhancement-title {
-    font-family: var(--font-ui);
+    font-family: var(--font-tooltip);
     font-size: 1.35rem;
     font-weight: normal;
     color: #ffe566;
@@ -337,7 +337,7 @@
 }
 
 .balatro-enhancement-modal .enhancement-name {
-    font-family: var(--font-ui);
+    font-family: var(--font-tooltip);
     font-size: 1rem;
     color: #c5d4d8;
     font-weight: normal;
@@ -345,14 +345,14 @@
 }
 
 .balatro-enhancement-modal .enhancement-description {
-    font-family: var(--font-ui);
+    font-family: var(--font-tooltip);
     font-size: 0.95rem;
     color: #9eb5bc;
     font-style: normal;
 }
 
 .balatro-enhancement-modal .enhancement-instruction {
-    font-family: var(--font-ui);
+    font-family: var(--font-tooltip);
     font-size: 0.95rem;
     color: #c5d4d8;
     text-shadow: none;

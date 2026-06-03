@@ -118,13 +118,16 @@ const AssetMapping = {
 
     // UI Assets (reserved for future getUIAsset use; paths must exist under public/ART)
     ui: {
-        'diceTable': 'dice table.png',
+        'diceTable': 'game-board.png',
         'rollButton': 'roll button.png',
         'title': 'Title art.png',
         'inGameTitle': 'in game title.png',
         'columnScroll': 'column scroll new.png',
-        'shopfront': 'shopfront new (1).png',
-        'artifactUndecided': 'artifact undecided.png'
+        'shopfront': 'shopfront-boons-libations.png',
+        'artifactsChestClosed': 'artifacts-chest-closed.png',
+        'artifactsChestOpen': 'artifacts-chest-open.png',
+        'playStelaPillar': 'play-stela-pillar.png',
+        'pantheonFrieze': 'pantheon-frieze.png',
     },
 
     // Helper function to get asset path for a card
