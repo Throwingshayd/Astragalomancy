@@ -2,7 +2,7 @@
   "name": "Dice of Dionysus",
   "short_name": "Dice of Dionysus",
   "description": "An elegant dice strategy game of pips, favour, and devotion",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "start_url": "./",
   "display": "standalone",
   "orientation": "landscape",
