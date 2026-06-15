@@ -22,18 +22,7 @@ const BoonTimingHandlers = {
             
             
             case 'pandoras_jar':
-                // Every 3rd turn, randomly destroy a Boon and gain +2 Favour (stacking)
-                if (gameState.turn % 3 === 0 && gameState.boons && gameState.boons.length > 1) {
-                    // Stack favour on the boon itself
-                    if (!boon.pandoraFavourStacks) {
-                        boon.pandoraFavourStacks = 0;
-                    }
-                    boon.pandoraFavourStacks += 2;
-                    window.game?.showMessage?.("Pandora's Jar: +2 Favour (stacking)! Boon will be destroyed.");
-                    // Destruction handled in turn_start
-                }
-                
-                // Apply accumulated stacks
+                // Apply permanent stacks (gained once per interval in turn_start — not here)
                 if (boon.pandoraFavourStacks > 0) {
                     result.favour += boon.pandoraFavourStacks;
                     boon.dynamicStats.favour = boon.pandoraFavourStacks;

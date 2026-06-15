@@ -19,8 +19,15 @@ class ScoringAnimation {
             // Fallback if no Gnosis display
             if (scoreDisplay) scoreDisplay.innerHTML = finalScore;
             if (targetCategory && targetCategory !== category) {
-                this.engine.state.scorecard[targetCategory] = finalScore;
-                this.engine.state.scorecard[category] = 0;
+                if (typeof DevotionUtils !== 'undefined') {
+                    DevotionUtils.applyPantheonScore(this.engine.state, targetCategory, finalScore);
+                    DevotionUtils.applyPantheonScore(this.engine.state, category, 0);
+                } else {
+                    this.engine.state.scorecard[targetCategory] = finalScore;
+                    this.engine.state.scorecard[category] = 0;
+                }
+            } else if (typeof DevotionUtils !== 'undefined') {
+                DevotionUtils.applyPantheonScore(this.engine.state, category, finalScore);
             } else {
                 this.engine.state.scorecard[category] = finalScore;
             }
@@ -57,8 +64,8 @@ class ScoringAnimation {
         const god = this.engine.getGodForCategory(category);
         const basePips = this.calculateBasePips(category);
         const worshipLevel = god ? (this.engine.state.worshipLevels?.[god] || 0) : 0;
-        // Category base favour = 1 + worship level (matches ScoringEngine pipeline)
-        const categoryBaseFavour = 1 + worshipLevel;
+        const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 0.25;
+        const categoryBaseFavour = 1 + worshipLevel * perLevel;
         const diceContributions = this.getDiceContributions(category);
         const boonContributions = this.getBoonContributions(category, basePips, categoryBaseFavour);
         const up = (o) => this.engine.ensureLiveScore()?.updateValues(liveScoreEl, { ...o, category: categoryLabel, pipsLabel: 'pips', favourLabel: 'favour', showNa: false });
@@ -168,8 +175,15 @@ class ScoringAnimation {
                 // Step 4: Update game state (Parmenides: store in target, mark source used)
                 const storeCategory = targetCategory || category;
                 if (storeCategory !== category) {
-                    this.engine.state.scorecard[storeCategory] = finalScore;
-                    this.engine.state.scorecard[category] = 0;
+                    if (typeof DevotionUtils !== 'undefined') {
+                        DevotionUtils.applyPantheonScore(this.engine.state, storeCategory, finalScore);
+                        DevotionUtils.applyPantheonScore(this.engine.state, category, 0);
+                    } else {
+                        this.engine.state.scorecard[storeCategory] = finalScore;
+                        this.engine.state.scorecard[category] = 0;
+                    }
+                } else if (typeof DevotionUtils !== 'undefined') {
+                    DevotionUtils.applyPantheonScore(this.engine.state, category, finalScore);
                 } else {
                     this.engine.state.scorecard[category] = finalScore;
                 }

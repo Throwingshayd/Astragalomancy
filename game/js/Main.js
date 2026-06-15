@@ -351,6 +351,8 @@ class App {
         }
         
         if (this.soundManager) {
+            const seed = this.game?.state?.seed ?? 'NEWRUN';
+            this.soundManager.initRunDeck(seed);
             this.soundManager.startOnInteraction();
         }
         

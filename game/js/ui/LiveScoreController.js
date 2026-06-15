@@ -94,7 +94,9 @@ class LiveScoreController {
             if (row) window.juiceManager.cancelJuice(row);
         }
 
-        const slotFilled = !!(category && e.state.scorecard[category] !== undefined);
+        const slotFilled = !!(category && typeof DevotionUtils !== 'undefined'
+            ? !DevotionUtils.canScoreCategory(e.state, category)
+            : e.state.scorecard[category] !== undefined);
         const gnosis = typeof GnosisDisplay !== 'undefined' ? GnosisDisplay : null;
 
         if (!category || !e.state.hasRolled) {
@@ -121,7 +123,9 @@ class LiveScoreController {
         if (!isValid) {
             const counts = gnosis ? gnosis.getFacesAndCounts(e.state).counts : {};
             this.updateValues(el, {
-                category: e.getLiveOfferingTitle(category, e.state.scorecard[category] !== undefined),
+                category: e.getLiveOfferingTitle(category, typeof DevotionUtils !== 'undefined'
+                    ? !DevotionUtils.canScoreCategory(e.state, category)
+                    : e.state.scorecard[category] !== undefined),
                 pipsLabel: gnosis ? gnosis.formatPipsLabel(category, e.state, counts) : 'pips',
                 showNa: true,
             });
@@ -134,7 +138,9 @@ class LiveScoreController {
             ? gnosis.buildPreviewSplit(category, e.state, { pips, isValid })
             : { dicePips: pips, extraPips: 0, pipsLabel: 'pips', counts: {} };
 
-        const isScored = e.state.scorecard[category] !== undefined;
+        const isScored = typeof DevotionUtils !== 'undefined'
+            ? !DevotionUtils.canScoreCategory(e.state, category)
+            : e.state.scorecard[category] !== undefined;
         this.updateValues(el, {
             category: e.getLiveOfferingTitle(category, isScored),
             pips: String(split.dicePips),
@@ -185,6 +191,9 @@ class LiveScoreController {
             if (opts.pantheonTotal != null) {
                 e.state.scorecard = {};
                 e.state.totalScore = 0;
+                if (typeof DevotionUtils !== 'undefined') {
+                    DevotionUtils.resetTrialDevotion(e.state);
+                }
             }
             this._cashoutInProgress = false;
             e.state.transitioningToShop = false;

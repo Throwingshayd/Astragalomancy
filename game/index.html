@@ -148,15 +148,15 @@
 
                     <!-- Score on felt (top rim): Total left · Required right -->
                     <div class="felt-label felt-score-felt felt-stone-total" id="gnosisScorePanel" data-felt="total">
-                        <span class="felt-label-name">Total</span>
+                        <span class="felt-label-name felt-epic-title">Total</span>
                         <span class="felt-label-value" id="totalScore">0</span>
                     </div>
                     <div class="felt-label felt-score-felt felt-stone-required" data-felt="threshold">
-                        <span class="felt-label-name">Required</span>
+                        <span class="felt-label-name felt-epic-title">Required</span>
                         <span class="felt-label-value" id="scoreThresholdDisplay">500</span>
                     </div>
 
-                    <!-- Live score: printed on felt, under the dice -->
+                    <!-- Live score: printed on felt, above the dice -->
                     <div id="liveScoreDisplay" class="live-score-display felt-live visible" data-live-root>
                         <span class="gnosis-category-name" data-live="category">Offering</span>
                         <div class="gnosis-cashout-content hidden" id="liveCashoutContent" aria-live="polite">
@@ -170,6 +170,7 @@
                                 </span>
                                 <span class="gnosis-pips-bonus" data-live="pips-label">pips</span>
                             </span>
+                            <span class="gnosis-times multiply-symbol" aria-hidden="true">⇌</span>
                             <span class="favour-cell live-metric-cell">
                                 <span class="favour-line">
                                     <span class="favour" data-live="favour">0</span>
@@ -300,6 +301,7 @@
     <script defer src="js/utils/seededRNG.js"></script>
     <script defer src="js/utils/DieFaceUtils.js"></script>
     <script defer src="js/utils/NumberFormat.js"></script>
+    <script defer src="js/utils/DevotionUtils.js"></script>
     <script defer src="js/utils/Logger.js"></script>
     <script defer src="js/utils/PlaytestRecorder.js"></script>
     <script defer src="js/utils/dataManager.js"></script>
@@ -346,6 +348,7 @@
     <script defer src="js/ui/UIManager.js"></script>
     <script defer src="js/ui/CollectionManager.js"></script>
     <script defer src="js/ui/BalatroEffects.js"></script>
+    <script defer src="js/data/musicPool.js"></script>
     <script defer src="js/ui/SoundManager.js"></script>
     <script defer src="js/ui/JuiceIntegration.js"></script>
     <script defer src="js/ui/SettingsOverlay.js"></script>

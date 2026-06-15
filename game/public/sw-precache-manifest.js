@@ -11,6 +11,7 @@ self.__SW_PRECACHE_ASSETS = [
   "/ART/Music/lute 3 w effects.ogg",
   "/ART/Music/lute 4 w effects.ogg",
   "/ART/Music/lute 5 w effects.ogg",
+  "/ART/Music/phi/manifest.json",
   "/ART/Picture1.png",
   "/ART/Title art.png",
   "/ART/achiles heel.png",

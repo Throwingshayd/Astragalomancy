@@ -33,6 +33,9 @@ const ScoringEngine = {
         if (['Sevens', 'Eights', 'Nines'].includes(category) && !state.unlockedCategories?.[category]) {
             return { ok: false, reason: 'locked' };
         }
+        if (typeof DevotionUtils !== 'undefined' && !DevotionUtils.canScoreCategory(state, category)) {
+            return { ok: false, reason: 'devotion_full' };
+        }
         return { ok: true };
     },
 
@@ -94,23 +97,24 @@ const ScoringEngine = {
         });
 
         const context = this.buildContext(state);
-        const { pips: basePips, isValid } = this.evaluateCategory(category, faces, counts, context);
+        const evalCategory = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.getEvalCategory(state, category)
+            : category;
+        const { pips: basePips, isValid } = this.evaluateCategory(evalCategory, faces, counts, context);
 
         let favour = 1;
-        const god = GOD_TO_CATEGORY[category];
+        const god = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.getGodForCategory(state, category)
+            : GOD_TO_CATEGORY[category];
+        const pipCategory = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.getPipCategory(state, category)
+            : category;
         // Worship bonus (pips + mult) only applies on non-zero dice entries; boons apply even on scratch
         const hasValidDiceScore = basePips > 0;
         if (hasValidDiceScore) {
             if (god && state.worshipLevels && state.worshipLevels[god]) {
-                favour += state.worshipLevels[god];
-            }
-            if (state.consumables && Array.isArray(state.consumables)) {
-                state.consumables.forEach((c) => {
-                    if (c && typeof c.applyBasicWorshipEffect === 'function') {
-                        const res = c.applyBasicWorshipEffect(state, { category, pips: basePips, favour });
-                        favour = res.favour;
-                    }
-                });
+                const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 0.25;
+                favour += state.worshipLevels[god] * perLevel;
             }
         }
 
@@ -120,7 +124,7 @@ const ScoringEngine = {
         // Balatro-style: add pips per worship level — only on non-zero dice score
         if (hasValidDiceScore) {
             const worshipLevel = (god && state.worshipLevels && state.worshipLevels[god]) ? state.worshipLevels[god] : 0;
-            const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[category]) || 0;
+            const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[pipCategory]) || 0;
             pips += worshipLevel * pipsPerLevel;
         }
 

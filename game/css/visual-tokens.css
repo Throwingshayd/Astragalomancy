@@ -12,8 +12,10 @@
     --font-body: var(--font-stack);
     --font-manuscript: var(--font-stack);
     --font-numeric: var(--font-stack);
-    /* Deity caption under pantheon tablets (Cinzel — separate from Morris category/score) */
-    --font-pantheon-caption: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+    /* Cinzel — epic felt titles, stone labels, pantheon hand names */
+    --font-epic-title: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+    --font-pantheon-hand: var(--font-epic-title);
+    --font-pantheon-caption: var(--font-epic-title);
     /* Tooltips — Morris Roman, sized up for readability in small popovers */
     --font-tooltip: var(--font-manuscript);
     /* Gilt titles (tabs, info headers, tooltip names) — matches greek-theme --gk-gold-* */

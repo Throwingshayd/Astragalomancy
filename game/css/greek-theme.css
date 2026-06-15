@@ -34,7 +34,12 @@
     /* Layout — main-game coordinate system (stones, pantheon, felt) */
     --felt-die-size: 95px;
     --felt-stone-w: 160px;
-    --felt-stone-h: 64px;
+    --felt-stone-h: 72px;
+    /* Felt HUD — marble wax tablets (same family as pantheon frieze) */
+    --felt-panel-marble: linear-gradient(180deg, #fffdf6 0%, #f4ebd6 55%, #e6d8bc 100%);
+    --felt-panel-border: var(--gk-gold-2);
+    --felt-panel-ink: var(--gk-ink);
+    --felt-panel-label: var(--gk-bronze);
     --layout-center-game-top: 260px;
     --layout-pantheon-top: -10px;
     --layout-center-left: 260px;
@@ -88,7 +93,7 @@
     background-color: transparent;
     background-image: url("/ART/game-board.png");
     background-size: contain;
-    background-position: center center;
+    background-position: center calc(50% + var(--felt-game-board-offset-y, 18px));
     background-repeat: no-repeat;
     opacity: 1;
     filter: brightness(1.18) contrast(1.06) saturate(1.08);
@@ -232,11 +237,11 @@
 
 .main-game .pantheon-frieze .pantheon-chip .pantheon-cat {
     color: var(--gk-ink);
-    font-family: var(--font-manuscript);
-    font-size: 18px;
-    font-weight: normal;
+    font-family: var(--font-pantheon-hand);
+    font-size: 17px;
+    font-weight: 600;
     line-height: 1.22;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.05em;
     margin-top: 8px;
     text-shadow: none;
     -webkit-font-smoothing: antialiased;
@@ -420,50 +425,136 @@
     display: none !important;
 }
 
-/* ── 6. STONES — carved marble medallions (rolls / trial / gold / turn only) ─ */
+/* ── 6. FELT HUD PANELS — marble wax tablets w/ gold meander (rolls / trial / gold / turn + total / required) ─ */
+.center-game-area .felt-stone:not(.felt-score-felt),
+.center-game-area .felt-score-felt {
+    position: absolute;
+    overflow: hidden;
+    isolation: isolate;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    border-radius: 12px;
+    border: 2px solid var(--felt-panel-border);
+    background:
+        radial-gradient(ellipse 120% 85% at 50% 0%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 58%),
+        var(--felt-panel-marble);
+    box-shadow:
+        inset 0 1px 0 #fffef8,
+        inset 0 -14px 22px rgba(107, 75, 48, 0.11),
+        0 2px 0 rgba(90, 62, 36, 0.4),
+        0 5px 14px rgba(0, 0, 0, 0.34);
+}
+
 .center-game-area .felt-stone:not(.felt-score-felt) {
     width: var(--felt-stone-w, 160px);
     min-width: var(--felt-stone-w, 160px);
     max-width: var(--felt-stone-w, 160px);
-    height: var(--felt-stone-h, 64px);
-    min-height: var(--felt-stone-h, 64px);
-    max-height: var(--felt-stone-h, 64px);
-    box-sizing: border-box;
-    flex-shrink: 0;
-    background:
-        radial-gradient(120% 120% at 30% 18%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 45%),
-        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%);
-    border: 2px solid var(--gk-gold-2);
-    border-radius: 14px;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        0 4px 12px rgba(0, 0, 0, 0.4);
+    height: var(--felt-stone-h, 72px);
+    min-height: var(--felt-stone-h, 72px);
+    max-height: var(--felt-stone-h, 72px);
+    padding: 16px 12px 14px;
 }
+
+.center-game-area .felt-score-felt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 148px;
+    max-width: min(220px, 28vw);
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding: 14px 16px 13px;
+    pointer-events: none;
+    z-index: 14;
+}
+
+/* Gold meander frieze — top band */
+.center-game-area .felt-stone:not(.felt-score-felt)::before,
+.center-game-area .felt-score-felt::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 5px;
+    height: 11px;
+    background-image: var(--gk-meander-h);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: auto 11px;
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Gold meander frieze — bottom band (gold stone ::after becomes SELL badge while dragging) */
+.center-game-area .felt-stone:not(.felt-score-felt)::after,
+.center-game-area .felt-score-felt::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 5px;
+    height: 11px;
+    background-image: var(--gk-meander-h);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: auto 11px;
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.center-game-area .felt-stone:not(.felt-score-felt) > *,
+.center-game-area .felt-score-felt > * {
+    position: relative;
+    z-index: 1;
+}
+
 .center-game-area .felt-stone:not(.felt-score-felt) .felt-stone-label {
-    color: var(--gk-ink-soft);
+    font-family: var(--font-epic-title);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--felt-panel-label);
+    opacity: 1;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
+
 .center-game-area .felt-stone:not(.felt-score-felt) .felt-stone-value,
 .center-game-area .felt-stone-rolls .felt-stone-value,
 .center-game-area .felt-stone-rolls .rolls-left,
 .center-game-area .felt-stone-gold .felt-stone-value {
-    color: var(--gk-ink);
+    font-family: var(--font-manuscript);
+    font-weight: normal;
+    color: var(--felt-panel-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+/* Total + Required — engraved plaque titles */
+.center-game-area .felt-score-felt .felt-epic-title {
+    display: block;
+    margin-bottom: 2px;
+    padding-top: 6px;
+    font-family: var(--font-epic-title);
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--felt-panel-label);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
-/* Total + Required — gold manuscript on felt (matches live gnosis row) */
-.center-game-area .felt-score-felt .felt-label-name {
-    font-family: var(--font-manuscript);
-    color: rgba(245, 230, 211, 0.9);
-    letter-spacing: 0.1em;
-}
-
 .center-game-area .felt-score-felt .felt-label-value {
-    font-family: var(--font-ui), sans-serif;
-    color: var(--gk-gold-1);
-    text-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.4),
-        0 2px 8px rgba(0, 0, 0, 0.5),
-        0 0 14px rgba(244, 214, 128, 0.22);
+    font-family: var(--font-manuscript);
+    font-weight: normal;
+    font-size: 38px;
+    line-height: 1;
+    color: var(--felt-panel-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
 }
 
 /* ============================================================================
@@ -515,9 +606,10 @@
 
 /* Live score reads clearly on dark felt. */
 .center-game-area .live-score-display.felt-live .gnosis-category-name {
-    font-family: var(--font-manuscript);
+    font-family: var(--font-pantheon-hand);
+    font-weight: 600;
     color: var(--gk-gold-1);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
 }
 
 .center-game-area .live-score-display.felt-live .pips {
@@ -565,9 +657,29 @@
 }
 
 .main-game.consumable-drag-active .felt-stone-gold::after {
-    background: linear-gradient(180deg, var(--gk-gold-1) 0%, var(--gk-gold-2) 100%);
-    color: var(--gk-ink);
+    content: "SELL";
+    position: absolute;
+    left: 50%;
+    top: -32px;
+    bottom: auto;
+    right: auto;
+    width: auto;
+    height: auto;
+    transform: translateX(-50%);
+    font-family: var(--font-display), var(--font-ui), serif;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #2a1a06;
+    padding: 5px 14px;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, #ffe79a 0%, #f3c64b 100%);
+    background-image: linear-gradient(180deg, #ffe79a 0%, #f3c64b 100%);
     border: 1px solid var(--gk-gold-3);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 4;
 }
 
 .main-game.consumable-drag-active.drag-type-libation-enhancer .pantheon-frieze,
@@ -645,9 +757,12 @@
 }
 
 .main-game .center-game-area .felt-stone:not(.felt-score-felt),
-.main-game .center-game-area .felt-score-felt,
-.main-game .center-game-area .live-score-display.felt-live {
+.main-game .center-game-area .felt-score-felt {
     z-index: 14;
+}
+
+.main-game .center-game-area .live-score-display.felt-live {
+    z-index: 22;
 }
 
 
@@ -796,24 +911,6 @@
     text-shadow: 0 0 8px rgba(255, 215, 120, 0.65);
 }
 
-.main-game.consumable-drag-active .felt-stone-gold::after {
-    content: "SELL";
-    position: absolute;
-    left: 50%;
-    top: -32px;
-    transform: translateX(-50%);
-    font-family: var(--font-display), var(--font-ui), serif;
-    font-size: 17px;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    color: #2a1a06;
-    padding: 5px 14px;
-    border-radius: 9999px;
-    background: linear-gradient(180deg, #ffe79a 0%, #f3c64b 100%);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-    opacity: 0.85;
-    pointer-events: none;
-}
 .main-game.consumable-drag-active .felt-stone-gold.drop-target-sell::after {
     opacity: 1;
     transform: translateX(-50%) scale(1.1);

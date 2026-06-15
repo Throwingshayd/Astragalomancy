@@ -29,7 +29,10 @@ describe('Greek theme wiring', () => {
         expect(tokens).toContain('--color-title:');
         expect(fonts).toContain("font-family: 'Morris Roman'");
         expect(fonts).toContain('/fonts/MorrisRoman-Black.ttf');
-        expect(styles).toMatch(/\.pantheon-frieze \.pantheon-chip[\s\S]*font-family: var\(--font-manuscript\)/);
+        expect(tokens).toContain('--font-epic-title');
+        expect(tokens).toContain('--font-pantheon-hand');
+        expect(styles).toMatch(/\.pantheon-frieze \.pantheon-chip[\s\S]*font-family: var\(--font-pantheon-hand\)/);
+        expect(css).toContain('felt-epic-title');
         expect(css).toContain('var(--gk-marble-1)');
         expect(css).toContain('CONSUMABLES');
         expect(css).toContain('BOONS');

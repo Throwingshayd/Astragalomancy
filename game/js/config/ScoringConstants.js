@@ -30,14 +30,33 @@ const LOWER_SECTION_BONUSES = {
 };
 
 /**
- * Balatro-style: pips and mult added per worship level (planet card equivalent)
- * Each level adds these to the category's base
+ * Favour added per worship level when scoring that god's category (offered on pantheon).
+ */
+const WORSHIP_FAVOUR_PER_LEVEL = 0.25;
+
+/** Gold when a held worship card's matching category is scored (offering = pantheon level-up). */
+const WORSHIP_HELD_GOLD_PER_SCORE = 1;
+
+/** Default times each pantheon row may be scored per trial. */
+const DEVOTION_BASE_CAPACITY = 1;
+
+/** Trials a worship card must be held to become Ascended Devotion. */
+const DEVOTION_TRIALS_TO_ASCEND = 3;
+
+/**
+ * Pips added per worship level when scoring that category.
+ * Upper (Ones–Nines): face value per level. Lower: half of LOWER_SECTION_BONUSES (floor).
  */
 const CATEGORY_PIPS_PER_LEVEL = {
-    'Ones': 5, 'Twos': 5, 'Threes': 5, 'Fours': 5, 'Fives': 5, 'Sixes': 5,
-    'Sevens': 10, 'Eights': 10, 'Nines': 15,
-    'Three of a Kind': 10, 'Four of a Kind': 15, 'Full House': 15,
-    'Small Straight': 15, 'Large Straight': 25, 'Yahtzee': 25, 'Chance': 10
+    'Ones': 1, 'Twos': 2, 'Threes': 3, 'Fours': 4, 'Fives': 5, 'Sixes': 6,
+    'Sevens': 7, 'Eights': 8, 'Nines': 9,
+    'Three of a Kind': 7,
+    'Small Straight': 10,
+    'Full House': 12,
+    'Four of a Kind': 15,
+    'Large Straight': 20,
+    'Yahtzee': 25,
+    'Chance': 0
 };
 
 /**
@@ -88,6 +107,10 @@ if (typeof module !== 'undefined' && module.exports) {
         BASE_SCORES,
         LOWER_SECTION_BONUSES,
         CATEGORY_PIPS_PER_LEVEL,
+        WORSHIP_FAVOUR_PER_LEVEL,
+        WORSHIP_HELD_GOLD_PER_SCORE,
+        DEVOTION_BASE_CAPACITY,
+        DEVOTION_TRIALS_TO_ASCEND,
         SCORING_THRESHOLDS,
         ENHANCEMENT_BONUSES,
         CATEGORY_TO_NUMBER

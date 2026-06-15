@@ -1,9 +1,30 @@
 /**
- * SoundManager — SFX and context music (game/public/ART/Music/)
- * Context-based tracks with smooth crossfade. music1=play, music2=pack, music4=shop, music5=boss
+ * SoundManager — SFX + roguelike run soundtrack (game/public/ART/Music/)
+ *
+ * Music: seeded deck shuffle per run (MUSIC_POOL in musicPool.js). No stage/event
+ * gating. Light slowdown, random entry, stoa reverb (forward playback).
  */
-/** Track ID → project music file (game/public/ART/Music/) */
-const MUSIC_TRACKS = {
+/* global MUSIC_POOL, MUSIC_TRACKS, SeededRNG, Logger */
+
+/** Slight slowdown (was 0.606 Balatro); higher = clearer, less mud */
+const MUSIC_BASE_PLAYBACK_RATE = 0.8;
+const MUSIC_RUN_RATE_SPREAD = 0.03;
+const MUSIC_PLAY_RATE_JITTER = 0.015;
+
+/** Dry/wet mix for music convolver */
+const MUSIC_REVERB_DRY = 0.95;
+const MUSIC_REVERB_WET = 0.05;
+
+const MUSIC_PRE_LP_HZ = 4800;
+const MUSIC_PRE_LP_Q = 0.28;
+
+const MUSIC_MASTER_LP_HZ = 4200;
+const MUSIC_MASTER_LP_Q = 0.28;
+const MUSIC_MASTER_BODY_HZ = 400;
+const MUSIC_MASTER_BODY_DB = 0.8;
+const MUSIC_MASTER_BODY_Q = 1;
+
+const LEGACY_MUSIC_TRACKS = {
     music1: 'ART/Music/lute 1 effects.ogg',
     music2: 'ART/Music/lute 2 w effects.ogg',
     music3: 'ART/Music/lute 3 w effects.ogg',
@@ -11,24 +32,10 @@ const MUSIC_TRACKS = {
     music5: 'ART/Music/lute 5 w effects.ogg'
 };
 
-/** Dry/wet mix for music convolver — lower wet = clearer, less smear (tracks already have “w effects”) */
-const MUSIC_REVERB_DRY = 0.94;
-const MUSIC_REVERB_WET = 0.06;
-
-/** Pre-reverb tone: roll off highs before convolver (wet path adds air back) */
-const MUSIC_PRE_LP_HZ = 3000;
-const MUSIC_PRE_LP_Q = 0.28;
-
-/** Master chain after dry+wet sum: darker ceiling so music sits back in the mix */
-const MUSIC_MASTER_LP_HZ = 2200;
-const MUSIC_MASTER_LP_Q = 0.32;
-const MUSIC_MASTER_BODY_HZ = 400;
-const MUSIC_MASTER_BODY_DB = 2.2;
-const MUSIC_MASTER_BODY_Q = 1;
+const FALLBACK_POOL = ['music1', 'music2', 'music3', 'music4', 'music5'];
 
 class SoundManager {
     constructor() {
-        // Prefer Vite-served root paths; secondary path supports legacy static fallback.
         this._sfxBaseCandidates = ['sounds/', 'public/sounds/'];
         this._musicPrefixCandidates = ['', 'public/'];
         this._resolvedSfxBase = null;
@@ -41,23 +48,70 @@ class SoundManager {
         this._initialized = false;
         this._musicPlaying = false;
         this.musicSource = null;
-        this._musicSourceGain = null; // Per-source gain for crossfade
+        this._musicSourceGain = null;
         this._reverbIR = null;
-        this._crossfadeDuration = 0.5;
-        /** Context → track (Balatro mapping) */
-        this.contextToTrack = {
-            play: 'music1',
-            shop: 'music4',
-            pack: 'music2',
-            boss: 'music5'
-        };
-        this._currentContext = 'play';
         this._musicLoadFailCount = 0;
-        /** Per-source graph connects here → aquatic master → musicGain → destination */
         this._musicMasterIn = null;
+
+        /** Roguelike deck state */
+        this._deckSeed = null;
+        this._musicRng = null;
+        this._deck = [];
+        this._lastTrackId = null;
+        this._runPlaybackRate = MUSIC_BASE_PLAYBACK_RATE;
     }
 
-    /** Lazy init - create AudioContext on first use (requires user gesture) */
+    _tracks() {
+        return (typeof MUSIC_TRACKS !== 'undefined' && MUSIC_TRACKS) || LEGACY_MUSIC_TRACKS;
+    }
+
+    _pool() {
+        if (typeof MUSIC_POOL !== 'undefined' && MUSIC_POOL?.length) return [...MUSIC_POOL];
+        return [...FALLBACK_POOL];
+    }
+
+    /**
+     * Build shuffled deck for this run (deterministic from seed + ':music' salt).
+     * Call when a new run starts; same seed on continue preserves order if already inited.
+     */
+    initRunDeck(seed) {
+        const s = String(seed || 'NEWRUN');
+        if (this._deckSeed === s) return;
+        this.stopMusic();
+        this._deckSeed = s;
+        this._musicRng = new SeededRNG(`${s}:music`);
+        this._runPlaybackRate = MUSIC_BASE_PLAYBACK_RATE
+            + (this._musicRng.random() - 0.5) * 2 * MUSIC_RUN_RATE_SPREAD;
+        this._lastTrackId = null;
+        this._reshuffleDeck();
+        if (typeof Logger !== 'undefined') {
+            Logger.info('SoundManager: run deck init', s, this._deck.join(' → '));
+        }
+    }
+
+    _reshuffleDeck() {
+        let order = this._musicRng.shuffle(this._pool());
+        if (this._lastTrackId && order.length > 1 && order[order.length - 1] === this._lastTrackId) {
+            const j = Math.floor(this._musicRng.random() * (order.length - 1));
+            [order[order.length - 1], order[j]] = [order[j], order[order.length - 1]];
+        }
+        this._deck = order;
+    }
+
+    _pickNextTrackId() {
+        if (!this._deck.length) this._reshuffleDeck();
+        const id = this._deck.pop();
+        this._lastTrackId = id;
+        return id;
+    }
+
+    _getPlaybackRate() {
+        const base = this._runPlaybackRate ?? MUSIC_BASE_PLAYBACK_RATE;
+        const rng = this._musicRng?.random?.bind(this._musicRng) ?? Math.random;
+        const jitter = (rng() - 0.5) * 2 * MUSIC_PLAY_RATE_JITTER;
+        return Math.max(0.74, Math.min(0.92, base + jitter));
+    }
+
     ensureReady() {
         if (this._initialized) return;
         this._initialized = true;
@@ -76,10 +130,6 @@ class SoundManager {
         }
     }
 
-    /**
-     * Shared bus: soft lowpass + low-mid body + gentle compression.
-     * Tames reversed/time-stretched grain and reads closer to ambient / submerged distance.
-     */
     _buildMusicMasterChain() {
         if (this._musicMasterIn || !this.audioContext) return;
         const ac = this.audioContext;
@@ -97,11 +147,10 @@ class SoundManager {
         bodyPeak.Q.value = MUSIC_MASTER_BODY_Q;
         bodyPeak.gain.value = MUSIC_MASTER_BODY_DB;
 
-        /** Tame residual brightness above the master LP knee (12 dB/oct is gradual) */
         const airShelf = ac.createBiquadFilter();
         airShelf.type = 'highshelf';
-        airShelf.frequency.value = 3800;
-        airShelf.gain.value = -4.5;
+        airShelf.frequency.value = 5200;
+        airShelf.gain.value = -1.2;
         airShelf.Q.value = 0.7;
 
         const glue = ac.createDynamicsCompressor();
@@ -117,14 +166,12 @@ class SoundManager {
         airShelf.connect(glue);
         glue.connect(this.musicGain);
         this.musicGain.connect(ac.destination);
-        /** After first user gesture / ensureReady: if missing, an old cached script or init failure */
-        this.musicFxRevision = 3;
+        this.musicFxRevision = 5;
         if (typeof Logger !== 'undefined') {
-            Logger.info('SoundManager: music bus v' + this.musicFxRevision + ' (pre-LP → reverb → master LP/peaking/highshelf/compressor)');
+            Logger.info('SoundManager: music bus v' + this.musicFxRevision + ' (deck shuffle, brighter bus)');
         }
     }
 
-    /** Create reverb IR: open pillared space (stoa) — pillars, no walls, sound escapes upward */
     _createOpenStoaIR() {
         if (!this.audioContext) return null;
         const sr = this.audioContext.sampleRate;
@@ -134,7 +181,6 @@ class SoundManager {
         const L = ir.getChannelData(0);
         const R = ir.getChannelData(1);
 
-        // Early reflections: discrete pillar "slaps" (first ~120ms)
         const earlyDelays = [0.012, 0.028, 0.047, 0.068, 0.091, 0.118];
         const earlyGain = 0.2;
         for (const delay of earlyDelays) {
@@ -145,7 +191,6 @@ class SoundManager {
             }
         }
 
-        // Diffuse tail: gentle decay — keep quiet vs source files that already have FX
         const decay = 2.0;
         const tailLevel = 0.17;
         for (let i = 0; i < len; i++) {
@@ -158,38 +203,22 @@ class SoundManager {
         return ir;
     }
 
-    /** Pick random start offset in buffer (0–70% of duration) so we don't always hear the intro */
-    _randomStartOffset(buffer) {
+    /** Seeded random entry — skip intros, stay out of outros */
+    _seededStartOffset(buffer) {
         const dur = buffer.duration;
         if (dur < 5) return 0;
-        const maxOffset = dur * 0.7;
-        return Math.random() * maxOffset;
-    }
-
-    /** Reverse buffer samples and return new buffer (works everywhere) */
-    _reverseBuffer(buffer) {
-        const ch = buffer.numberOfChannels;
-        const len = buffer.length;
-        const out = this.audioContext.createBuffer(ch, len, buffer.sampleRate);
-        for (let c = 0; c < ch; c++) {
-            const inData = buffer.getChannelData(c);
-            const outData = out.getChannelData(c);
-            for (let i = 0; i < len; i++) outData[i] = inData[len - 1 - i];
-        }
-        return out;
+        const maxOffset = dur * 0.5;
+        const rng = this._musicRng?.random?.bind(this._musicRng) ?? Math.random;
+        return rng() * maxOffset;
     }
 
     _getSfxPaths(soundCode) {
-        if (this._resolvedSfxBase) {
-            return [`${this._resolvedSfxBase}${soundCode}.ogg`];
-        }
+        if (this._resolvedSfxBase) return [`${this._resolvedSfxBase}${soundCode}.ogg`];
         return this._sfxBaseCandidates.map(base => `${base}${soundCode}.ogg`);
     }
 
     _getMusicPaths(trackPath) {
-        if (this._resolvedMusicPrefix != null) {
-            return [`${this._resolvedMusicPrefix}${trackPath}`];
-        }
+        if (this._resolvedMusicPrefix != null) return [`${this._resolvedMusicPrefix}${trackPath}`];
         return this._musicPrefixCandidates.map(prefix => `${prefix}${trackPath}`);
     }
 
@@ -203,15 +232,11 @@ class SoundManager {
                     continue;
                 }
 
-                if (path.endsWith('.ogg')) {
-                    const slash = path.lastIndexOf('/') + 1;
-                    if (path.includes('ART/Music/')) {
-                        this._resolvedMusicPrefix = path.startsWith('public/') ? 'public/' : '';
-                    } else {
-                        this._resolvedSfxBase = path.slice(0, slash);
-                    }
-                } else if (path.includes('ART/Music/')) {
+                if (path.includes('ART/Music/')) {
                     this._resolvedMusicPrefix = path.startsWith('public/') ? 'public/' : '';
+                } else if (path.endsWith('.ogg')) {
+                    const slash = path.lastIndexOf('/') + 1;
+                    this._resolvedSfxBase = path.slice(0, slash);
                 }
 
                 return await res.arrayBuffer();
@@ -222,7 +247,6 @@ class SoundManager {
         throw lastError || new Error('Audio fetch failed');
     }
 
-    /** Play SFX (Balatro: play_sound) */
     play(soundCode, options = {}) {
         this.ensureReady();
         if (!this.audioContext) return;
@@ -236,7 +260,7 @@ class SoundManager {
                 src.buffer = buffer;
                 src.playbackRate.value = pitch;
                 const gain = this.audioContext.createGain();
-                gain.gain.value = volume;  // Per-sound; master SFX = sfxGain (setSfxVolume)
+                gain.gain.value = volume;
                 src.connect(gain);
                 gain.connect(this.sfxGain);
                 src.start(0);
@@ -244,100 +268,63 @@ class SoundManager {
             .catch(() => { /* ignore load errors */ });
     }
 
-    /** Start background music — uses current context */
     async startMusic() {
         this.ensureReady();
         if (!this.audioContext || this._musicPlaying) return;
         if (this.audioContext.state === 'suspended') await this.audioContext.resume();
+        if (!this._deckSeed) this.initRunDeck('NEWRUN');
         this._musicPlaying = true;
-        this._playTrack(this.contextToTrack[this._currentContext] || 'music1');
+        this._playNextFromDeck();
     }
 
-    /** Switch music by context with smooth crossfade (Balatro-style) */
-    setMusicContext(context) {
-        this._currentContext = context || 'play';
-        const track = this.contextToTrack[this._currentContext] || 'music1';
-        if (!this._musicPlaying || !this.audioContext) return;
-        this._crossfadeToTrack(track);
-    }
-
-    /** Crossfade: fade out current, fade in new over _crossfadeDuration */
-    async _crossfadeToTrack(trackId) {
-        if (!this._musicPlaying || !this.audioContext) return;
-        const now = this.audioContext.currentTime;
-        const dur = this._crossfadeDuration;
-        const endTime = now + dur;
-
-        // Fade out current source
-        if (this.musicSource && this._musicSourceGain) {
-            this._musicSourceGain.gain.setValueAtTime(this._musicSourceGain.gain.value, now);
-            this._musicSourceGain.gain.linearRampToValueAtTime(0, endTime);
-            this.musicSource.onended = null;
-            this.musicSource.stop(endTime);
-        }
-
-        try {
-            const buf = await this._loadTrackBuffer(trackId);
-            if (!buf) return;
-            this._musicLoadFailCount = 0;
-            const audioBuffer = this._reverseBuffer(buf);
-            const src = this.audioContext.createBufferSource();
-            src.buffer = audioBuffer;
-            src.loop = false;
-            src.playbackRate.value = 0.606;
-            const smoothing = this.audioContext.createBiquadFilter();
-            smoothing.type = 'lowpass';
-            smoothing.frequency.value = MUSIC_PRE_LP_HZ;
-            smoothing.Q.value = MUSIC_PRE_LP_Q;
-            src.connect(smoothing);
-            const srcGain = this.audioContext.createGain();
-            srcGain.gain.setValueAtTime(0, now);
-            srcGain.gain.linearRampToValueAtTime(1, endTime);
-            if (this._musicMasterIn) srcGain.connect(this._musicMasterIn);
-            else srcGain.connect(this.musicGain);
-            const dryGain = this.audioContext.createGain();
-            const wetGain = this.audioContext.createGain();
-            dryGain.gain.value = MUSIC_REVERB_DRY;
-            wetGain.gain.value = MUSIC_REVERB_WET;
-            dryGain.connect(srcGain);
-            wetGain.connect(srcGain);
-            if (this._reverbIR) {
-                const conv = this.audioContext.createConvolver();
-                conv.buffer = this._reverbIR;
-                smoothing.connect(conv);
-                conv.connect(wetGain);
-            } else {
-                smoothing.connect(wetGain);
-            }
-            smoothing.connect(dryGain);
-            const startOffset = this._randomStartOffset(audioBuffer);
-            src.start(now, startOffset);
-            src.onended = () => this._playTrack(this.contextToTrack[this._currentContext] || 'music1');
-            this.musicSource = src;
-            this._musicSourceGain = srcGain;
-        } catch (e) {
-            if (typeof Logger !== 'undefined') Logger.warn('Crossfade failed:', trackId, e);
-        }
+    /** Kept for shop/pack callers — deck is not gated by context. */
+    setMusicContext(_context) {
+        /* no-op: roguelike deck plays through regardless of UI mode */
     }
 
     async _loadTrackBuffer(trackId) {
-        const path = MUSIC_TRACKS[trackId] || MUSIC_TRACKS.music1;
+        const tracks = this._tracks();
+        const path = tracks[trackId] || tracks.music1 || LEGACY_MUSIC_TRACKS.music1;
         const candidatePaths = this._getMusicPaths(path);
         const buf = await this._fetchFirstAudioBuffer(candidatePaths);
         return this.audioContext.decodeAudioData(buf);
     }
 
+    _connectMusicSource(src, smoothing, srcGain) {
+        const dryGain = this.audioContext.createGain();
+        const wetGain = this.audioContext.createGain();
+        dryGain.gain.value = MUSIC_REVERB_DRY;
+        wetGain.gain.value = MUSIC_REVERB_WET;
+        dryGain.connect(srcGain);
+        wetGain.connect(srcGain);
+        if (this._reverbIR) {
+            const conv = this.audioContext.createConvolver();
+            conv.buffer = this._reverbIR;
+            smoothing.connect(conv);
+            conv.connect(wetGain);
+        } else {
+            smoothing.connect(wetGain);
+        }
+        smoothing.connect(dryGain);
+    }
+
+    async _playNextFromDeck() {
+        if (!this._musicPlaying || !this.audioContext) return;
+        const trackId = this._pickNextTrackId();
+        await this._playTrack(trackId);
+    }
+
     async _playTrack(trackId) {
         if (!this._musicPlaying || !this.audioContext) return;
-        const path = MUSIC_TRACKS[trackId] || MUSIC_TRACKS.music1;
+        const tracks = this._tracks();
+        const path = tracks[trackId] || tracks.music1;
         try {
-            const raw = await this._loadTrackBuffer(trackId);
+            const audioBuffer = await this._loadTrackBuffer(trackId);
             this._musicLoadFailCount = 0;
-            const audioBuffer = this._reverseBuffer(raw);
             const src = this.audioContext.createBufferSource();
             src.buffer = audioBuffer;
             src.loop = false;
-            src.playbackRate.value = 0.606;
+            src.playbackRate.value = this._getPlaybackRate();
             const smoothing = this.audioContext.createBiquadFilter();
             smoothing.type = 'lowpass';
             smoothing.frequency.value = MUSIC_PRE_LP_HZ;
@@ -347,51 +334,44 @@ class SoundManager {
             srcGain.gain.value = 1;
             if (this._musicMasterIn) srcGain.connect(this._musicMasterIn);
             else srcGain.connect(this.musicGain);
-            const dryGain = this.audioContext.createGain();
-            const wetGain = this.audioContext.createGain();
-            dryGain.gain.value = MUSIC_REVERB_DRY;
-            wetGain.gain.value = MUSIC_REVERB_WET;
-            dryGain.connect(srcGain);
-            wetGain.connect(srcGain);
-            if (this._reverbIR) {
-                const conv = this.audioContext.createConvolver();
-                conv.buffer = this._reverbIR;
-                smoothing.connect(conv);
-                conv.connect(wetGain);
-            } else {
-                smoothing.connect(wetGain);
-            }
-            smoothing.connect(dryGain);
-            const startOffset = this._randomStartOffset(audioBuffer);
-            src.onended = () => this._playTrack(this.contextToTrack[this._currentContext] || 'music1');
+            this._connectMusicSource(src, smoothing, srcGain);
+            const startOffset = this._seededStartOffset(audioBuffer);
+            src.onended = () => this._playNextFromDeck();
             src.start(0, startOffset);
             this.musicSource = src;
             this._musicSourceGain = srcGain;
         } catch (e) {
             this._musicLoadFailCount = (this._musicLoadFailCount || 0) + 1;
             if (typeof Logger !== 'undefined') Logger.warn('Music load failed:', trackId, path, e);
-            if (this._musicLoadFailCount < 3) setTimeout(() => this._playTrack(trackId), 3000);
+            if (this._musicLoadFailCount < 8) {
+                setTimeout(() => this._playNextFromDeck(), 1000);
+            }
         }
     }
 
     stopMusic() {
         this._musicPlaying = false;
         if (this.musicSource) {
-            try { this.musicSource.stop(); } catch (_) { /* ignore stop errors */ }
+            try { this.musicSource.stop(); } catch (_) { /* ignore */ }
             this.musicSource = null;
         }
         this._musicSourceGain = null;
     }
 
-    setMusicVolume(v) { this.musicVolume = Math.max(0, Math.min(1, v)); if (this.musicGain) this.musicGain.gain.value = this.musicVolume; }
-    setSfxVolume(v) { this.sfxVolume = Math.max(0, Math.min(1, v)); if (this.sfxGain) this.sfxGain.gain.value = this.sfxVolume; }
+    setMusicVolume(v) {
+        this.musicVolume = Math.max(0, Math.min(1, v));
+        if (this.musicGain) this.musicGain.gain.value = this.musicVolume;
+    }
 
-    /** Convenience: trigger on user interaction (e.g. first click) */
+    setSfxVolume(v) {
+        this.sfxVolume = Math.max(0, Math.min(1, v));
+        if (this.sfxGain) this.sfxGain.gain.value = this.sfxVolume;
+    }
+
     startOnInteraction() {
         this.ensureReady();
         if (!this._musicPlaying && this.audioContext) this.startMusic();
     }
 }
 
-// Global instance (replaces window.musicManager)
 window.soundManager = new SoundManager();

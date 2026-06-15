@@ -9,6 +9,30 @@ class WorshipCard extends Card {
         this.worshipType = data.worshipType || 'level'; // 'level', 'bonus', 'special'
         this.worshipValue = data.worshipValue || 1;
         this.category = this.getCategory(); // Which scorecard category this affects
+        this.heldTrials = data.heldTrials || 0;
+        this.devotionAscended = !!data.devotionAscended;
+    }
+
+    render(isShopItem = false, isDirectSale = false) {
+        const el = super.render(isShopItem, isDirectSale);
+        if (this.devotionAscended) {
+            el.classList.add('devotion-ascended');
+        } else if (this.heldTrials > 0) {
+            el.classList.add('devotion-holding');
+            const roman = typeof DevotionUtils !== 'undefined'
+                ? DevotionUtils.heldTrialsRoman(this.heldTrials)
+                : String(this.heldTrials);
+            el.dataset.heldTrials = roman;
+        }
+        return el;
+    }
+
+    toJSON() {
+        return {
+            ...super.toJSON(),
+            heldTrials: this.heldTrials || 0,
+            devotionAscended: !!this.devotionAscended,
+        };
     }
 
     // Get the scorecard category this worship affects (from GOD_METADATA)
@@ -187,49 +211,86 @@ class WorshipCard extends Card {
     applyCardSpecificEffects(_gameState) {
     }
 
-    // Apply basic worship effects from CSV database
-    // Only applies on non-zero dice score (valid entry); boons may still add on scratch
-    applyBasicWorshipEffect(gameState, result) {
-        if (!this.canUse() || !result || (result.pips !== undefined && result.pips <= 0)) return result;
+    /** Whether this held card's pantheon row was just scored. */
+    matchesScoredCategory(scoredCategory, gameState) {
+        const cardCat = this.category;
+        if (!cardCat || !scoredCategory) return false;
+        const evalCat = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.getEvalCategory(gameState, scoredCategory)
+            : scoredCategory;
+        const matches = cardCat === scoredCategory || cardCat === evalCat;
+        if (!matches) return false;
+        if (['Sevens', 'Eights', 'Nines'].includes(cardCat)) {
+            return !!gameState.unlockedCategories?.[cardCat];
+        }
+        if (cardCat === "Pandora's Box") {
+            return !!gameState.unlockedCategories?.["Pandora's Box"];
+        }
+        return true;
+    }
 
-        // Basic worship cards provide +1 Favour when scoring their category
-        const worshipEffects = {
-            'worship_artemis': 'Ones',
-            'worship_aphrodite': 'Twos',
-            'worship_morpheus': 'Threes',
-            'worship_hera': 'Fours',
-            'worship_athena': 'Fives',
-            'worship_heracles': 'Sixes',
-            'worship_hephaestus': 'Three of a Kind',
-            'worship_ares': 'Four of a Kind',
-            'worship_dionysus': 'Full House',
-            'worship_hermes': 'Small Straight',
-            'worship_apollo': 'Large Straight',
-            'worship_zeus': 'Yahtzee',
-            'worship_nyx': 'Chance',
-            'worship_pleiades': 'Sevens',
-            'worship_poseidon_eights': 'Eights',
-            'worship_muses': 'Nines',
-            'worship_pandora': "Pandora's Box"
-        };
+    // Held devotion: +gold when you score this card's row (incentive to hold until that score).
+    static tickHeldDevotionTrials(gameState, gameEngine) {
+        if (!gameState?.consumables?.length) return;
+        const need = typeof DEVOTION_TRIALS_TO_ASCEND !== 'undefined' ? DEVOTION_TRIALS_TO_ASCEND : 3;
+        for (const c of gameState.consumables) {
+            if (!(c instanceof WorshipCard) || !c.canUse() || c.devotionAscended) continue;
+            c.heldTrials = (c.heldTrials || 0) + 1;
+            if (c.heldTrials >= need) {
+                c.devotionAscended = true;
+                gameEngine?.showMessage?.(
+                    `${c.name} ascended — consecrate any pantheon row (${c.category} devotion).`,
+                    4000
+                );
+            }
+        }
+    }
 
-        const targetCategory = worshipEffects[this.id];
-        if (targetCategory && result.category === targetCategory) {
-            // Check if category is unlocked (for 7s, 8s, 9s, Pandora's Box)
-            if (['Sevens', 'Eights', 'Nines'].includes(targetCategory)) {
-                if (!gameState.unlockedCategories[targetCategory]) {
-                    return result; // Don't apply effect if category is locked
+    applyAscendedConsecration(gameState, targetCategory) {
+        if (!this.devotionAscended || !targetCategory || !this.god) return false;
+        if (['Sevens', 'Eights', 'Nines'].includes(targetCategory)
+            && !gameState.unlockedCategories?.[targetCategory]) {
+            return false;
+        }
+        const sourceCategory = this.getCategory();
+        if (!sourceCategory) return false;
+        if (typeof DevotionUtils !== 'undefined') {
+            DevotionUtils.applyConsecration(gameState, targetCategory, this.god, sourceCategory);
+        }
+        this.use();
+        return true;
+    }
+
+    static applyHeldDevotionGold(gameState, gameEngine, scoredCategory, targetCategory = null) {
+        if (!gameState?.consumables?.length || !scoredCategory) return;
+        const goldEach = typeof WORSHIP_HELD_GOLD_PER_SCORE !== 'undefined' ? WORSHIP_HELD_GOLD_PER_SCORE : 1;
+        if (goldEach <= 0) return;
+        const categories = new Set([scoredCategory]);
+        if (targetCategory) categories.add(targetCategory);
+
+        for (const c of gameState.consumables) {
+            if (!(c instanceof WorshipCard) || !c.canUse()) continue;
+            let matched = false;
+            for (const cat of categories) {
+                if (c.matchesScoredCategory(cat, gameState)) {
+                    matched = true;
+                    break;
                 }
             }
-            if (targetCategory === "Pandora's Box") {
-                if (!gameState.unlockedCategories?.["Pandora's Box"]) return result;
+            if (!matched) continue;
+            if (gameEngine?.updateGoldAnimated) {
+                gameEngine.updateGoldAnimated(goldEach, 'held worship');
+            } else {
+                gameState.gold = (gameState.gold || 0) + goldEach;
             }
-            
-            result.favour += 1;
-            window.game?.showMessage?.(`${this.name}: +1 Favour!`);
+            window.game?.showMessage?.(`${c.name}: +${goldEach} gold (${c.category} scored).`, 2200);
         }
+    }
 
-        return result;
+    _pipsPerLevelForCategory() {
+        const cat = this.category;
+        if (!cat) return 0;
+        return (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[cat]) || 0;
     }
 
     // Get the current worship level for this god
@@ -345,6 +406,9 @@ class WorshipCard extends Card {
     // Get what the next worship level would provide
     getNextLevelBenefit(currentLevel) {
         const nextLevel = currentLevel + 1;
-        return `Level ${nextLevel}: +${nextLevel} Favour when scoring ${this.category}`;
+        const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 0.25;
+        const pip = this._pipsPerLevelForCategory();
+        const favStr = typeof NumberFormat !== 'undefined' ? NumberFormat.favourContrib(perLevel) : String(perLevel);
+        return `Level ${nextLevel}: +${pip} pips & +${favStr} Favour when scoring ${this.category}`;
     }
 }

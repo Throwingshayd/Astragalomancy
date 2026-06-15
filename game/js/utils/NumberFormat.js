@@ -61,31 +61,41 @@ const NumberFormat = {
         return this.display(v);
     },
 
-    /**
-     * Favour multiplier. Small favour values (< 10) may carry a ×0.5 fraction
-     * from boons; keep one decimal for those, otherwise fall through to
-     * display() so huge favour totals abbreviate like pips.
-     * @param {number} n
-     */
-    favour(n) {
-        const v = Number(n);
-        if (!Number.isFinite(v) || v <= 0) return '1';
-        if (Math.abs(v) < 10 && v !== Math.trunc(v)) {
-            return (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, '');
-        }
-        return this.display(Math.round(v));
+    _snapQuarter(v) {
+        const q = Math.round(v * 4) / 4;
+        return Math.abs(q - v) < 0.02 ? q : v;
+    },
+
+    /** Up to 2 decimals; avoids Math.round(x*10) breaking 1.25 → 1.3 */
+    _formatMultDecimal(v) {
+        const snapped = this._snapQuarter(v);
+        const rounded = Math.round((snapped + Number.EPSILON) * 100) / 100;
+        return rounded.toFixed(2).replace(/\.?0+$/, '');
     },
 
     /**
-     * Tiny formatter for fractional favour contributions like "×0.5" from
-     * Pegasus Flight. Keeps one decimal, otherwise integer.
+     * Favour / mult total (Balatro-style × prefix).
      * @param {number} n
+     * @param {{ prefix?: boolean }} [opts]
      */
+    favour(n, opts = {}) {
+        const v = Number(n);
+        const withPrefix = opts.prefix !== false;
+        if (!Number.isFinite(v) || v <= 0) return withPrefix ? '×1' : '1';
+        if (Math.abs(v) < 10 && Math.abs(v - Math.trunc(v)) > 1e-9) {
+            const s = this._formatMultDecimal(v);
+            return withPrefix ? `×${s}` : s;
+        }
+        const intStr = this.display(Math.trunc(v));
+        return withPrefix ? `×${intStr}` : intStr;
+    },
+
+    /** Fractional mult chip e.g. +0.25 (no × — plus is already shown). */
     favourContrib(n) {
         const v = Number(n);
         if (!Number.isFinite(v) || v <= 0) return '0';
-        if (v === Math.trunc(v)) return this.contrib(v);
-        return (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, '');
+        if (Math.abs(v - Math.trunc(v)) < 1e-9) return this.contrib(v);
+        return this._formatMultDecimal(v);
     }
 };
 

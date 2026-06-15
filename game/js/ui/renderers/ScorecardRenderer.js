@@ -4,6 +4,35 @@
  */
 
 const ScorecardRenderer = {
+    _pantheonLabels(slotCategory, gameState) {
+        const godMapping = {
+            'Ones': 'Artemis', 'Twos': 'Aphrodite', 'Threes': 'Morpheus', 'Fours': 'Hera',
+            'Fives': 'Athena', 'Sixes': 'Heracles', 'Three of a Kind': 'Hephaestus',
+            'Four of a Kind': 'Ares', 'Full House': 'Dionysus', 'Small Straight': 'Hermes',
+            'Large Straight': 'Apollo', 'Yahtzee': 'Zeus', 'Chance': 'Nyx',
+            'Sevens': 'The Pleiades', 'Eights': 'Poseidon', 'Nines': 'The Nine Muses',
+        };
+        const evalCat = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.getEvalCategory(gameState, slotCategory)
+            : slotCategory;
+        const consecrated = typeof DevotionUtils !== 'undefined'
+            && DevotionUtils.isConsecratedSlot(gameState, slotCategory);
+        const displayCategory = evalCat === 'Yahtzee' ? 'Heureka' : evalCat;
+        const god = (consecrated && gameState.categoryGodBinding?.[slotCategory])
+            || gameState.categoryGodBinding?.[slotCategory]
+            || godMapping[slotCategory];
+        const worshipLevel = god ? (gameState.worshipLevels?.[god] || 0) : 0;
+        const displayLevel = worshipLevel + 1;
+        const deityText = worshipLevel > 0 ? `${god} Lv.${displayLevel}` : god;
+        return { displayCategory, deityText, consecrated };
+    },
+
+    _clearDevotionMark(row) {
+        row.querySelector(':scope > .pantheon-devotion-mark')?.remove();
+        row.querySelector('.score-details .pantheon-devotion-mark')?.remove();
+        row.classList.remove('has-devotion-mark');
+    },
+
     updateBonusYahtzeeIndicator(gameState) {
         const indicator = document.getElementById('bonusYahtzeeIndicator');
         const countDisplay = document.getElementById('bonusYahtzeeCount');
@@ -70,34 +99,45 @@ const ScorecardRenderer = {
             }
             const categorySpan = row.querySelector('span');
             if (categorySpan) {
-                const godMapping = { 'Ones': 'Artemis', 'Twos': 'Aphrodite', 'Threes': 'Morpheus', 'Fours': 'Hera', 'Fives': 'Athena', 'Sixes': 'Heracles', 'Three of a Kind': 'Hephaestus', 'Four of a Kind': 'Ares', 'Full House': 'Dionysus', 'Small Straight': 'Hermes', 'Large Straight': 'Apollo', 'Yahtzee': 'Zeus', 'Chance': 'Nyx', 'Sevens': 'The Pleiades', 'Eights': 'Poseidon', 'Nines': 'The Nine Muses' };
-                const displayCategory = category === 'Yahtzee' ? 'Heureka' : category;
-                const god = godMapping[category];
-                const worshipLevel = gameState.worshipLevels?.[god] || 0;
-                const displayLevel = worshipLevel + 1;
-                const deityText = worshipLevel > 0 ? `${god} Lv.${displayLevel}` : god;
+                const { displayCategory, deityText, consecrated } = this._pantheonLabels(category, gameState);
                 categorySpan.innerHTML = `<span class="pantheon-cat">${displayCategory}</span><span class="pantheon-deity">${deityText}</span>`;
+                this._clearDevotionMark(row);
+                row.classList.toggle('pantheon-consecrated', !!consecrated);
             }
             const scoreDisplay = row.querySelector('.potential-score');
-            if (gameState.scorecard[category] !== undefined) {
+            const scored = typeof DevotionUtils !== 'undefined'
+                ? DevotionUtils.hasBeenScored(gameState, category)
+                : gameState.scorecard[category] !== undefined;
+            const canRescore = typeof DevotionUtils !== 'undefined'
+                && DevotionUtils.canRescore(gameState, category);
+            if (scored) {
                 row.classList.add('used');
+                row.classList.toggle('devotion-rescorable', canRescore);
                 row.classList.remove('available-category');
                 row.classList.remove('category-available-highlight');
-                const rounded = Math.round(gameState.scorecard[category]);
+                const rounded = Math.round(gameState.scorecard[category] || 0);
                 scoreDisplay.textContent = rounded === 0 ? 'X' : String(rounded);
             } else {
-                row.classList.remove('used');
+                row.classList.remove('used', 'devotion-rescorable');
                 scoreDisplay.textContent = '';
-                if (gameState.hasRolled && window.game) {
+                if (gameState.hasRolled && window.game && (canRescore || !scored)) {
                     let showGreen;
                     if (highlightCache[category] !== undefined) showGreen = highlightCache[category];
                     else {
+                        const evalCategory = typeof DevotionUtils !== 'undefined'
+                            ? DevotionUtils.getEvalCategory(gameState, category)
+                            : category;
                         const { pips, favour, isValid } = window.game.calculateScore(category);
                         const hasPoints = isValid && (pips || 0) * (favour || 0) > 0;
-                        const faceValue = typeof CATEGORY_TO_NUMBER !== 'undefined' ? CATEGORY_TO_NUMBER[category] : null;
+                        const faceValue = typeof CATEGORY_TO_NUMBER !== 'undefined'
+                            ? CATEGORY_TO_NUMBER[evalCategory]
+                            : null;
                         const isUpperCategory = faceValue != null;
                         const counts = {};
-                        (gameState.dice || []).forEach(d => { const f = d.getEffectiveFace?.() ?? d.currentFace ?? 0; if (f > 0) counts[f] = (counts[f] || 0) + 1; });
+                        (gameState.dice || []).forEach(d => {
+                            const f = d.getEffectiveFace?.() ?? d.currentFace ?? 0;
+                            if (f > 0) counts[f] = (counts[f] || 0) + 1;
+                        });
                         const hasThreeOrMore = isUpperCategory && (counts[faceValue] || 0) >= 3;
                         showGreen = hasPoints && (!isUpperCategory || hasThreeOrMore);
                         highlightCache[category] = showGreen;

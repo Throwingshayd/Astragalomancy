@@ -307,6 +307,41 @@ class UIManager {
     }
 
     /**
+     * Ascended worship: consecrate a pantheon row to this card's god & scoring hand.
+     * @param {WorshipCard} card
+     * @param {string} targetCategory
+     * @param {Object} gameState
+     * @param {Object} gameEngine
+     */
+    applyAscendedDevotion(card, targetCategory, gameState, gameEngine) {
+        window.balatroEffects?.hideAllTooltips();
+        if (!(card instanceof WorshipCard) || !card.devotionAscended) return false;
+        const success = card.applyAscendedConsecration(gameState, targetCategory);
+        if (!success) {
+            gameEngine?.showMessage?.('Cannot consecrate that row.');
+            return false;
+        }
+        const handCategory = card.getCategory();
+        const handLabel = handCategory === 'Yahtzee' ? 'Heureka' : handCategory;
+        const slotLabel = targetCategory === 'Yahtzee' ? 'Heureka' : targetCategory;
+        const duplicateCount = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.countSlotsForHand(gameState, handCategory)
+            : 1;
+        const dupNote = duplicateCount > 1
+            ? ` Pantheon now has ${duplicateCount} ${handLabel} offerings.`
+            : '';
+        if (window.soundManager) window.soundManager.play('magic_crumple', { pitch: 1.05, volume: 0.6 });
+        gameEngine?.showMessage?.(
+            `${slotLabel} is consecrated to ${handLabel} (${card.god}).${dupNote}`,
+            4500
+        );
+        const cardIndex = gameState.consumables.findIndex((c) => c.id === card.id);
+        if (cardIndex !== -1) gameState.consumables.splice(cardIndex, 1);
+        gameEngine?.updateAllUI?.();
+        return true;
+    }
+
+    /**
      * Use a consumable (libation/worship) from play area. Not shop-related.
      * @param {LibationCard|WorshipCard} card
      * @param {Object} gameState
@@ -339,7 +374,7 @@ class UIManager {
             message = success ? `Libation activated: ${card.name}!` : "Failed to activate libation.";
         } else if (card instanceof WorshipCard) {
             success = card.applyWorship(gameState);
-            message = success ? `Worship applied: ${card.name}!` : "Failed to apply worship.";
+            message = success ? `Worship applied: ${card.name}!` : 'Failed to apply worship.';
         } else {
             success = card.use ? card.use() : false;
             message = success ? `Used: ${card.name}!` : "Failed to use card.";

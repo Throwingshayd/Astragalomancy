@@ -533,15 +533,25 @@ class Boon extends Card {
                 window.game?.showMessage?.(`Kronos' Hourglass: ${rollsThisTurn} rerolls this turn!`);
                 break;
             
-            case 'pandoras_jar':
-                // Every 3rd turn, randomly destroy a Boon
-                if (gameState.turn % 3 === 0 && gameState.boons && gameState.boons.length > 1) {
-                    // Don't destroy Pandora's Jar itself
+            case 'pandoras_jar': {
+                // Every 3rd turn: +2 permanent Favour (stacking) and destroy a random other Boon
+                const pandoraInterval = (typeof BOON_EFFECTS !== 'undefined' && BOON_EFFECTS.PANDORAS_JAR?.DESTROY_INTERVAL) || 3;
+                const pandoraFavourBonus = 2;
+                if (gameState.turn % pandoraInterval === 0 && gameState.boons && gameState.boons.length > 1) {
+                    if (!this.pandoraFavourStacks) {
+                        this.pandoraFavourStacks = 0;
+                    }
+                    this.pandoraFavourStacks += pandoraFavourBonus;
+                    this.dynamicStats.favour = this.pandoraFavourStacks;
+                    window.game?.showMessage?.(
+                        `Pandora's Jar: +${pandoraFavourBonus} Favour (stacking)! Total +${this.pandoraFavourStacks}.`,
+                        3000
+                    );
+
                     const otherBoons = gameState.boons.filter(j => j.id !== 'pandoras_jar');
                     if (otherBoons.length > 0) {
                         const randomIndex = this._randomInt(otherBoons.length);
                         const destroyed = otherBoons[randomIndex];
-                        // Remove from main array
                         const mainIndex = gameState.boons.findIndex(j => j.id === destroyed.id);
                         if (mainIndex !== -1) {
                             gameState.boons.splice(mainIndex, 1);
@@ -550,6 +560,7 @@ class Boon extends Card {
                     }
                 }
                 break;
+            }
             
             case 'demeters_harvest':
                 // Each turn, one random die permanently gains +1 (max 9)
@@ -978,13 +989,11 @@ class Boon extends Card {
         
         if (this.id !== 'mt_olympus' && this.dynamicStats.favour > 0) {
             const f = this.dynamicStats.favour;
-            const fmt = f === Math.floor(f) ? f : (Math.round(f * 10) / 10).toFixed(1);
-            stats.push({ value: `x${fmt}`, type: 'favour' });
+            stats.push({ value: (window.NumberFormat ? window.NumberFormat.favour(f) : `×${f}`), type: 'favour' });
         } else if (this.id !== 'mt_olympus') {
             const favour = this.getCurrentFavourValue(gameState);
             if (favour > 0) {
-                const fmt = favour === Math.floor(favour) ? favour : (Math.round(favour * 10) / 10).toFixed(1);
-                stats.push({ value: `x${fmt}`, type: 'favour' });
+                stats.push({ value: (window.NumberFormat ? window.NumberFormat.favour(favour) : `×${favour}`), type: 'favour' });
             }
         }
         
@@ -1002,7 +1011,7 @@ class Boon extends Card {
                 // Live counter: current favour bonus from worship cards used this run
                 const worshipUsed = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
                 if (worshipUsed > 0) {
-                    stats.push({ value: `+${worshipUsed} favour`, type: 'favour' });
+                    stats.push({ value: `+${worshipUsed} worship`, type: 'favour' });
                 }
                 break;
             case 'experience_points':

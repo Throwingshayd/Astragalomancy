@@ -75,8 +75,19 @@ const ConsumableDrag = {
             return null;
         };
         const worshipMatchesCategory = (card, category, state) => {
+            if (card?.devotionAscended && category && worshipCategoryUnlocked(category, state)) {
+                return true;
+            }
             const cardCat = getWorshipCategory(card);
             return !!cardCat && cardCat === category && worshipCategoryUnlocked(category, state);
+        };
+        const markAllPantheonTargets = (state) => {
+            clearWorshipTargetChips();
+            document.querySelectorAll('#scorecard .pantheon-chip').forEach((chip) => {
+                const cat = chip.getAttribute('data-category');
+                if (!cat || !worshipCategoryUnlocked(cat, state)) return;
+                chip.classList.add('pantheon-worship-target');
+            });
         };
         const clearWorshipTargetChips = () => {
             document.querySelectorAll('.pantheon-worship-target').forEach((chip) => {
@@ -123,6 +134,99 @@ const ConsumableDrag = {
             const hotCat = fromHot?.getAttribute('data-category');
             if (fromHot && worshipMatchesCategory(card, hotCat, gameState)) return fromHot;
             return null;
+        };
+
+        const getConsumableBar = () => document.getElementById('leftConsumableBar');
+
+        const activateDropMode = (st, clientX, clientY) => {
+            if (st.ghostMode === 'drop') return;
+            st.ghost?.end();
+            st.ghost = null;
+            const card = st.card;
+            const isWorship = typeof WorshipCard !== 'undefined' && card instanceof WorshipCard;
+            const isLibation = typeof LibationCard !== 'undefined' && card instanceof LibationCard;
+            st.main = getZones().main;
+            st.main?.classList.add('consumable-drag-active');
+            if (isWorship) {
+                st.main?.classList.add('drag-type-worship');
+                if (card.devotionAscended) {
+                    markAllPantheonTargets(window.game?.state);
+                } else {
+                    markWorshipTargetChips(getWorshipCategory(card));
+                }
+            } else if (isLibation) {
+                st.main?.classList.add('drag-type-libation');
+                const dieEnhancer = typeof LibationCard !== 'undefined'
+                    && LibationCard.isDieFaceEnhancer(card);
+                st.isDieEnhancerLibation = dieEnhancer;
+                st.main?.classList.add(
+                    dieEnhancer ? 'drag-type-libation-enhancer' : 'drag-type-libation-drink'
+                );
+            }
+            if (typeof PointerDragGhost !== 'undefined') {
+                let ghostOpts;
+                if (isLibation) {
+                    ghostOpts = { appearance: 'libation-drop' };
+                } else if (isWorship) {
+                    ghostOpts = { appearance: 'worship-drop' };
+                }
+                st.ghost = PointerDragGhost.attach(st.cardEl, 'drag-ghost', ghostOpts);
+                st.ghost.start(clientX, clientY);
+            }
+            const zones = getZones();
+            st.zoneRects = {
+                sell: zones.sellStone?.getBoundingClientRect() || null,
+                libation: zones.libation?.getBoundingClientRect() || null,
+            };
+            st.dropEls = zones;
+            st.ghostMode = 'drop';
+        };
+
+        const activateCardMode = (st, clientX, clientY) => {
+            if (st.ghostMode === 'card') return;
+            clearDieLibationHot(st.lastDieHotEl);
+            st.lastDieHotEl = null;
+            clearPantheonWorshipHot(st.lastPantheonHotEl);
+            st.lastPantheonHotEl = null;
+            st.ghost?.setDragTargetHot?.(false);
+            clearWorshipTargetChips();
+            clearDragChrome(st.main);
+            document.getElementById('goldStone')?.classList.remove('drop-target-sell');
+            const zones = getZones();
+            zones.libation?.classList.remove('zone-hot');
+            st.main = getZones().main;
+            st.main?.classList.add('consumable-drag-active');
+            st.ghost?.end();
+            st.ghost = null;
+            if (typeof PointerDragGhost !== 'undefined') {
+                st.ghost = PointerDragGhost.attach(st.cardEl, 'drag-ghost');
+                st.ghost.start(clientX, clientY);
+            }
+            st.ghostMode = 'card';
+        };
+
+        const tryReorderInBar = (st, px, py, gameState, gameEngine) => {
+            const bar = getConsumableBar();
+            if (!pointIn(px, py, bar)) return false;
+            const stack = document.elementsFromPoint(px, py);
+            let targetEl = null;
+            for (const node of stack) {
+                const c = node.closest?.('.card');
+                if (c && container.contains(c) && c !== st.cardEl && c.dataset.id) {
+                    targetEl = c;
+                    break;
+                }
+            }
+            if (!targetEl) return false;
+            const consumables = gameState.consumables;
+            const fromIndex = consumables.findIndex((c) => c.id === st.card.id);
+            const toIndex = consumables.findIndex((c) => c.id === targetEl.dataset.id);
+            if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return false;
+            const [moved] = consumables.splice(fromIndex, 1);
+            consumables.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, moved);
+            if (window.soundManager) window.soundManager.play('button', { volume: 0.4 });
+            gameEngine?.updateAllUI?.();
+            return true;
         };
 
         const clearDragChrome = (main) => {
@@ -227,40 +331,15 @@ const ConsumableDrag = {
             const dy = e.clientY - st.startY;
             if (!st.dragging && (dx * dx + dy * dy) >= DRAG_THRESHOLD * DRAG_THRESHOLD) {
                 st.dragging = true;
-                st.main = getZones().main;
-                st.main?.classList.add('consumable-drag-active');
-                const card = st.card;
-                const isWorship = typeof WorshipCard !== 'undefined' && card instanceof WorshipCard;
-                const isLibation = typeof LibationCard !== 'undefined' && card instanceof LibationCard;
-                if (isWorship) {
-                    st.main?.classList.add('drag-type-worship');
-                    markWorshipTargetChips(getWorshipCategory(card));
-                } else if (isLibation) {
-                    st.main?.classList.add('drag-type-libation');
-                    const dieEnhancer = typeof LibationCard !== 'undefined'
-                        && LibationCard.isDieFaceEnhancer(card);
-                    st.isDieEnhancerLibation = dieEnhancer;
-                    st.main?.classList.add(
-                        dieEnhancer ? 'drag-type-libation-enhancer' : 'drag-type-libation-drink'
-                    );
-                }
+                st.ghostMode = null;
                 st.cardEl.classList.add('consumable-card-dragging');
-                if (typeof PointerDragGhost !== 'undefined') {
-                    let ghostOpts;
-                    if (isLibation) {
-                        ghostOpts = { appearance: 'libation-drop' };
-                    } else if (isWorship) {
-                        ghostOpts = { appearance: 'worship-drop' };
-                    }
-                    st.ghost = PointerDragGhost.attach(st.cardEl, 'drag-ghost', ghostOpts);
-                    st.ghost.start(e.clientX, e.clientY);
+                const bar = getConsumableBar();
+                const insideBar = pointIn(e.clientX, e.clientY, bar);
+                if (insideBar) {
+                    activateCardMode(st, e.clientX, e.clientY);
+                } else {
+                    activateDropMode(st, e.clientX, e.clientY);
                 }
-                const zones = getZones();
-                st.zoneRects = {
-                    sell: zones.sellStone?.getBoundingClientRect() || null,
-                    libation: zones.libation?.getBoundingClientRect() || null,
-                };
-                st.dropEls = zones;
             }
             if (!st.dragging) return;
             st.pendingX = e.clientX;
@@ -270,11 +349,19 @@ const ConsumableDrag = {
                 st.rafId = 0;
                 const live = container._consumableDrag;
                 if (!live || !live.dragging) return;
+                const bar = getConsumableBar();
+                const insideBar = pointIn(live.pendingX, live.pendingY, bar);
+                if (insideBar) {
+                    activateCardMode(live, live.pendingX, live.pendingY);
+                } else {
+                    activateDropMode(live, live.pendingX, live.pendingY);
+                }
                 const pdx = live.pendingX - live.startX;
                 const pdy = live.pendingY - live.startY;
                 if (live.ghost?.moveAt) live.ghost.moveAt(live.pendingX, live.pendingY);
                 else if (live.ghost) live.ghost.move(pdx, pdy);
                 else live.cardEl.style.transform = `translate3d(${pdx}px, ${pdy}px, 0)`;
+                if (live.ghostMode !== 'drop') return;
                 const rects = live.zoneRects;
                 const els = live.dropEls;
                 if (els?.sellStone) {
@@ -354,6 +441,7 @@ const ConsumableDrag = {
                 startX: e.clientX,
                 startY: e.clientY,
                 dragging: false,
+                ghostMode: null,
                 main: null,
                 ghost: null,
                 finishHandled: false,
@@ -461,12 +549,35 @@ const ConsumableDrag = {
                 return;
             }
 
+            if (pointIn(px, py, getConsumableBar())) {
+                if (tryReorderInBar(st, px, py, gameState, gameEngine)) {
+                    endDrag(st, false);
+                    return;
+                }
+                endDrag(st, true);
+                return;
+            }
+
             const pendingLib = gameEngine?.state?.libationTargetingMode;
             const pendingEuch = gameEngine?.state?.eucharistTargetingMode;
             const scoreRowUnder = findScoreRowUnderPointer(px, py, st.cardEl);
             const worshipRowCategory = scoreRowUnder?.getAttribute?.('data-category') || null;
 
             if (isWorship) {
+                if (card.devotionAscended) {
+                    const chip = findScoreRowUnderPointer(px, py, st.cardEl);
+                    const targetCat = chip?.getAttribute?.('data-category');
+                    if (chip && targetCat && worshipCategoryUnlocked(targetCat, gameState)) {
+                        endDrag(st, false);
+                        runCloneFx(st.cardEl, 'consumable-fx-worship-pantheon', () => {
+                            ui.applyAscendedDevotion(card, targetCat, gameState, gameEngine);
+                        });
+                        return;
+                    }
+                    endDrag(st, false);
+                    gameEngine?.showMessage?.('Drag ascended worship to a pantheon row to consecrate it.');
+                    return;
+                }
                 const dropChip = resolveWorshipDropChip(px, py, st, card, gameState);
                 if (dropChip) {
                     useWorshipNow(dropChip);

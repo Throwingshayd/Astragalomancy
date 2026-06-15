@@ -44,10 +44,15 @@ const GnosisDisplay = {
 
     getCategoryPipBonus(category, state, counts = {}) {
         if (!category) return 0;
-        const god = typeof GodUtils !== 'undefined' ? GodUtils.getGodForCategory(category) : null;
+        const god = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.getGodForCategory(state, category)
+            : (typeof GodUtils !== 'undefined' ? GodUtils.getGodForCategory(category) : null);
+        const pipCategory = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.getPipCategory(state, category)
+            : category;
         const level = god && state?.worshipLevels ? (state.worshipLevels[god] || 0) : 0;
-        const basePips = (typeof LOWER_SECTION_BONUSES !== 'undefined' && LOWER_SECTION_BONUSES[category]) || 0;
-        const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[category]) || 0;
+        const basePips = (typeof LOWER_SECTION_BONUSES !== 'undefined' && LOWER_SECTION_BONUSES[pipCategory]) || 0;
+        const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[pipCategory]) || 0;
         let bonus = basePips + level * (pipsPerLevel || 0);
         const pb = state?.pipsBonuses || {};
         if (category === 'Twos' && pb.twosBonus) bonus += (counts[2] || 0) * pb.twosBonus;

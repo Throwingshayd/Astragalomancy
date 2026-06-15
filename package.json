@@ -25,6 +25,7 @@
     "optimize-art": "node scripts/optimize-art.cjs",
     "optimize-art:dry": "node scripts/optimize-art.cjs --dry-run",
     "convert-music": "node scripts/convert-music-ogg.cjs",
+    "remix-phi-psonics": "node scripts/remix-phi-psonics.cjs",
     "build-dice-spritesheet": "node scripts/build-dice-spritesheet.cjs",
     "generate-sw-precache": "node scripts/generate-sw-precache.cjs",
     "fix-shopfront-bg": "node scripts/remove-shopfront-black.cjs",

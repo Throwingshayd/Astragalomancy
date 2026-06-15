@@ -126,6 +126,10 @@ class GameEngine {
             diceSubstitutions: {},
             abilities: {},
             doubleScoringAllowed: [],
+            pantheonDevotion: {},
+            devotionCapacity: {},
+            categoryGodBinding: {},
+            categoryScoringOverride: {},
             goldPerDie: {},
             forcedDiceValues: {},
             triggerEffects: {},
@@ -811,7 +815,11 @@ class GameEngine {
      */
     promptScore(category) {
         if (this.isScoring) return;
-        if (this.state.scorecard[category] !== undefined) return;
+        if (typeof DevotionUtils !== 'undefined') {
+            if (!DevotionUtils.canScoreCategory(this.state, category)) return;
+        } else if (this.state.scorecard[category] !== undefined) {
+            return;
+        }
         if (!this.state.hasRolled) {
             if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
             this.showMessage("You must roll the dice first!");
@@ -881,8 +889,15 @@ class GameEngine {
             }
             // Scratch: with Parmenides, result goes to target slot; mark source as used
             if (isSwap) {
-                this.state.scorecard[targetCategory] = 0;
-                this.state.scorecard[category] = 0;
+                if (typeof DevotionUtils !== 'undefined') {
+                    DevotionUtils.applyPantheonScore(this.state, targetCategory, 0);
+                    DevotionUtils.applyPantheonScore(this.state, category, 0);
+                } else {
+                    this.state.scorecard[targetCategory] = 0;
+                    this.state.scorecard[category] = 0;
+                }
+            } else if (typeof DevotionUtils !== 'undefined') {
+                DevotionUtils.applyPantheonScore(this.state, category, 0);
             } else {
                 this.state.scorecard[category] = 0;
             }
@@ -921,6 +936,9 @@ class GameEngine {
         // Track scores for cashout - gold awarded at round end before shop (not per-score)
         if (finalScore > 0) {
             this.state.scoresThisRound = (this.state.scoresThisRound || 0) + 1;
+            if (typeof WorshipCard !== 'undefined') {
+                WorshipCard.applyHeldDevotionGold(this.state, this, category, targetCategory);
+            }
         }
         
         // Reset temporary modifiers
@@ -1430,14 +1448,21 @@ class GameEngine {
     getCategoryLevelBonuses(category) {
         const god = this.getGodForCategory(category);
         const level = god ? (this.state.worshipLevels[god] || 0) : 0;
-        const basePips = (typeof LOWER_SECTION_BONUSES !== 'undefined' && LOWER_SECTION_BONUSES[category]) || 0;
-        const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[category]) || 0;
+        const pipCategory = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.getPipCategory(this.state, category)
+            : category;
+        const basePips = (typeof LOWER_SECTION_BONUSES !== 'undefined' && LOWER_SECTION_BONUSES[pipCategory]) || 0;
+        const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[pipCategory]) || 0;
         const pips = basePips + (level * (pipsPerLevel || 0));
-        const mult = 1 + level;
+        const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 0.25;
+        const mult = 1 + level * perLevel;
         return { pips, mult };
     }
 
     getGodForCategory(category) {
+        if (typeof DevotionUtils !== 'undefined') {
+            return DevotionUtils.getGodForCategory(this.state, category);
+        }
         return typeof GodUtils !== 'undefined' ? GodUtils.getGodForCategory(category) : null;
     }
 
@@ -1473,13 +1498,15 @@ class GameEngine {
      */
     getLiveOfferingTitle(category, filledSlot) {
         if (!category) return 'Offering';
+        const displayCat = typeof DevotionUtils !== 'undefined'
+            ? DevotionUtils.getDisplayCategory(this.state, category)
+            : (category === 'Yahtzee' ? 'Heureka' : category);
         if (filledSlot) {
             const g = this.getGodForCategory(category);
             const godShown = g === "Pandora's Box" ? 'Pandora' : (g || '—');
             return `Offering made to ${godShown}`;
         }
-        const scoreName = category === 'Yahtzee' ? 'Heureka' : category;
-        return `Offering ${scoreName}`;
+        return `Offering ${displayCat}`;
     }
 
     // Turn and ante progression
@@ -1558,7 +1585,11 @@ class GameEngine {
         const allCategories = [...upperCats, ...lowerCats, ...highCats];
         
         // Check if all categories have been scored (not undefined)
-        return allCategories.every(category => this.state.scorecard[category] !== undefined);
+        return allCategories.every(category => (
+            typeof DevotionUtils !== 'undefined'
+                ? DevotionUtils.hasBeenScored(this.state, category)
+                : this.state.scorecard[category] !== undefined
+        ));
     }
 
     endAnte() {
@@ -1658,6 +1689,10 @@ class GameEngine {
         
         // Reset The Zealot's last worship god at end of ante
         this.state.lastWorshipGod = null;
+
+        if (typeof WorshipCard !== 'undefined') {
+            WorshipCard.tickHeldDevotionTrials(this.state, this);
+        }
         
         // Get threshold from AnteData array (Balatro-style progression)
         const nextAnteData = AnteData[this.state.ante - 1];
@@ -1967,6 +2002,18 @@ class GameEngine {
                 ? { ...state.worshipLevels }
                 : {},
             scorecard: state.scorecard && typeof state.scorecard === 'object' ? { ...state.scorecard } : {},
+            pantheonDevotion: state.pantheonDevotion && typeof state.pantheonDevotion === 'object'
+                ? { ...state.pantheonDevotion }
+                : {},
+            devotionCapacity: state.devotionCapacity && typeof state.devotionCapacity === 'object'
+                ? { ...state.devotionCapacity }
+                : {},
+            categoryGodBinding: state.categoryGodBinding && typeof state.categoryGodBinding === 'object'
+                ? { ...state.categoryGodBinding }
+                : {},
+            categoryScoringOverride: state.categoryScoringOverride && typeof state.categoryScoringOverride === 'object'
+                ? { ...state.categoryScoringOverride }
+                : {},
             enhancementMap: state.enhancementMap && typeof state.enhancementMap === 'object' ? { ...state.enhancementMap } : {},
             unlockedCategories: state.unlockedCategories && typeof state.unlockedCategories === 'object'
                 ? { ...state.unlockedCategories }
@@ -2060,6 +2107,18 @@ class GameEngine {
 
         // Scorecard, enhancementMap, unlockedCategories — ensure objects
         state.scorecard = state.scorecard && typeof state.scorecard === 'object' ? state.scorecard : {};
+        state.pantheonDevotion = state.pantheonDevotion && typeof state.pantheonDevotion === 'object'
+            ? state.pantheonDevotion
+            : {};
+        state.devotionCapacity = state.devotionCapacity && typeof state.devotionCapacity === 'object'
+            ? state.devotionCapacity
+            : {};
+        state.categoryGodBinding = state.categoryGodBinding && typeof state.categoryGodBinding === 'object'
+            ? state.categoryGodBinding
+            : {};
+        state.categoryScoringOverride = state.categoryScoringOverride && typeof state.categoryScoringOverride === 'object'
+            ? state.categoryScoringOverride
+            : {};
         state.enhancementMap = state.enhancementMap && typeof state.enhancementMap === 'object' ? state.enhancementMap : {};
         state.unlockedCategories = state.unlockedCategories && typeof state.unlockedCategories === 'object'
             ? { 'Sevens': false, 'Eights': false, 'Nines': false, "Pandora's Box": false, ...state.unlockedCategories }
@@ -2178,13 +2237,14 @@ class GameEngine {
     }
 
     /**
-     * Format favour value for display – always whole numbers (1, 2, 3).
-     * Avoids showing "1.5 favour" from fractional bonuses like ×1.5 mult.
-     * @param {number} favour - Favour value to format
-     * @returns {string} Formatted favour string (integer)
+     * Format favour / mult for live score (numeric only; × sits between pips and favour in DOM).
+     * @param {number} favour
+     * @returns {string}
      */
     formatFavour(favour) {
-        return (window.NumberFormat ? window.NumberFormat.favour(favour) : String(Math.round(Number(favour) || 1)));
+        return (window.NumberFormat
+            ? window.NumberFormat.favour(favour, { prefix: false })
+            : String(Number(favour) || 1));
     }
 
     /**
@@ -2194,7 +2254,7 @@ class GameEngine {
      * @returns {string} Formatted favour string (preserves decimals)
      */
     formatFavourContrib(favour) {
-        return (window.NumberFormat ? window.NumberFormat.favourContrib(favour) : String(Math.round((Number(favour) || 0) * 10) / 10));
+        return (window.NumberFormat ? window.NumberFormat.favourContrib(favour) : String(Number(favour) || 0));
     }
 
     /**
