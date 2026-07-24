@@ -32,19 +32,21 @@ class Boon extends Card {
 
     /**
      * Get seeded PRNG from game engine. All RNG in Boon must use this for determinism.
+     * @param {Object|null} [game] - Explicit engine reference; falls back to the global engine singleton when omitted
      * @returns {Object|undefined} SeededRNG instance, or undefined if game not ready
      */
-    _getPrng() {
-        return window.game?.prng;
+    _getPrng(game = null) {
+        return (game || window.game)?.prng;
     }
 
     /**
      * Random integer in [0, max) using seeded RNG.
      * @param {number} max - Exclusive upper bound
+     * @param {Object|null} [game] - Explicit engine reference; falls back to the global engine singleton when omitted
      * @returns {number}
      */
-    _randomInt(max) {
-        const prng = this._getPrng();
+    _randomInt(max, game = null) {
+        const prng = this._getPrng(game);
         return prng ? Math.floor(prng.random() * max) : 0;
     }
 
@@ -52,10 +54,11 @@ class Boon extends Card {
      * Random integer in [min, max] inclusive using seeded RNG.
      * @param {number} min - Inclusive lower bound
      * @param {number} max - Inclusive upper bound
+     * @param {Object|null} [game] - Explicit engine reference; falls back to the global engine singleton when omitted
      * @returns {number}
      */
-    _randomIntInclusive(min, max) {
-        const prng = this._getPrng();
+    _randomIntInclusive(min, max, game = null) {
+        const prng = this._getPrng(game);
         return prng ? min + Math.floor(prng.random() * (max - min + 1)) : min;
     }
 
@@ -83,10 +86,11 @@ class Boon extends Card {
     }
 
     // Balatro-inspired timing system
-    onTimingEvent(timingEvent, gameState, eventData = null) {
+    /** @param {Object|null} game - Explicit engine reference; falls back to the global engine singleton when omitted (e.g. pure ScoringEngine preview path) */
+    onTimingEvent(timingEvent, gameState, eventData = null, game = null) {
         // Special handling for Proteus' Disguise - mimics other boons
         if (this.id === 'proteus_disguise') {
-            return this.applyProteusEffect(timingEvent, gameState, eventData);
+            return this.applyProteusEffect(timingEvent, gameState, eventData, game);
         }
         
         if (!this.canUse() || !this.timing[timingEvent]) {
@@ -109,13 +113,13 @@ class Boon extends Card {
         }
 
         // Apply the boon's effect based on timing
-        let result = this.applyTimingEffect(timingEvent, gameState, eventData);
+        let result = this.applyTimingEffect(timingEvent, gameState, eventData, game);
         
         // Reflection of Narcissus: Apply effect a second time (but not for narcissus itself)
         const hasNarcissus = gameState.boons?.some(j => j.id === 'reflection_of_narcissus');
         if (hasNarcissus && this.id !== 'reflection_of_narcissus' && !gameState.narcissusDoubling) {
             gameState.narcissusDoubling = true; // Prevent infinite loops
-            result = this.applyTimingEffect(timingEvent, gameState, result);
+            result = this.applyTimingEffect(timingEvent, gameState, result, game);
             gameState.narcissusDoubling = false;
         }
         
@@ -129,22 +133,22 @@ class Boon extends Card {
     }
 
     // Apply effects based on timing events
-    applyTimingEffect(timingEvent, gameState, eventData) {
+    applyTimingEffect(timingEvent, gameState, eventData, game = null) {
         // For turn_start events, we don't need to track value changes
         if (timingEvent === 'turn_start') {
-            this.applyTurnStartEffect(gameState, eventData || {});
+            this.applyTurnStartEffect(gameState, eventData || {}, game);
             return eventData; // Return unchanged to avoid value tracking
         }
         
         // For ante_end events, handle similarly
         if (timingEvent === 'ante_end') {
-            this.applyAnteEndEffect(gameState, eventData || {});
+            this.applyAnteEndEffect(gameState, eventData || {}, game);
             return eventData;
         }
         
         // For sell events, handle similarly
         if (timingEvent === 'sell') {
-            this.applySellEffect(gameState, eventData || {});
+            this.applySellEffect(gameState, eventData || {}, game);
             return eventData;
         }
         
@@ -153,28 +157,28 @@ class Boon extends Card {
         let processedResult;
         switch (timingEvent) {
             case 'before_roll':
-                processedResult = this.applyBeforeRollEffect(gameState, result);
+                processedResult = this.applyBeforeRollEffect(gameState, result, game);
                 break;
             case 'after_roll':
-                processedResult = this.applyAfterRollEffect(gameState, result);
+                processedResult = this.applyAfterRollEffect(gameState, result, game);
                 break;
             case 'before_score':
-                processedResult = this.applyBeforeScoreEffect(gameState, result);
+                processedResult = this.applyBeforeScoreEffect(gameState, result, game);
                 break;
             case 'after_score':
-                processedResult = this.applyAfterScoreEffect(gameState, result);
+                processedResult = this.applyAfterScoreEffect(gameState, result, game);
                 break;
             case 'turn_end':
-                processedResult = this.applyTurnEndEffect(gameState, result);
+                processedResult = this.applyTurnEndEffect(gameState, result, game);
                 break;
             case 'shop_enter':
-                processedResult = this.applyShopEnterEffect(gameState, result);
+                processedResult = this.applyShopEnterEffect(gameState, result, game);
                 break;
             case 'shop_exit':
-                processedResult = this.applyShopExitEffect(gameState, result);
+                processedResult = this.applyShopExitEffect(gameState, result, game);
                 break;
             case 'hand_effect':
-                processedResult = this.applyHandEffect(gameState, result);
+                processedResult = this.applyHandEffect(gameState, result, game);
                 break;
             default:
                 processedResult = result;
@@ -241,37 +245,39 @@ class Boon extends Card {
     // === TIMING-BASED EFFECT METHODS (Main Implementation) ===
 
     // Apply effects before rolling dice
-    applyBeforeRollEffect(gameState, result) {
+    applyBeforeRollEffect(gameState, result, game = null) {
+        const engine = game || window.game;
         switch (this.id) {
             case 'achilles_heel':
                 // Achilles Heel: lose 1 Gold at the start of each roll
                 if (gameState.gold > 0) {
                     gameState.gold -= 1;
-                    window.game?.showMessage?.("Achilles' Heel: -1 Gold!");
+                    engine?.showMessage?.("Achilles' Heel: -1 Gold!");
                 }
                 break;
             case 'prometheus_gift':
                 // Prometheus' Gift: one less re-roll each turn
                 gameState.rollsLeft = Math.max(1, gameState.rollsLeft - 1);
-                window.game?.showMessage?.("Prometheus' Gift: -1 re-roll!");
+                engine?.showMessage?.("Prometheus' Gift: -1 re-roll!");
                 break;
             
         }
         return result;
     }
 
-    applyAfterRollEffect(gameState, result) {
+    applyAfterRollEffect(gameState, result, game = null) {
+        const engine = game || window.game;
         // Effects that trigger after dice are rolled
         switch (this.id) {
             case 'lucky_dice_bag':
                 // Reroll any 1s automatically (once per die per turn)
-                const prng = window.game?.prng;
+                const prng = engine?.prng;
                 if (prng) {
                     gameState.dice.forEach(die => {
                         if (die.face === 1 && !die.hasBeenRerolled) {
                             die.roll(prng);
                             die.hasBeenRerolled = true;
-                            window.game?.showMessage?.("Lucky Dice Bag: Rerolled a 1!");
+                            engine?.showMessage?.("Lucky Dice Bag: Rerolled a 1!");
                         }
                     });
                 }
@@ -287,7 +293,7 @@ class Boon extends Card {
                     }
                 });
                 if (medusaSixes > 0) {
-                    window.game?.showMessage?.(`Medusa's Gaze: ${medusaSixes} sixes held!`);
+                    engine?.showMessage?.(`Medusa's Gaze: ${medusaSixes} sixes held!`);
                 }
                 break;
             
@@ -320,7 +326,7 @@ class Boon extends Card {
                     }
                     this.symmetryFavour += 0.5;
                     
-                    window.game?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +0.5 Favour!`, 4000);
+                    engine?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +0.5 Favour!`, 4000);
                     Logger.info(`Symmetry triggered! Pattern: [${symmetryValues.join('-')}], Total favour: ${this.symmetryFavour}`);
                 }
                 break;
@@ -333,7 +339,7 @@ class Boon extends Card {
                 if (isFirstRoll && allOnes) {
                     const typhonBonus = Math.floor(gameState.scoreThreshold * 0.9);
                     gameState.typhonBonus = typhonBonus;
-                    window.game?.showMessage?.(`🌋 TYPHON AWAKENS! All 1s = +${typhonBonus} Pips!`, 6000);
+                    engine?.showMessage?.(`🌋 TYPHON AWAKENS! All 1s = +${typhonBonus} Pips!`, 6000);
                     Logger.info(`Typhon triggered! Incredibly rare event - 1 in 7,776 chance!`);
                 }
                 break;
@@ -351,7 +357,7 @@ class Boon extends Card {
                     });
                     
                     if (morpheusTransformed > 0) {
-                        window.game?.showMessage?.(`Smog of Morpheus: ${morpheusTransformed} dice → 3 (final roll)!`, 3000);
+                        engine?.showMessage?.(`Smog of Morpheus: ${morpheusTransformed} dice → 3 (final roll)!`, 3000);
                     }
                 }
                 break;
@@ -373,7 +379,7 @@ class Boon extends Card {
     }
     
     // Special handler for Proteus - Blueprint-style: copies the boon to its LEFT
-    applyProteusEffect(timingEvent, gameState, eventData) {
+    applyProteusEffect(timingEvent, gameState, eventData, game = null) {
         const boons = gameState.boons || [];
         const proteusIndex = boons.findIndex(j => j === this);
         if (proteusIndex <= 0) return eventData; // No boon to the left
@@ -382,19 +388,19 @@ class Boon extends Card {
         if (!leftBoon || !leftBoon.timing?.[timingEvent]) return eventData;
         
         try {
-            return leftBoon.applyTimingEffect(timingEvent, gameState, eventData);
+            return leftBoon.applyTimingEffect(timingEvent, gameState, eventData, game);
         } catch (error) {
             Logger.error(`Proteus failed to mimic ${leftBoon.name}:`, error);
             return eventData;
         }
     }
 
-    applyBeforeScoreEffect(gameState, result) {
+    applyBeforeScoreEffect(gameState, result, game = null) {
         if (result.favourMult === undefined) {
             result.favourMult = 1;
         }
         if (typeof BoonTimingHandlers !== 'undefined' && typeof BoonTimingHandlers.runBeforeScore === 'function') {
-            BoonTimingHandlers.runBeforeScore(this, gameState, result);
+            BoonTimingHandlers.runBeforeScore(this, gameState, result, game);
         } else {
             Logger.warn('BoonTimingHandlers.runBeforeScore missing — before_score skipped');
         }
@@ -402,17 +408,18 @@ class Boon extends Card {
     }
 
     // Balatro-inspired timing effect methods
-    applyAfterScoreEffect(gameState, result) {
+    applyAfterScoreEffect(gameState, result, game = null) {
+        const engine = game || window.game;
         switch (this.id) {
             case 'charons_ferry_fare':
                 // Gain +1 Gold after scoring any hand (does not trigger on a scratch)
                 if (result.finalScore && result.finalScore > 0) {
-                    if (window.game && typeof window.game.updateGoldAnimated === 'function') {
-                        window.game.updateGoldAnimated(1, "Charon's Ferry Fare");
+                    if (engine && typeof engine.updateGoldAnimated === 'function') {
+                        engine.updateGoldAnimated(1, "Charon's Ferry Fare");
                     } else {
                         gameState.gold += 1;
                     }
-                    window.game?.showMessage?.("Charon's Ferry Fare: +1 Gold!");
+                    engine?.showMessage?.("Charon's Ferry Fare: +1 Gold!");
                 }
                 break;
 
@@ -424,32 +431,32 @@ class Boon extends Card {
             
             case 'gamblers_charm':
                 // 50% chance +2 Gold, 50% chance lose 1 gold
-                if (this._getPrng()?.random() < 0.5) {
-                    if (window.game && typeof window.game.updateGoldAnimated === 'function') {
-                        window.game.updateGoldAnimated(2, "Gambler's Charm");
+                if (this._getPrng(game)?.random() < 0.5) {
+                    if (engine && typeof engine.updateGoldAnimated === 'function') {
+                        engine.updateGoldAnimated(2, "Gambler's Charm");
                     } else {
                         gameState.gold += 2;
                     }
-                    window.game?.showMessage?.("Gambler's Charm: +2 Gold! Lucky!");
+                    engine?.showMessage?.("Gambler's Charm: +2 Gold! Lucky!");
                 } else {
-                    if (window.game && typeof window.game.updateGoldAnimated === 'function') {
-                        window.game.updateGoldAnimated(-1, "Gambler's Charm");
+                    if (engine && typeof engine.updateGoldAnimated === 'function') {
+                        engine.updateGoldAnimated(-1, "Gambler's Charm");
                     } else {
                         gameState.gold = Math.max(0, gameState.gold - 1);
                     }
-                    window.game?.showMessage?.("Gambler's Charm: -1 Gold! Unlucky!");
+                    engine?.showMessage?.("Gambler's Charm: -1 Gold! Unlucky!");
                 }
                 break;
             
             case 'early_bird':
                 // Turns 4-5: +2 Gold
                 if (gameState.turn === 4 || gameState.turn === 5) {
-                    if (window.game && typeof window.game.updateGoldAnimated === 'function') {
-                        window.game.updateGoldAnimated(2, "Early Bird");
+                    if (engine && typeof engine.updateGoldAnimated === 'function') {
+                        engine.updateGoldAnimated(2, "Early Bird");
                     } else {
                         gameState.gold += 2;
                     }
-                    window.game?.showMessage?.("Early Bird: +2 Gold!");
+                    engine?.showMessage?.("Early Bird: +2 Gold!");
                 }
                 break;
             
@@ -464,12 +471,12 @@ class Boon extends Card {
                         const marathonIndex = gameState.boons.findIndex(j => j.id === 'marathon_runner');
                         if (marathonIndex !== -1) {
                             gameState.boons.splice(marathonIndex, 1);
-                            window.game?.showMessage?.("💀 Marathon Runner: 3 scratches! Exhausted and destroyed!", 4000);
+                            engine?.showMessage?.("💀 Marathon Runner: 3 scratches! Exhausted and destroyed!", 4000);
                             Logger.info("Marathon Runner destroyed - 3 scratches");
                         }
                     } else {
                         // Show warning
-                        window.game?.showMessage?.(`⚠️ Marathon Runner: Scratch ${this.marathonScratches}/3!`, 3000);
+                        engine?.showMessage?.(`⚠️ Marathon Runner: Scratch ${this.marathonScratches}/3!`, 3000);
                         // Reset pips on scratch
                         this.marathonPips = 0;
                     }
@@ -478,7 +485,7 @@ class Boon extends Card {
                     const marathonIndex = gameState.boons.findIndex(j => j.id === 'marathon_runner');
                     if (marathonIndex !== -1) {
                         gameState.boons.splice(marathonIndex, 1);
-                        window.game?.showMessage?.("🏅 Marathon Runner: 42km complete! Mission accomplished!", 5000);
+                        engine?.showMessage?.("🏅 Marathon Runner: 42km complete! Mission accomplished!", 5000);
                         Logger.info("Marathon Runner destroyed - 42km (marathon) reached");
                     }
                 }
@@ -487,7 +494,8 @@ class Boon extends Card {
         return result;
     }
 
-    applyTurnStartEffect(gameState, _result) {
+    applyTurnStartEffect(gameState, _result, game = null) {
+        const engine = game || window.game;
         // Reset dynamic stats at turn start for clean slate
         this.dynamicStats = {
             pips: 0,
@@ -504,33 +512,33 @@ class Boon extends Card {
                 // Achilles Heel: lose 1 Gold at the start of each roll
                 if (gameState.gold > 0) {
                     gameState.gold -= 1;
-                    window.game?.showMessage?.("Achilles' Heel: -1 Gold!");
+                    engine?.showMessage?.("Achilles' Heel: -1 Gold!");
                 }
                 break;
             case 'prometheus_gift':
                 // Prometheus' Gift: one less re-roll each turn
                 gameState.rollsLeft = Math.max(1, gameState.rollsLeft - 1);
-                window.game?.showMessage?.("Prometheus' Gift: -1 re-roll!");
+                engine?.showMessage?.("Prometheus' Gift: -1 re-roll!");
                 break;
             
             case 'chaos_primordial':
                 // Chaos Primordial: one less re-roll each turn (in addition to favour doubling)
                 gameState.rollsLeft = Math.max(1, gameState.rollsLeft - 1);
-                window.game?.showMessage?.("Chaos Primordial: -1 re-roll!");
+                engine?.showMessage?.("Chaos Primordial: -1 re-roll!");
                 break;
             
             case 'apollos_oracle':
                 // Apollo's Oracle: +1 reroll per turn
                 gameState.rollsLeft += 1;
-                window.game?.showMessage?.("Apollo's Oracle: +1 reroll!");
+                engine?.showMessage?.("Apollo's Oracle: +1 reroll!");
                 break;
             
             // === NEW BOONS - Turn Start ===
             case 'kronos_hourglass':
                 // At start of turn, set a random number of rerolls for this turn (1-5)
-                const rollsThisTurn = this._randomIntInclusive(1, 5);
+                const rollsThisTurn = this._randomIntInclusive(1, 5, game);
                 gameState.rollsLeft = rollsThisTurn;
-                window.game?.showMessage?.(`Kronos' Hourglass: ${rollsThisTurn} rerolls this turn!`);
+                engine?.showMessage?.(`Kronos' Hourglass: ${rollsThisTurn} rerolls this turn!`);
                 break;
             
             case 'pandoras_jar': {
@@ -543,19 +551,19 @@ class Boon extends Card {
                     }
                     this.pandoraFavourStacks += pandoraFavourBonus;
                     this.dynamicStats.favour = this.pandoraFavourStacks;
-                    window.game?.showMessage?.(
+                    engine?.showMessage?.(
                         `Pandora's Jar: +${pandoraFavourBonus} Favour (stacking)! Total +${this.pandoraFavourStacks}.`,
                         3000
                     );
 
                     const otherBoons = gameState.boons.filter(j => j.id !== 'pandoras_jar');
                     if (otherBoons.length > 0) {
-                        const randomIndex = this._randomInt(otherBoons.length);
+                        const randomIndex = this._randomInt(otherBoons.length, game);
                         const destroyed = otherBoons[randomIndex];
                         const mainIndex = gameState.boons.findIndex(j => j.id === destroyed.id);
                         if (mainIndex !== -1) {
                             gameState.boons.splice(mainIndex, 1);
-                            window.game?.showMessage?.(`💔 Pandora's Jar: ${destroyed.name} destroyed!`, 3000);
+                            engine?.showMessage?.(`💔 Pandora's Jar: ${destroyed.name} destroyed!`, 3000);
                         }
                     }
                 }
@@ -564,14 +572,14 @@ class Boon extends Card {
             
             case 'demeters_harvest':
                 // Each turn, one random die permanently gains +1 (max 9)
-                const harvestDie = gameState.dice[this._randomInt(gameState.dice.length)];
+                const harvestDie = gameState.dice[this._randomInt(gameState.dice.length, game)];
                 const faceKeys = Object.keys(harvestDie.faces);
-                const randomFaceKey = faceKeys[this._randomInt(faceKeys.length)];
+                const randomFaceKey = faceKeys[this._randomInt(faceKeys.length, game)];
                 const currentValue = harvestDie.faces[randomFaceKey].modifiedValue || harvestDie.faces[randomFaceKey].value;
                 
                 if (currentValue < 9) {
                     harvestDie.faces[randomFaceKey].modifiedValue = currentValue + 1;
-                    window.game?.showMessage?.(`Demeter's Harvest: Die face ${randomFaceKey} → ${currentValue + 1}!`);
+                    engine?.showMessage?.(`Demeter's Harvest: Die face ${randomFaceKey} → ${currentValue + 1}!`);
                 }
                 break;
             
@@ -599,7 +607,7 @@ class Boon extends Card {
                 // Turn 12+: lose 1 roll
                 if (gameState.turn >= 12) {
                     gameState.rollsLeft = Math.max(1, gameState.rollsLeft - 1);
-                    window.game?.showMessage?.("Midnight Oil: -1 roll!");
+                    engine?.showMessage?.("Midnight Oil: -1 roll!");
                 }
                 break;
             
@@ -614,22 +622,23 @@ class Boon extends Card {
             case 'reflection_of_narcissus':
                 // Reduce rolls by 2
                 gameState.rollsLeft = Math.max(1, GAME_BALANCE.STARTING_ROLLS - 2);
-                window.game?.showMessage?.("Reflection of Narcissus: -2 rolls (boons doubled)!");
+                engine?.showMessage?.("Reflection of Narcissus: -2 rolls (boons doubled)!");
                 break;
         }
         // No return value needed for turn_start effects
     }
 
-    applyTurnEndEffect(gameState, result) {
+    applyTurnEndEffect(gameState, result, game = null) {
+        const engine = game || window.game;
         switch (this.id) {
             case 'icarus_wings':
                 // Chance to break after turn 1 in 8
-                if (gameState.turn > 1 && this._getPrng()?.random() < 1/8) {
+                if (gameState.turn > 1 && this._getPrng(game)?.random() < 1/8) {
                     // Break the boon (remove it)
                     const boonIndex = gameState.boons.findIndex(j => j.id === this.id);
                     if (boonIndex !== -1) {
                         gameState.boons.splice(boonIndex, 1);
-                        window.game?.showMessage?.("Icarus' Wings: The wings broke!");
+                        engine?.showMessage?.("Icarus' Wings: The wings broke!");
                     }
                 }
                 break;
@@ -637,22 +646,23 @@ class Boon extends Card {
         return result;
     }
 
-    applyShopEnterEffect(gameState, result) {
+    applyShopEnterEffect(gameState, result, _game = null) {
         // Effects that trigger when entering the shop
         return result;
     }
 
-    applyShopExitEffect(gameState, result) {
+    applyShopExitEffect(gameState, result, _game = null) {
         // Effects that trigger when leaving the shop
         return result;
     }
 
-    applyHandEffect(gameState, result) {
+    applyHandEffect(gameState, result, _game = null) {
         // Effects that modify the current hand
         return result;
     }
 
-    applySellEffect(gameState, result) {
+    applySellEffect(gameState, result, game = null) {
+        const engine = game || window.game;
         // Effects that trigger when selling cards
         switch (this.id) {
             case 'the_merchant':
@@ -660,7 +670,7 @@ class Boon extends Card {
                 if (result.cardType === 'worship' || result.cardType === 'libation') {
                     const bonusGold = 1;
                     gameState.gold += bonusGold;
-                    window.game?.showMessage?.("The Merchant: +1 bonus Gold from sale!", 2500);
+                    engine?.showMessage?.("The Merchant: +1 bonus Gold from sale!", 2500);
                     Logger.info(`The Merchant: +1 bonus gold from selling ${result.cardType}`);
                 }
                 break;
@@ -668,13 +678,13 @@ class Boon extends Card {
             case 'mortal_vineyard':
                 // Selling a Boon gives you a random Libation
                 if (result.cardType === 'boon' && window.CardData && window.CardData.libations) {
-                    const randomLibation = window.CardData.libations[this._randomInt(window.CardData.libations.length)];
+                    const randomLibation = window.CardData.libations[this._randomInt(window.CardData.libations.length, game)];
                     
                     // Add libation to consumables
                     if (gameState.consumables && randomLibation) {
                         const newLibation = new LibationCard(randomLibation);
                         gameState.consumables.push(newLibation);
-                        window.game?.showMessage?.(`🍷 Mortal Vineyard: Gained ${randomLibation.name}!`, 3500);
+                        engine?.showMessage?.(`🍷 Mortal Vineyard: Gained ${randomLibation.name}!`, 3500);
                         Logger.info(`Mortal Vineyard: Converted boon sale into ${randomLibation.name}`);
                     }
                 }
@@ -683,7 +693,8 @@ class Boon extends Card {
         // No return value needed for sell effects
     }
 
-    applyAnteEndEffect(gameState, _result) {
+    applyAnteEndEffect(gameState, _result, game = null) {
+        const engine = game || window.game;
         // Effects that trigger at the end of an Ante
         switch (this.id) {
             case 'the_heretic':
@@ -698,13 +709,13 @@ class Boon extends Card {
                 const originalGold = gameState.gold;
                 const cornucopiaNew = Math.floor(gameState.gold * 1.5);
                 const cornucopiaDelta = cornucopiaNew - originalGold;
-                if (cornucopiaDelta > 0 && window.game?.updateGoldAnimated) {
-                    window.game.updateGoldAnimated(cornucopiaDelta, "Cornucopia");
+                if (cornucopiaDelta > 0 && engine?.updateGoldAnimated) {
+                    engine.updateGoldAnimated(cornucopiaDelta, "Cornucopia");
                 } else if (cornucopiaDelta !== 0) {
                     gameState.gold = cornucopiaNew;
                 }
                 if (cornucopiaDelta > 0) {
-                    window.game?.showMessage?.(`🌽 Cornucopia of Ploutos: Gold ${originalGold} → ${cornucopiaNew}!`, 4000);
+                    engine?.showMessage?.(`🌽 Cornucopia of Ploutos: Gold ${originalGold} → ${cornucopiaNew}!`, 4000);
                     Logger.info(`Cornucopia: Gold multiplied from ${originalGold} to ${cornucopiaNew}`);
                 }
                 break;
@@ -730,10 +741,10 @@ class Boon extends Card {
                 if (allFilled && noScratches) {
                     const odysseyBonus = availableCategories.length * availableCategories.length;
                     gameState.totalScore += odysseyBonus;
-                    window.game?.showMessage?.(`⛵ The Odyssey: Perfect journey! +${odysseyBonus} points (${availableCategories.length}²)!`, 5000);
+                    engine?.showMessage?.(`⛵ The Odyssey: Perfect journey! +${odysseyBonus} points (${availableCategories.length}²)!`, 5000);
                     Logger.info(`The Odyssey: Perfect completion bonus ${odysseyBonus} points`);
                 } else if (allFilled) {
-                    window.game?.showMessage?.("⛵ The Odyssey: Journey complete, but with scratches (no bonus)", 3000);
+                    engine?.showMessage?.("⛵ The Odyssey: Journey complete, but with scratches (no bonus)", 3000);
                 }
                 break;
             
@@ -745,10 +756,10 @@ class Boon extends Card {
                     const threshold = gameState.scoreThreshold || 200;
                     const bonus = Math.floor(threshold * 0.5);
                     gameState.totalScore += bonus;
-                    window.game?.showMessage?.(`📜 Message in a Bottle: Solo journey! +${bonus} points (50% of threshold)!`, 5000);
+                    engine?.showMessage?.(`📜 Message in a Bottle: Solo journey! +${bonus} points (50% of threshold)!`, 5000);
                     Logger.info(`Message in a Bottle: Solo bonus ${bonus} points`);
                 } else {
-                    window.game?.showMessage?.("📜 Message in a Bottle: You had company this trial (no bonus)", 2000);
+                    engine?.showMessage?.("📜 Message in a Bottle: You had company this trial (no bonus)", 2000);
                 }
                 
                 // Reset tracking for next ante
@@ -762,27 +773,27 @@ class Boon extends Card {
                     const otherBoons = gameState.boons.filter(j => j.id !== 'betrayal_by_paris');
                     
                     if (otherBoons.length > 0) {
-                        const randomIndex = this._randomInt(otherBoons.length);
+                        const randomIndex = this._randomInt(otherBoons.length, game);
                         const destroyed = otherBoons[randomIndex];
                         
                         // Remove from main array
                         const mainIndex = gameState.boons.findIndex(j => j.id === destroyed.id);
                         if (mainIndex !== -1) {
                             gameState.boons.splice(mainIndex, 1);
-                            if (window.game?.updateGoldAnimated) window.game.updateGoldAnimated(10, "Betrayal by Paris");
+                            if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Betrayal by Paris");
                             else gameState.gold += 10;
-                            window.game?.showMessage?.(`💔 Betrayal by Paris: ${destroyed.name} destroyed! +10 Gold`, 4000);
+                            engine?.showMessage?.(`💔 Betrayal by Paris: ${destroyed.name} destroyed! +10 Gold`, 4000);
                             Logger.info(`Betrayal by Paris destroyed ${destroyed.name}, gained 10 gold`);
                         }
                     } else {
-                        if (window.game?.updateGoldAnimated) window.game.updateGoldAnimated(10, "Betrayal by Paris");
+                        if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Betrayal by Paris");
                         else gameState.gold += 10;
-                        window.game?.showMessage?.("Betrayal by Paris: No one left to betray! +10 Gold", 3000);
+                        engine?.showMessage?.("Betrayal by Paris: No one left to betray! +10 Gold", 3000);
                     }
                 } else {
-                    if (window.game?.updateGoldAnimated) window.game.updateGoldAnimated(10, "Betrayal by Paris");
+                    if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Betrayal by Paris");
                     else gameState.gold += 10;
-                    window.game?.showMessage?.("Betrayal by Paris: No one left to betray! +10 Gold", 3000);
+                    engine?.showMessage?.("Betrayal by Paris: No one left to betray! +10 Gold", 3000);
                 }
                 break;
         }

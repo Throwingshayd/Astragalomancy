@@ -1,33 +1,32 @@
 # Dice of Dionysus — Cursor Rules
 
-**Default workflow:** Use the project skill **`.cursor/skills/dice-ship/SKILL.md`** (verify, guardrails, commands). For **design / planning / backlog steering**, use **`.cursor/skills/dice-design/SKILL.md`** with **`tracking/GAME_DESIGN_BACKLOG.md`**. **SOUL.md** = laws, RNG policy, and task→rule routing—skim the “For Cursor” block first.
+Vanilla JS, class-based roguelike dice game (Balatro-inspired). `GameEngine.state` is the single run state. End goal: playable desktop `.exe` via Tauri (`npm run tauri:build`), alongside the web/PWA build.
 
-**Then:** `.cursor/rules/` (topic scopes **0–8**), **`.cursor/PATHWAYS.md`** (repo map), **`.cursor/context/`** (architecture, `ai_context.yaml`). **`.cursor/tester/TESTING.md`** = verification layout.
-
----
-
-## Project vision
-
-- Roguelike dice + Greek myth; vanilla JS, class-based; **`GameEngine.state`** is the single run state.
-- Philosophy: stable shipping, small diffs, no gratuitous framework churn.
-
----
+Philosophy: stable shipping, small diffs, no framework churn. Enforcement lives in tests, not prose — if a rule matters, it should be a failing test in `tests/unit/`, not a paragraph in a doc nobody re-reads.
 
 ## Critical habits
 
-| Do | Don’t |
+| Do | Don't |
 |----|-------|
-| Use run **`prng`** for gameplay/outcome randomness | `Math.random()` for rolls, shop pool picks, scoring logic |
-| Add cards in **`game/js/data/gameData.js`** first | Scatter card definitions elsewhere |
-| Update **`.cursor/context/`** when adding durable patterns | Leave docs stale for new systems |
-| Use **Logger** in game code | Rely on `console.log` for routine logging |
-| Boons = equipped; consumables = **Libations / Worship** | Confuse naming with unrelated terms |
+| Use run `prng` (`SeededRNG`) for gameplay randomness | `Math.random()` for rolls, shop pools, scoring |
+| Add cards in `game/js/data/gameData.js` first | Scatter card definitions elsewhere |
+| Pass dependencies explicitly (`game`, `gameEngine`) when adding new call sites | Add new `window.game`/`window.uiManager`/etc. reach-throughs |
+| Use `Logger` in game code | Rely on `console.log` |
+| Boons = equipped; consumables = Libations/Worship (see `docs/GAME_TERMINOLOGY.md`) | Confuse naming with unrelated terms |
+| Run `npm test` before calling a change done | Assume a change works because it "should" |
 
----
+## Guardrails (enforced, not just documented)
 
-## Quick reference
+`tests/unit/architecture-guardrails.test.js` ratchets file size and global-coupling counts for the known god-object files (`GameEngine.js`, `Boon.js`, `ShopUI.js`, `BalatroEffects.js`, `boonTimingHandlers.js`, `Main.js`). It fails `npm test` if any of them grow past their current baseline. If you need to add real functionality to one of these files, extract something out first so the file doesn't cross its ceiling — don't raise the ceiling to make room.
 
-- **Add boon:** `gameData.js` → `Boon.js` hooks → update consolidated boon context if present.
-- **Add libation:** `gameData.js` → `LibationCard.js`.
-- **Verify:** `npm run dev`, `npm run lint:fix`, `npm run test` (+ `playtest:boons` when flow changes).
-- **Map:** `.cursor/PATHWAYS.md` · **Modules:** `.cursor/context/ai_context.yaml`
+## Verify
+
+`npm run dev` (port 3000) · `npm run lint:fix` · `npm run test` · `npm run playtest:boons` when boon/scoring flow changes.
+
+## Map
+
+- Engine/logic: `game/js/engine/` (ScoringEngine, HandEvaluator, ShopStockGenerator — keep DOM-free)
+- Game state + orchestration: `game/js/game/GameEngine.js`
+- Cards/data: `game/js/classes/`, `game/js/data/gameData.js`
+- UI: `game/js/ui/`, `game/js/ui/renderers/`
+- Desktop packaging: `src-tauri/`

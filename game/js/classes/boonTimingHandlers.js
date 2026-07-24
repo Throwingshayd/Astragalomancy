@@ -6,7 +6,9 @@
  * Load before Boon.js — see game/index.html.
  */
 const BoonTimingHandlers = {
-    runBeforeScore(boon, gameState, result) {
+    /** @param {Object|null} game - Explicit engine reference from Boon.applyBeforeScoreEffect; falls back to the global engine singleton when omitted */
+    runBeforeScore(boon, gameState, result, game = null) {
+        const engine = game || window.game;
         switch (boon.id) {
 
             case 'sisyphus_boulder':
@@ -16,7 +18,7 @@ const BoonTimingHandlers = {
                 result.pips += boulderBonus;
                 boon.dynamicStats.pips = boulderBonus;
                 if (boulderBonus > 0) {
-                    window.game?.showMessage?.(`Sisyphus' Boulder: +${boulderBonus} Pips!`);
+                    engine?.showMessage?.(`Sisyphus' Boulder: +${boulderBonus} Pips!`);
                 }
                 break;
             
@@ -33,7 +35,7 @@ const BoonTimingHandlers = {
             case 'achilles_heel':
                 // +15 Pips (in addition to -1 gold penalty in turn_start)
                 result.pips += 15;
-                window.game?.showMessage?.("Achilles' Heel: +15 Pips!");
+                engine?.showMessage?.("Achilles' Heel: +15 Pips!");
                 break;
             
             case 'midas_touch':
@@ -43,14 +45,14 @@ const BoonTimingHandlers = {
                 if (midasBonus > 0) {
                     result.pips += midasBonus;
                     boon.dynamicStats.pips = midasBonus;
-                    window.game?.showMessage?.(`Midas Touch: +${midasBonus} Pips from ${midasGold * 5} gold!`);
+                    engine?.showMessage?.(`Midas Touch: +${midasBonus} Pips from ${midasGold * 5} gold!`);
                 }
                 break;
             
             case 'lethe_waters':
                 // +25 Pips flat bonus (ignoring 1-2s is cosmetic/handled elsewhere)
                 result.pips += 25;
-                window.game?.showMessage?.("Lethe Waters: +25 Pips!");
+                engine?.showMessage?.("Lethe Waters: +25 Pips!");
                 break;
             
             case 'icarus_wings':
@@ -60,7 +62,7 @@ const BoonTimingHandlers = {
                 if (icarusBonus > 0) {
                     result.pips += icarusBonus;
                     boon.dynamicStats.pips = icarusBonus;
-                    window.game?.showMessage?.(`Icarus' Wings: +${icarusBonus} Pips from ${unusedRolls} unused rolls!`);
+                    engine?.showMessage?.(`Icarus' Wings: +${icarusBonus} Pips from ${unusedRolls} unused rolls!`);
                 }
                 break;
 
@@ -71,7 +73,7 @@ const BoonTimingHandlers = {
                 if (gamblerBonus > 0) {
                     result.pips += gamblerBonus;
                     boon.dynamicStats.pips = gamblerBonus;
-                    window.game?.showMessage?.(`The Gambler: +${gamblerBonus} Pips from ${gamblerRollsLeft} rerolls left!`);
+                    engine?.showMessage?.(`The Gambler: +${gamblerBonus} Pips from ${gamblerRollsLeft} rerolls left!`);
                 }
                 break;
             
@@ -83,14 +85,14 @@ const BoonTimingHandlers = {
                 if (allOdd || allEven) {
                     result.favour += 3;
                     boon.dynamicStats.favour = 3;
-                    window.game?.showMessage?.(`Hestia's Hearth: +3 Favour (all ${allOdd ? 'odd' : 'even'})!`);
+                    engine?.showMessage?.(`Hestia's Hearth: +3 Favour (all ${allOdd ? 'odd' : 'even'})!`);
                 }
                 break;
             
             case 'prometheus_gift':
                 // +3 Favour all hands (in addition to -1 roll penalty in turn_start)
                 result.favour += 3;
-                window.game?.showMessage?.("Prometheus' Gift: +3 Favour!");
+                engine?.showMessage?.("Prometheus' Gift: +3 Favour!");
                 break;
             
             case 'forge_of_hephaestus':
@@ -100,7 +102,7 @@ const BoonTimingHandlers = {
                 if (forgeFavour > 0) {
                     result.favour += forgeFavour;
                     boon.dynamicStats.favour = forgeFavour;
-                    window.game?.showMessage?.(`Forge of Hephaestus: +${forgeFavour} Favour from ${forgeUnusedRolls} unused rolls!`);
+                    engine?.showMessage?.(`Forge of Hephaestus: +${forgeFavour} Favour from ${forgeUnusedRolls} unused rolls!`);
                 }
                 break;
             
@@ -110,7 +112,7 @@ const BoonTimingHandlers = {
                 if (worshipUsed > 0) {
                     result.favour += worshipUsed;
                     boon.dynamicStats.favour = worshipUsed;
-                    window.game?.showMessage?.(`Mt Olympus: +${worshipUsed} Favour from worship cards!`);
+                    engine?.showMessage?.(`Mt Olympus: +${worshipUsed} Favour from worship cards!`);
                 }
                 break;
             
@@ -121,7 +123,7 @@ const BoonTimingHandlers = {
                 const currentFavour = result.favour || 0;
                 result.favour += currentFavour; // Effectively doubles it
                 if (currentFavour > 0) {
-                    window.game?.showMessage?.(`Chaos Primordial: Favour doubled!`);
+                    engine?.showMessage?.(`Chaos Primordial: Favour doubled!`);
                 }
                 break;
             
@@ -136,7 +138,7 @@ const BoonTimingHandlers = {
                 const pairCount = Object.values(counts).filter(c => c >= 2).length;
                 if (pairCount === 2) {
                     result.favour += 3;
-                    window.game?.showMessage?.("Hydra's Heads: +×3 Favour for two pairs!");
+                    engine?.showMessage?.("Hydra's Heads: +×3 Favour for two pairs!");
                 }
                 break;
             
@@ -146,7 +148,7 @@ const BoonTimingHandlers = {
                                      'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'];
                 if (lowerSanctum.includes(result.category)) {
                     result.favour += 0.5;
-                    window.game?.showMessage?.("Medusa's Gaze: ×0.5 Favour (lower sanctum)!");
+                    engine?.showMessage?.("Medusa's Gaze: ×0.5 Favour (lower sanctum)!");
                 }
                 break;
             
@@ -156,7 +158,7 @@ const BoonTimingHandlers = {
                 result.favour += tantalusFavour;
                 boon.dynamicStats.favour = tantalusFavour;
                 if (tantalusFavour > 0) {
-                    window.game?.showMessage?.(`Tantalus' Curse: +${tantalusFavour} Favour from gold!`);
+                    engine?.showMessage?.(`Tantalus' Curse: +${tantalusFavour} Favour from gold!`);
                 }
                 // Gold blocking handled in shop
                 break;
@@ -179,7 +181,7 @@ const BoonTimingHandlers = {
                     const favourBonus = highDiceInScore * 0.5;
                     result.favour += favourBonus;
                     result._pegasusDieIndices = pegasusDieIndices; // For scoring animation popups
-                    window.game?.showMessage?.(`Pegasus' Flight: +${favourBonus} Favour from ${highDiceInScore} high dice!`);
+                    engine?.showMessage?.(`Pegasus' Flight: +${favourBonus} Favour from ${highDiceInScore} high dice!`);
                 }
                 break;
             }
@@ -194,7 +196,7 @@ const BoonTimingHandlers = {
                 result.pips += cerberusBonus;
                 if (cerberusBonus > 0) {
                     result._cerberusDieIndices = cerberusDieIndices;
-                    window.game?.showMessage?.(`Cerberus' Watch: +${cerberusBonus} Pips for held dice!`);
+                    engine?.showMessage?.(`Cerberus' Watch: +${cerberusBonus} Pips for held dice!`);
                 }
                 break;
             }
@@ -202,14 +204,14 @@ const BoonTimingHandlers = {
             case 'apollos_oracle':
                 // Apollo's Oracle: reduce score by 20%
                 result.pips = Math.floor(result.pips * 0.8);
-                window.game?.showMessage?.("Apollo's Oracle: -20% score penalty!");
+                engine?.showMessage?.("Apollo's Oracle: -20% score penalty!");
                 break;
             
             case 'trojan_horse':
                 // After Turn 10, all Boons give ×2 effect (handled by global multiplier in applyTimingEffect)
                 // Show big activation message at turn 11
                 if (gameState.turn === 11) {
-                    window.game?.showMessage?.("🐴 THE TROJAN HORSE ACTIVATES! All boons now ×2!", 5000);
+                    engine?.showMessage?.("🐴 THE TROJAN HORSE ACTIVATES! All boons now ×2!", 5000);
                     Logger.info("Trojan Horse activated at turn 11 - all boons now doubled!");
                 }
                 break;
@@ -230,7 +232,7 @@ const BoonTimingHandlers = {
                 if (marathonPips > 0) {
                     result.pips += marathonPips;
                     boon.dynamicStats.pips = marathonPips;
-                    window.game?.showMessage?.(`Marathon Runner: +${marathonPips} Pips!`);
+                    engine?.showMessage?.(`Marathon Runner: +${marathonPips} Pips!`);
                 }
                 break;
             
@@ -244,7 +246,7 @@ const BoonTimingHandlers = {
                 const diceSum = gameState.dice.reduce((sum, die) => sum + die.face, 0);
                 if (diceSum % 10 === 0) {
                     result.pips += 10;
-                    window.game?.showMessage?.(`Mathematician's Compass: +10 Pips (sum: ${diceSum})!`);
+                    engine?.showMessage?.(`Mathematician's Compass: +10 Pips (sum: ${diceSum})!`);
                 }
                 break;
             
@@ -265,7 +267,7 @@ const BoonTimingHandlers = {
                     const primeBonus = primeBonusSequence[primeCount] || 0;
                     result.pips += primeBonus;
                     boon.dynamicStats.pips = primeBonus;
-                    window.game?.showMessage?.(`Prime Time: +${primeBonus} Pips from ${primeCount} primes!`);
+                    engine?.showMessage?.(`Prime Time: +${primeBonus} Pips from ${primeCount} primes!`);
                 }
                 break;
             
@@ -282,7 +284,7 @@ const BoonTimingHandlers = {
                 if (locksmithBonus > 0) {
                     result.pips += locksmithBonus;
                     boon.dynamicStats.pips = locksmithBonus;
-                    window.game?.showMessage?.(`The Locksmith: +${locksmithBonus} Pips from held rolls!`);
+                    engine?.showMessage?.(`The Locksmith: +${locksmithBonus} Pips from held rolls!`);
                 }
                 break;
             
@@ -293,7 +295,7 @@ const BoonTimingHandlers = {
                     result.pips += hereticPips;
                     boon.dynamicStats.pips = hereticPips;
                     boon.dynamicStats.other = `🚫 No Worship`;
-                    window.game?.showMessage?.(`The Heretic: +${hereticPips} Pips (stacking)!`);
+                    engine?.showMessage?.(`The Heretic: +${hereticPips} Pips (stacking)!`);
                 } else {
                     boon.dynamicStats.pips = 0;
                     boon.dynamicStats.other = 'Reset';
@@ -303,14 +305,14 @@ const BoonTimingHandlers = {
             case 'reckless_abandon':
                 // +50 Pips flat bonus
                 result.pips += 50;
-                window.game?.showMessage?.("Reckless Abandon: +50 Pips!");
+                engine?.showMessage?.("Reckless Abandon: +50 Pips!");
                 break;
             
             case 'typhon':
                 // Apply stored typhon bonus if triggered
                 if (gameState.typhonBonus > 0) {
                     result.pips += gameState.typhonBonus;
-                    window.game?.showMessage?.(`🌋 Typhon's Power: +${gameState.typhonBonus} Pips!`, 5000);
+                    engine?.showMessage?.(`🌋 Typhon's Power: +${gameState.typhonBonus} Pips!`, 5000);
                     gameState.typhonBonus = 0; // Reset after use
                 }
                 break;
@@ -319,11 +321,11 @@ const BoonTimingHandlers = {
                 // Turns 1-3: +20 Pips, turns 6-13: -5 Pips
                 if (gameState.turn >= 1 && gameState.turn <= 3) {
                     result.pips += 20;
-                    window.game?.showMessage?.("🌅 Early Bird: +20 Pips! (Morning phase)");
+                    engine?.showMessage?.("🌅 Early Bird: +20 Pips! (Morning phase)");
                     boon.dynamicStats.other = '☀️ Morning';
                 } else if (gameState.turn >= 6 && gameState.turn <= 13) {
                     result.pips -= 5;
-                    window.game?.showMessage?.("Early Bird: -5 Pips (late game penalty)");
+                    engine?.showMessage?.("Early Bird: -5 Pips (late game penalty)");
                     boon.dynamicStats.other = '🌙 Evening';
                 } else {
                     // Turns 4-5 (gold phase)
@@ -349,7 +351,7 @@ const BoonTimingHandlers = {
                     result.favour += boon.symposiumFavourStacks;
                     boon.dynamicStats.favour = boon.symposiumFavourStacks;
                     const s = Math.round(boon.symposiumFavourStacks * 10) / 10;
-                    window.game?.showMessage?.(`The Symposium: +${s === Math.floor(s) ? s : s.toFixed(1)} Favour!`);
+                    engine?.showMessage?.(`The Symposium: +${s === Math.floor(s) ? s : s.toFixed(1)} Favour!`);
                 } else if (boon.symposiumFavourStacks > 0) {
                     // Still apply accumulated stacks even if not triggering this turn
                     result.favour += boon.symposiumFavourStacks;
@@ -364,7 +366,7 @@ const BoonTimingHandlers = {
                 
                 if (currentBoons >= maxBoonSlots) {
                     result.pips += 15;
-                    window.game?.showMessage?.(`Assembly of Heroes: +15 Pips (slots full!)!`);
+                    engine?.showMessage?.(`Assembly of Heroes: +15 Pips (slots full!)!`);
                 }
                 break;
             
@@ -385,7 +387,7 @@ const BoonTimingHandlers = {
                 if (synergyBonus > 0) {
                     result.pips += synergyBonus;
                     boon.dynamicStats.pips = synergyBonus;
-                    window.game?.showMessage?.(`Divine Synergy: +${synergyBonus} Pips!`);
+                    engine?.showMessage?.(`Divine Synergy: +${synergyBonus} Pips!`);
                 }
                 break;
             
@@ -395,7 +397,7 @@ const BoonTimingHandlers = {
                 
                 if (categoriesScored === 0) {
                     result.pips += BOON_EFFECTS.FIRST_BLOOD.FIRST_SCORE_BONUS;
-                    window.game?.showMessage?.("⚔️ First Blood: +50 Pips! (First score of Trial)", 3000);
+                    engine?.showMessage?.("⚔️ First Blood: +50 Pips! (First score of Trial)", 3000);
                     boon.dynamicStats.other = '✓ USED';
                 } else {
                     boon.dynamicStats.other = '✗ Next Trial';
@@ -406,7 +408,7 @@ const BoonTimingHandlers = {
                 // Turn 12+ gives +24 Pips
                 if (gameState.turn >= BOON_EFFECTS.MIDNIGHT_OIL.LATE_GAME_TURN) {
                     result.pips += BOON_EFFECTS.MIDNIGHT_OIL.PIPS_BONUS;
-                    window.game?.showMessage?.("🕯️ Midnight Oil: +24 Pips! (Late game boost)", 2500);
+                    engine?.showMessage?.("🕯️ Midnight Oil: +24 Pips! (Late game boost)", 2500);
                     boon.dynamicStats.other = '✓ ACTIVE';
                 } else {
                     boon.dynamicStats.other = `T${BOON_EFFECTS.MIDNIGHT_OIL.LATE_GAME_TURN - gameState.turn}`;
@@ -441,7 +443,7 @@ const BoonTimingHandlers = {
                 
                 if (seasonAdjustment !== 0) {
                     result.pips += seasonAdjustment;
-                    window.game?.showMessage?.(`Doubling Season: ${seasonAdjustment > 0 ? '+' : ''}${seasonAdjustment} Pips!`);
+                    engine?.showMessage?.(`Doubling Season: ${seasonAdjustment > 0 ? '+' : ''}${seasonAdjustment} Pips!`);
                 }
                 boon.dynamicStats.pips = seasonAdjustment;
                 break;
@@ -458,7 +460,7 @@ const BoonTimingHandlers = {
                 // If you have 0 gold, gain ×2 Favour
                 if (gameState.gold === 0) {
                     result.favour += 2;
-                    window.game?.showMessage?.("Misery: ×2 Favour (broke!)");
+                    engine?.showMessage?.("Misery: ×2 Favour (broke!)");
                 }
                 break;
             
@@ -469,7 +471,7 @@ const BoonTimingHandlers = {
                     
                     if (result.category === zealotCategory) {
                         result.favour += 1;
-                        window.game?.showMessage?.(`The Zealot: +×1 Favour (${gameState.lastWorshipGod})!`);
+                        engine?.showMessage?.(`The Zealot: +×1 Favour (${gameState.lastWorshipGod})!`);
                     }
                 }
                 break;
@@ -483,7 +485,7 @@ const BoonTimingHandlers = {
                         boon.etnaFavourStacks = 0;
                     }
                     boon.etnaFavourStacks += 1;
-                    window.game?.showMessage?.(`🌋 Eruption of Etna: +×1 Favour (${etnaTriggersThisTurn} boons triggered)!`, 3000);
+                    engine?.showMessage?.(`🌋 Eruption of Etna: +×1 Favour (${etnaTriggersThisTurn} boons triggered)!`, 3000);
                 }
                 
                 // Apply accumulated favour
@@ -505,7 +507,7 @@ const BoonTimingHandlers = {
                 if (asceticEmptySlots > 0) {
                     result.favour += asceticEmptySlots;
                     boon.dynamicStats.favour = asceticEmptySlots;
-                    window.game?.showMessage?.(`Ascetic's Vow: +×${asceticEmptySlots} Favour (${asceticEmptySlots} empty)!`);
+                    engine?.showMessage?.(`Ascetic's Vow: +×${asceticEmptySlots} Favour (${asceticEmptySlots} empty)!`);
                 }
                 break;
             
@@ -531,7 +533,7 @@ const BoonTimingHandlers = {
                     // Reduce their worship level
                     if (gameState.worshipLevels[seducedGod] > 0) {
                         gameState.worshipLevels[seducedGod] -= 1;
-                        window.game?.showMessage?.(`💋 Nyxian Seduction: +69 Pips, ${seducedGod} worship -1!`, 3000);
+                        engine?.showMessage?.(`💋 Nyxian Seduction: +69 Pips, ${seducedGod} worship -1!`, 3000);
                     }
                 }
                 break;
@@ -550,7 +552,7 @@ const BoonTimingHandlers = {
                 if (goldEnhancementCount > 0) {
                     const goldBonus = goldEnhancementCount * 3;
                     result.pips += goldBonus;
-                    window.game?.showMessage?.(`Gold Standard: +${goldBonus} Pips from ${goldEnhancementCount} gold!`);
+                    engine?.showMessage?.(`Gold Standard: +${goldBonus} Pips from ${goldEnhancementCount} gold!`);
                 }
                 break;
             
@@ -573,12 +575,12 @@ const BoonTimingHandlers = {
                     if (carillonEnhancementTypes.size === 1) {
                         // SECRET BONUS: All same enhancement! (MULTIPLICATIVE!)
                         result.favourMult *= 2.5;  // ×2.5 MULTIPLICATIVE (Balatro-style)
-                        window.game?.showMessage?.("🎵 Carillon of the Muses: PERFECT HARMONY! ×2.5 Favour!", 5000);
+                        engine?.showMessage?.("🎵 Carillon of the Muses: PERFECT HARMONY! ×2.5 Favour!", 5000);
                         Logger.info("Carillon secret bonus triggered: All same enhancement - MULTIPLICATIVE!");
                     } else {
                         // All enhanced but different (ADDITIVE)
                         result.favour += 3;
-                        window.game?.showMessage?.("Carillon of the Muses: +3 Favour!");
+                        engine?.showMessage?.("Carillon of the Muses: +3 Favour!");
                     }
                 }
                 break;
@@ -591,7 +593,7 @@ const BoonTimingHandlers = {
                 if (perseusBonus > 0) {
                     result.pips += perseusBonus;
                     boon.dynamicStats.pips = perseusBonus;
-                    window.game?.showMessage?.(`Journey of Perseus: +${perseusBonus} Pips!`);
+                    engine?.showMessage?.(`Journey of Perseus: +${perseusBonus} Pips!`);
                 }
                 break;
 
