@@ -10,9 +10,12 @@
 class ShopUI {
     /**
      * @param {UIManager} uiManager - Parent UIManager for dom, updateAllUI, createRippleEffect
+     * @param {Object|null} services - Shared app-lifetime singletons (sound, effects, data, stateManager, gameStates).
+     *   Falls back to the equivalent window globals for any service not provided, so tests/partial bootstraps still work.
      */
-    constructor(uiManager) {
+    constructor(uiManager, services = null) {
         this.uiManager = uiManager;
+        this.services = services;
         this.shopState = {
             openedPacks: new Set(),
             rerolls: 1
@@ -25,6 +28,12 @@ class ShopUI {
         this._onShopDragDocMove = (e) => this._handleShopDragDocMove(e);
         this._onShopDragDocUp = (e) => this._handleShopDragDocUp(e);
     }
+
+    get sound() { return this.services?.sound ?? window.soundManager; }
+    get effects() { return this.services?.effects ?? window.balatroEffects; }
+    get data() { return this.services?.data ?? window.dataManager; }
+    get stateManager() { return this.services?.stateManager ?? window.GameStateManager; }
+    get gameStates() { return this.services?.gameStates ?? window.GAME_STATES; }
 
     get dom() {
         return this.uiManager.dom;
@@ -59,7 +68,7 @@ class ShopUI {
         const shopStage = this.dom.shopStage || document.getElementById('shopStage');
         if (playStage) playStage.classList.add('hidden');
         if (shopStage) {
-            window.balatroEffects?.hideAllTooltips();
+            this.effects?.hideAllTooltips();
             shopStage.classList.remove('hidden');
         } else {
             Logger.error('Shop stage not found, cannot open shop');
@@ -69,19 +78,20 @@ class ShopUI {
         this.applyShopActionButton(gameState, true);
         document.querySelector('.main-game')?.classList.add('shop-active');
 
-        if (window.GameStateManager) window.GameStateManager.setState(window.GAME_STATES?.SHOP || 'SHOP');
-        if (window.soundManager) window.soundManager.setMusicContext('shop');
+        if (this.stateManager) this.stateManager.setState(this.gameStates?.SHOP || 'SHOP');
+        if (this.sound) this.sound.setMusicContext('shop');
         if (this.dom.shopTrial) this.dom.shopTrial.textContent = gameState.ante;
         if (this.dom.packOpeningView) this.dom.packOpeningView.classList.add('hidden');
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.remove('hidden');
-        this.attachShopEventListeners();
+        this.attachShopEventListeners(gameEngine);
 
         if (gameEngine?.canSave?.()) gameEngine.saveGame({ silent: true });
 
         requestAnimationFrame(() => this.renderStock(gameState, gameEngine));
     }
 
-    closeShop() {
+    /** @param {Object|null} [game] - Explicit engine reference; falls back to the global engine singleton when omitted */
+    closeShop(game = null) {
         const playStage = this.dom.playStage || document.getElementById('playStage');
         const shopStage = this.dom.shopStage || document.getElementById('shopStage');
         const packOpeningView = this.dom.packOpeningView || document.getElementById('packOpeningView');
@@ -93,10 +103,10 @@ class ShopUI {
         shopDefaultView?.classList.remove('hidden');
         document.querySelector('.main-game')?.classList.remove('shop-active');
         this.applyShopActionButton(null, false);
-        if (window.soundManager) window.soundManager.setMusicContext('play');
-        if (window.GameStateManager) window.GameStateManager.setState(window.GAME_STATES?.ROUND || 'ROUND');
-        window.balatroEffects?.hideAllTooltips();
-        const gameEngine = window.game;
+        if (this.sound) this.sound.setMusicContext('play');
+        if (this.stateManager) this.stateManager.setState(this.gameStates?.ROUND || 'ROUND');
+        this.effects?.hideAllTooltips();
+        const gameEngine = game || window.game;
         if (gameEngine?.canSave?.()) gameEngine.saveGame({ silent: true });
     }
 
@@ -124,7 +134,7 @@ class ShopUI {
     }
 
     renderStock(gameState, gameEngine) {
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
         const directSalesContainer = document.getElementById('shopDirectSales');
         const packsContainer = document.getElementById('shopPacksArea');
         const artifactsContainer = document.getElementById('shopArtifactsArea');
@@ -170,15 +180,17 @@ class ShopUI {
         });
     }
 
-    attachShopEventListeners() {
+    /** @param {Object|null} [game] - Explicit engine reference; falls back to the global engine singleton when omitted */
+    attachShopEventListeners(game = null) {
         // Continue lives below Trial stone (#shopContinueBtn); rebind each openShop.
         const continueBtn = document.getElementById('shopContinueBtn');
         if (continueBtn) {
             const newBtn = continueBtn.cloneNode(true);
             continueBtn.parentNode.replaceChild(newBtn, continueBtn);
             newBtn.addEventListener('click', () => {
-                if (window.game) window.game.closeShop();
-                else this.closeShop();
+                const engine = game || window.game;
+                if (engine) engine.closeShop();
+                else this.closeShop(game);
             });
         }
     }
@@ -186,14 +198,14 @@ class ShopUI {
     hasTantalusSpendBlock(gameState, gameEngine, message, playCancel = true) {
         const hasTantalusCurse = gameState.boons?.some(j => j.id === 'tantalus_curse');
         if (!hasTantalusCurse) return false;
-        if (playCancel && window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
+        if (playCancel && this.sound) this.sound.play('cancel', { volume: 0.55 });
         gameEngine.showMessage(message);
         return true;
     }
 
     ensureCanAfford(gameState, effectiveCost, gameEngine, message) {
         if (gameState.gold >= effectiveCost) return true;
-        if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
+        if (this.sound) this.sound.play('cancel', { volume: 0.55 });
         gameEngine.showMessage(message);
         return false;
     }
@@ -357,7 +369,7 @@ class ShopUI {
         }
         st.el.classList.add('shop-drag-source-hidden');
         st.promoted = true;
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
     }
 
     _positionShopDragAt(st, clientX, clientY) {
@@ -485,7 +497,7 @@ class ShopUI {
                     if (!document.contains(st.el) || this.expulsionPending) return true;
                     return false;
                 }
-                if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
+                if (this.sound) this.sound.play('cancel', { volume: 0.45 });
                 ctx.gameEngine?.showMessage?.(isBoon
                     ? 'Drag the boon onto your Boon column (right).'
                     : 'Drag the blessing onto your Libation column (left).');
@@ -495,12 +507,12 @@ class ShopUI {
                 const isBoon = ctx.card instanceof Boon;
                 const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
                 if (okSlot) {
-                    if (window.soundManager) window.soundManager.play(ctx.card instanceof Boon ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
+                    if (this.sound) this.sound.play(ctx.card instanceof Boon ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
                     this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
                     if (!document.contains(st.el) || this.expulsionPending) return true;
                     return false;
                 }
-                if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
+                if (this.sound) this.sound.play('cancel', { volume: 0.45 });
                 ctx.gameEngine?.showMessage?.(isBoon
                     ? 'Drag onto your Boon column to claim.'
                     : 'Drag onto your Libation column to claim.');
@@ -516,11 +528,11 @@ class ShopUI {
     purchasePack(packData, gameState, gameEngine, packElement) {
         const effectiveCost = this.getShopPrice(packData.baseCost ?? packData.cost, gameState);
         if (gameState.gold < effectiveCost) {
-            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
+            if (this.sound) this.sound.play('cancel', { volume: 0.55 });
             gameEngine.showMessage("Not enough gold!");
             return;
         }
-        if (window.soundManager) window.soundManager.play('crumple2', { pitch: 0.95, volume: 0.5 });
+        if (this.sound) this.sound.play('crumple2', { pitch: 0.95, volume: 0.5 });
         gameEngine.updateGoldAnimated(-effectiveCost, "pack purchase");
         this.shopState.openedPacks.add(packData.type);
         if (packElement) packElement.remove();
@@ -536,12 +548,12 @@ class ShopUI {
     }
 
     openPack(packData, gameState, gameEngine) {
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.add('hidden');
         if (this.dom.packOpeningView) this.dom.packOpeningView.classList.remove('hidden');
-        if (window.soundManager) {
-            window.soundManager.setMusicContext('pack');
-            window.soundManager.play('cardFan2', { pitch: 0.9, volume: 0.45 });
+        if (this.sound) {
+            this.sound.setMusicContext('pack');
+            this.sound.play('cardFan2', { pitch: 0.9, volume: 0.45 });
         }
 
         const shopDisplayedIds = this.getShopDisplayedCardIds();
@@ -573,7 +585,7 @@ class ShopUI {
     }
 
     closePackOpeningView() {
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
         const packOpeningView = this.dom.packOpeningView || document.getElementById('packOpeningView');
         const shopDefaultView = this.dom.shopDefaultView || document.getElementById('shopDefaultView');
         if (!packOpeningView || !shopDefaultView) return;
@@ -588,7 +600,7 @@ class ShopUI {
         packOpeningView.classList.add('hidden');
         shopDefaultView.classList.remove('hidden');
         this.dom.shopStage?.classList.remove('pack-opening-stage');
-        if (window.soundManager) window.soundManager.setMusicContext('shop');
+        if (this.sound) this.sound.setMusicContext('shop');
         if (revealedContainer) {
             revealedContainer.innerHTML = '';
             revealedContainer.dataset.packClaimed = 'false';
@@ -596,12 +608,12 @@ class ShopUI {
     }
 
     buyArtifact(artifactData, gameState, gameEngine, element) {
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
         if (this.hasTantalusSpendBlock(gameState, gameEngine, "💰 Tantalus' Curse: Cannot spend gold!", false)) return;
         const effectiveCost = this.getShopPrice(artifactData.baseCost ?? artifactData.cost ?? 10, gameState);
         if (!this.ensureCanAfford(gameState, effectiveCost, gameEngine, "Not enough gold for this artifact!")) return;
-        if (window.dataManager) window.dataManager.unlockItem('artifacts', artifactData.id);
-        if (window.soundManager) window.soundManager.play('card1', { pitch: 0.9, volume: 0.6 });
+        if (this.data) this.data.unlockItem('artifacts', artifactData.id);
+        if (this.sound) this.sound.play('card1', { pitch: 0.9, volume: 0.6 });
         gameEngine.updateGoldAnimated(-effectiveCost, "artifact purchase");
         gameState.artifacts.push(artifactData);
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
@@ -622,11 +634,11 @@ class ShopUI {
     }
 
     buyCard(card, gameState, gameEngine, element) {
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
         if (this.hasTantalusSpendBlock(gameState, gameEngine, "💰 Tantalus' Curse: Cannot spend gold!")) return;
         const effectiveCost = this.getShopPrice(card.baseCost ?? card.cost, gameState);
         if (!this.ensureCanAfford(gameState, effectiveCost, gameEngine, "Not enough gold!")) return;
-        if (window.soundManager) window.soundManager.play('coin3', { pitch: 0.95 + Math.random() * 0.1, volume: 0.6 });
+        if (this.sound) this.sound.play('coin3', { pitch: 0.95 + Math.random() * 0.1, volume: 0.6 });
         gameEngine.updateGoldAnimated(-effectiveCost, "card purchase");
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('shop_buy_card', {
@@ -636,12 +648,12 @@ class ShopUI {
                 kind: card instanceof Boon ? 'boon' : (card instanceof WorshipCard ? 'worship' : 'libation'),
             });
         }
-        if (window.balatroEffects && element) window.balatroEffects.addCardPurchaseEffect(element);
+        if (this.effects && element) this.effects.addCardPurchaseEffect(element);
         this.claimCard(card, gameState, gameEngine, element);
     }
 
     claimCard(card, gameState, gameEngine, element) {
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
         const packContainer = this._getActivePackContainer(element);
         if (packContainer?.dataset.packClaimed === 'true') return;
 
@@ -661,7 +673,7 @@ class ShopUI {
         }
 
         if (card instanceof Boon) {
-            if (window.dataManager) window.dataManager.unlockItem('boons', card.id);
+            if (this.data) this.data.unlockItem('boons', card.id);
             gameState.boons.push(card);
         } else if (card instanceof WorshipCard || card instanceof LibationCard) {
             gameState.consumables.push(card);
@@ -705,7 +717,7 @@ class ShopUI {
         const hasChronosHourglass = gameState.artifacts?.some(a => a.id === 'sundial_plus');
         if (hasChronosHourglass && !gameState.usedFreeReroll) {
             gameState.usedFreeReroll = true;
-            if (window.soundManager) window.soundManager.play('whoosh', { pitch: 0.95, volume: 0.5 });
+            if (this.sound) this.sound.play('whoosh', { pitch: 0.95, volume: 0.5 });
             gameEngine.showMessage("Used your free reroll from Chronos' Hourglass!");
             if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
                 PlaytestRecorder.log('shop_reroll', { paid: false, reason: 'chronos_hourglass', gold: gameState.gold });
@@ -717,12 +729,12 @@ class ShopUI {
         }
 
         if (gameState.gold < GAME_BALANCE.SHOP_REROLL_COST) {
-            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
+            if (this.sound) this.sound.play('cancel', { volume: 0.55 });
             gameEngine.showMessage("Not enough gold to reroll!");
             return;
         }
 
-        if (window.soundManager) window.soundManager.play('whoosh', { pitch: 0.9 + Math.random() * 0.1, volume: 0.5 });
+        if (this.sound) this.sound.play('whoosh', { pitch: 0.9 + Math.random() * 0.1, volume: 0.5 });
         const items = directSalesContainer?.querySelectorAll('.card') || [];
         items.forEach((item, i) => {
             item.classList.add('shop-item-flip-out');
@@ -751,10 +763,10 @@ class ShopUI {
             let totalGold = soldCard.sellValue;
             gameState.boons.forEach(boon => {
                 if (boon.timing && boon.timing.sell) {
-                    boon.onTimingEvent('sell', gameState, { cardType: soldCard.type, card: soldCard });
+                    boon.onTimingEvent('sell', gameState, { cardType: soldCard.type, card: soldCard }, gameEngine);
                 }
             });
-            if (window.soundManager) window.soundManager.play('crumple1', { pitch: 0.9 + Math.random() * 0.1, volume: 0.5 });
+            if (this.sound) this.sound.play('crumple1', { pitch: 0.9 + Math.random() * 0.1, volume: 0.5 });
             gameEngine.updateGoldAnimated(totalGold, "card sale");
             if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
                 PlaytestRecorder.log('inventory_sell', {
@@ -804,7 +816,7 @@ class ShopUI {
 
         if (cancelBtn) cancelBtn.onclick = () => this.cancelExpulsion();
         overlay.classList.remove('hidden');
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('expulsion_open', {
                 incomingCard: card?.id || card?.name,
@@ -818,7 +830,7 @@ class ShopUI {
     cancelExpulsion() {
         const p = this.expulsionPending;
         if (!p) return;
-        if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
+        if (this.sound) this.sound.play('cancel', { volume: 0.5 });
         if (p.refundGold && p.gameEngine) {
             p.gameEngine.updateGoldAnimated(p.refundGold, 'refund');
             p.gameEngine.showMessage('Cancelled.');
@@ -843,7 +855,7 @@ class ShopUI {
         if (overlay) overlay.classList.add('hidden');
 
         if (card instanceof Boon) {
-            if (window.dataManager) window.dataManager.unlockItem('boons', card.id);
+            if (this.data) this.data.unlockItem('boons', card.id);
             gameState.boons.push(card);
         } else if (card instanceof WorshipCard || card instanceof LibationCard) {
             gameState.consumables.push(card);

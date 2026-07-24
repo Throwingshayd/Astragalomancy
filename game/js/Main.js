@@ -30,13 +30,31 @@ class App {
         if (typeof Logger !== 'undefined') Logger.info('Initializing Dice of Dionysus...');
         
         this.dataManager = new DataManager();
-        this.uiManager = new UIManager();
+        /**
+         * Shared app-lifetime singletons, injected into UIManager/ShopUI/GameEngine so they
+         * don't each reach through window.* individually. This object is mutated in place as
+         * uiManager/shopManager come online below, then handed to every GameEngine created later.
+         */
+        this.services = {
+            sound: window.soundManager,
+            effects: window.balatroEffects,
+            data: this.dataManager,
+            stateManager: window.GameStateManager,
+            gameStates: window.GAME_STATES,
+            numberFormat: window.NumberFormat,
+            app: this,
+            uiManager: null,
+            shopManager: null,
+        };
+        this.uiManager = new UIManager(this.services);
+        this.services.uiManager = this.uiManager;
         this.soundManager = window.soundManager;
         
         window.dataManager = this.dataManager;
         window.uiManager = this.uiManager;
         
         this.uiManager.initialize();
+        this.services.shopManager = window.shopManager;
         
         this.setupScreens();
         this.setupGlobalEventListeners();
@@ -323,13 +341,13 @@ class App {
         if (continueRun && this.dataManager?.hasValidSave('auto')) {
             // Continue: create engine with placeholder, then load saved state
             Logger.info('Continuing saved run');
-            this.game = new GameEngine('CONTINUE');
+            this.game = new GameEngine('CONTINUE', this.services);
             window.game = this.game;
             this.game.bindDOMElements();
             this.uiManager.bindDOMElements();
             if (!this.game.loadGame()) {
                 Logger.warn('Failed to load save; starting new run');
-                this.game = new GameEngine(this.generateRandomSeed());
+                this.game = new GameEngine(this.generateRandomSeed(), this.services);
                 window.game = this.game;
                 this.game.bindDOMElements();
                 this.game.startGame();
@@ -343,7 +361,7 @@ class App {
                 if (seedInput) seedInput.value = seed;
             }
             Logger.info(`Starting game with seed: ${seed}`);
-            this.game = new GameEngine(seed);
+            this.game = new GameEngine(seed, this.services);
             window.game = this.game;
             this.game.bindDOMElements();
             this.uiManager.bindDOMElements();

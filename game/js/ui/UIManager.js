@@ -2,9 +2,13 @@
 // UIManager - Handles all UI updates and interactions
 
 class UIManager {
-    constructor() {
+    /**
+     * @param {Object|null} services - Shared app-lifetime singletons, passed down to ShopUI. See App.initialize().
+     */
+    constructor(services = null) {
         this.dom = {};
         this.isInitialized = false;
+        this.services = services;
         /** @type {ShopUI|null} */
         this.shopUI = null;
     }
@@ -161,11 +165,11 @@ class UIManager {
     }
 
     setupShopManager() {
-        if (!this.shopUI) this.shopUI = new ShopUI(this);
+        if (!this.shopUI) this.shopUI = new ShopUI(this, this.services);
         const shop = this.shopUI;
         window.shopManager = {
             openShop: (gameState, gameEngine) => shop.openShop(gameState, gameEngine),
-            closeShop: () => shop.closeShop(),
+            closeShop: (gameEngine) => shop.closeShop(gameEngine),
             rerollShop: (gameState, gameEngine) => shop.rerollShop(gameState, gameEngine),
             buyPack: (packType, gameState, gameEngine) => shop.buyPack?.(packType, gameState, gameEngine),
             buyArtifact: (artifactData, gameState, gameEngine, el) => shop.buyArtifact(artifactData, gameState, gameEngine, el),

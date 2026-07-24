@@ -2,8 +2,15 @@
 // GameEngine - Main game logic and state management
 
 class GameEngine {
-    constructor(seed) {
+    /**
+     * @param {string} seed
+     * @param {Object|null} services - Shared app-lifetime singletons (sound, effects, uiManager, shopManager,
+     *   app, stateManager, gameStates, numberFormat, data). See App.initialize() in Main.js. Falls back to the
+     *   equivalent window globals for any service not provided.
+     */
+    constructor(seed, services = null) {
         this.prng = new SeededRNG(seed);
+        this.services = services;
         this.dataManager = new DataManager();
         this.initializeGameState(seed);
         this.setupEventListeners();
@@ -13,6 +20,17 @@ class GameEngine {
         /** @type {LiveScoreController|null} */
         this.liveScore = null;
     }
+
+    get sound() { return this.services?.sound ?? window.soundManager; }
+    get uiManager() { return this.services?.uiManager ?? window.uiManager; }
+    get shopManager() { return this.services?.shopManager ?? window.shopManager; }
+    get app() { return this.services?.app ?? window.app; }
+    get effects() { return this.services?.effects ?? window.balatroEffects; }
+    get stateManager() { return this.services?.stateManager ?? window.GameStateManager; }
+    get gameStates() { return this.services?.gameStates ?? window.GAME_STATES; }
+    get numberFormat() { return this.services?.numberFormat ?? window.NumberFormat; }
+    /** Distinct from this.dataManager (this engine's own save/load instance) — this is the app-wide settings store. */
+    get globalData() { return this.services?.data ?? window.dataManager; }
 
     ensureLiveScore() {
         if (!this.liveScore && typeof LiveScoreController !== 'undefined') {
@@ -35,7 +53,7 @@ class GameEngine {
     }
     /** Balatro: G.SETTINGS.GAMESPEED — scale animation delays (2x = half delay, 4x = quarter) */
     scaleDelay(ms) {
-        const speed = (window.dataManager?.getSettings?.()?.gameSpeed) ?? 2;
+        const speed = (this.globalData?.getSettings?.()?.gameSpeed) ?? 2;
         return typeof GameTiming !== 'undefined' && GameTiming.scaleDelay
             ? GameTiming.scaleDelay(ms, speed)
             : Math.max(1, Math.round(ms / speed));
@@ -241,7 +259,7 @@ class GameEngine {
         // The stage-check lets one button serve both without swapping listeners mid-session.
         if (this.dom.rollButton) {
             this.dom.rollButton.addEventListener('click', () => {
-                if (window.soundManager) window.soundManager.play('button', { volume: 0.5 });
+                if (this.sound) this.sound.play('button', { volume: 0.5 });
                 const shopStage = document.getElementById('shopStage');
                 const shopOpen = shopStage && !shopStage.classList.contains('hidden');
                 if (shopOpen) this.rerollShop();
@@ -313,9 +331,9 @@ class GameEngine {
                 PlaytestRecorder.log('targeting_cancelled', { kind: 'libation' });
             }
             this.state.libationTargetingMode = null;
-            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
+            if (this.sound) this.sound.play('cancel', { volume: 0.45 });
             this.showMessage('Libation targeting cancelled.');
-            if (window.uiManager && this.dom.diceContainer) {
+            if (this.uiManager && this.dom.diceContainer) {
                 this.dom.diceContainer.classList.remove('libation-targeting');
                 this.dom.diceContainer.querySelector('.libation-targeting-cancel')?.remove();
             }
@@ -342,7 +360,7 @@ class GameEngine {
     handleEucharistSelect(category) {
         const mode = this.state.eucharistTargetingMode;
         if (!mode || !mode.libation) return;
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
         const god = typeof GOD_TO_CATEGORY !== 'undefined' ? GOD_TO_CATEGORY[category] : null;
         if (!god) return;
         if (god === "Pandora's Box" && !this.state.unlockedCategories?.["Pandora's Box"]) return;
@@ -366,7 +384,7 @@ class GameEngine {
             scorecard.querySelector('.eucharist-targeting-cancel')?.remove();
         }
         this.updateAllUI();
-        window.balatroEffects?.hideAllTooltips();
+        this.effects?.hideAllTooltips();
     }
 
     // Game flow methods
@@ -411,7 +429,7 @@ class GameEngine {
      * Finalize ante start after transition screen
      */
     finalizeAnteStart(currentAnteData) {
-        if (window.GameStateManager) window.GameStateManager.setState(window.GAME_STATES?.ROUND || 'ROUND');
+        if (this.stateManager) this.stateManager.setState(this.gameStates?.ROUND || 'ROUND');
         // When BOSS_BLINDS_DISABLED, treat all antes as "none" - no special effects
         const bossBlindsDisabled = typeof DEBUG_FLAGS !== 'undefined' && DEBUG_FLAGS.BOSS_BLINDS_DISABLED;
         this.state.activeBlind = bossBlindsDisabled ? 'none' : currentAnteData.blindId;
@@ -436,7 +454,7 @@ class GameEngine {
         this.state.rollsLeft = GAME_BALANCE.STARTING_ROLLS;
         this.state.boons.forEach(boon => {
             if (boon.timing && boon.timing.turn_start) {
-                boon.onTimingEvent('turn_start', this.state);
+                boon.onTimingEvent('turn_start', this.state, undefined, this);
             }
         });
 
@@ -452,7 +470,7 @@ class GameEngine {
      * @param {Function} callback - Called when player clicks "Begin"
      */
     showAnteTransition(anteData, callback) {
-        if (window.GameStateManager) window.GameStateManager.setState(window.GAME_STATES?.BLIND_SELECT || 'BLIND_SELECT');
+        if (this.stateManager) this.stateManager.setState(this.gameStates?.BLIND_SELECT || 'BLIND_SELECT');
         // Create transition overlay
         const overlay = document.createElement('div');
         overlay.className = 'ante-transition-overlay';
@@ -498,7 +516,7 @@ class GameEngine {
         // Begin button handler
         const beginButton = modal.querySelector('#anteBeginButton');
         beginButton.addEventListener('click', () => {
-            if (window.soundManager) window.soundManager.play('button', { volume: 0.5 });
+            if (this.sound) this.sound.play('button', { volume: 0.5 });
             // Fade out
             overlay.style.opacity = '0';
             setTimeout(() => {
@@ -558,7 +576,7 @@ class GameEngine {
         this.state.hasRolled = true;
         
         // Balatro SFX: dice roll (chips2)
-        if (window.soundManager) window.soundManager.play('chips2', { pitch: 0.95 + this.prng.random() * 0.1 });
+        if (this.sound) this.sound.play('chips2', { pitch: 0.95 + this.prng.random() * 0.1 });
         
         // Shuffle dice positions (dice can appear in random slots) — before physics
         this.shuffleDicePositions();
@@ -617,17 +635,17 @@ class GameEngine {
             });
             const rolledYahtzee = Object.values(counts).some((c) => c >= 5);
             if (rolledYahtzee) {
-                if (window.balatroEffects) window.balatroEffects.screenShake(20, 800);
-                if (window.soundManager) window.soundManager.play('timpani', { pitch: 0.9, volume: 0.8 });
+                if (this.effects) this.effects.screenShake(20, 800);
+                if (this.sound) this.sound.play('timpani', { pitch: 0.9, volume: 0.8 });
             }
 
             if (this.domReady) this.updateAllUI();
 
             // Landing bounce on dice after UI refresh
-            if (window.balatroEffects && this.dom.diceContainer) {
+            if (this.effects && this.dom.diceContainer) {
                 const els = this.dom.diceContainer.querySelectorAll('.die');
                 held.forEach((h, i) => {
-                    if (!h && els[i]) window.balatroEffects.addDiceBounceEffect(els[i]);
+                    if (!h && els[i]) this.effects.addDiceBounceEffect(els[i]);
                 });
             }
             if (this.canSave()) this.saveGame();
@@ -651,7 +669,7 @@ class GameEngine {
     // Apply boon effects that trigger at turn start (Balatro-inspired timing)
     applyBoonTurnStartEffects() {
         this.state.boons.forEach(boon => {
-            boon.onTimingEvent('turn_start', this.state);
+            boon.onTimingEvent('turn_start', this.state, undefined, this);
         });
     }
 
@@ -663,7 +681,7 @@ class GameEngine {
                     // Achilles Heel: lose 1 Gold at the start of each roll
                     if (this.state.gold > 0) {
                         this.updateGoldAnimated(-1, "Achilles' Heel");
-                        window.game?.showMessage?.("Achilles' Heel: -1 Gold!");
+                        this.showMessage?.("Achilles' Heel: -1 Gold!");
                     }
                     break;
             }
@@ -680,7 +698,7 @@ class GameEngine {
         // Reckless Abandon: cannot hold dice
         const hasRecklessAbandon = this.state.boons?.some(j => j.id === 'reckless_abandon');
         if (hasRecklessAbandon) {
-            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
+            if (this.sound) this.sound.play('cancel', { volume: 0.5 });
             this.showMessage("Reckless Abandon: You cannot hold dice!");
             return;
         }
@@ -690,13 +708,13 @@ class GameEngine {
         const currentHeldCount = this.state.held.filter(h => h).length;
         
         if (!this.state.held[index] && currentHeldCount >= maxHeld) {
-            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
+            if (this.sound) this.sound.play('cancel', { volume: 0.5 });
             this.showMessage(`You can only hold ${maxHeld} dice.`);
             return;
         }
         
         this.state.held[index] = !this.state.held[index];
-        if (window.soundManager) window.soundManager.play('highlight1', { pitch: 0.95 + this.prng.random() * 0.1, volume: 0.5 });
+        if (this.sound) this.sound.play('highlight1', { pitch: 0.95 + this.prng.random() * 0.1, volume: 0.5 });
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             const faces = this.state.dice.map((d) => this.getDieFaceValue(d, 0));
             PlaytestRecorder.log('hold_toggle', {
@@ -721,7 +739,7 @@ class GameEngine {
         if (hasRecklessAbandon) return;
         if (this.state.held.every(h => !h)) return;
         this.state.held.fill(false);
-        if (window.soundManager) window.soundManager.play('whoosh', { pitch: 0.9, volume: 0.4 });
+        if (this.sound) this.sound.play('whoosh', { pitch: 0.9, volume: 0.4 });
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('hold_clear_all', { turn: this.state.turn });
         }
@@ -821,11 +839,11 @@ class GameEngine {
             return;
         }
         if (!this.state.hasRolled) {
-            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
+            if (this.sound) this.sound.play('cancel', { volume: 0.5 });
             this.showMessage("You must roll the dice first!");
             return;
         }
-        if (window.soundManager) window.soundManager.play('highlight2', { pitch: 0.95, volume: 0.45 });
+        if (this.sound) this.sound.play('highlight2', { pitch: 0.95, volume: 0.45 });
         this.isScoring = true;
         this.state.pendingCategory = category;
         // Score directly without confirmation overlay
@@ -930,7 +948,7 @@ class GameEngine {
         
         // Apply AFTER_SCORE boon effects (Balatro-inspired timing)
         this.state.boons.forEach(boon => {
-            boon.onTimingEvent('after_score', this.state, { category, pips, favour, finalScore });
+            boon.onTimingEvent('after_score', this.state, { category, pips, favour, finalScore }, this);
         });
         
         // Track scores for cashout - gold awarded at round end before shop (not per-score)
@@ -1082,8 +1100,8 @@ class GameEngine {
             Logger.warn('No gold display elements found');
             return;
         }
-        if (change > 0 && window.soundManager) {
-            window.soundManager.play(change >= 10 ? 'coin6' : 'coin3', { pitch: 0.9 + this.prng.random() * 0.1, volume: 0.6 });
+        if (change > 0 && this.sound) {
+            this.sound.play(change >= 10 ? 'coin6' : 'coin3', { pitch: 0.9 + this.prng.random() * 0.1, volume: 0.6 });
         }
         goldDisplays.forEach(goldElement => {
             // Flash color
@@ -1150,7 +1168,7 @@ class GameEngine {
             });
             PlaytestRecorder.maybeAutoExportOnRunEnd();
         }
-        if (window.soundManager) window.soundManager.play(isVictory ? 'win' : 'negative', { volume: 0.8 });
+        if (this.sound) this.sound.play(isVictory ? 'win' : 'negative', { volume: 0.8 });
         // Create overlay
         const overlay = document.createElement('div');
         overlay.className = 'game-over-overlay';
@@ -1258,14 +1276,14 @@ class GameEngine {
      * Uses central exitToMenuAndSave so save always runs.
      */
     exitToMenu() {
-        if (window.app?.exitToMenuAndSave) {
-            window.app.exitToMenuAndSave();
+        if (this.app?.exitToMenuAndSave) {
+            this.app.exitToMenuAndSave();
         } else {
             if (this.canSave()) this.saveGame();
-            if (window.app) {
-                window.app.switchToScreen('start');
-                window.app.currentScreen = 'start';
-                window.app.updateContinueButton?.();
+            if (this.app) {
+                this.app.switchToScreen('start');
+                this.app.currentScreen = 'start';
+                this.app.updateContinueButton?.();
             }
         }
     }
@@ -1388,14 +1406,14 @@ class GameEngine {
             const hasBellows = this.state.boons?.some(j => j.id === 'bellows_of_war');
             const hasDionysus = this.state.boons?.some(j => j.id === 'dionysus_revelry');
             if (hasBellows && ['Three of a Kind', 'Four of a Kind'].includes(category)) {
-                window.game?.showMessage?.('Bellows of War: Virtual die added!', 2000);
+                this.showMessage?.('Bellows of War: Virtual die added!', 2000);
             }
             if (hasDionysus && category === 'Full House') {
                 const has3 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_THREE);
                 const has2 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_TWO);
                 const pairCount = Object.values(counts).filter((c) => c === 2).length;
                 if (pairCount >= 2 && !(has3 && has2)) {
-                    window.game?.showMessage?.("Dionysus' Revelry: 2 pairs counted as Full House!", 3000);
+                    this.showMessage?.("Dionysus' Revelry: 2 pairs counted as Full House!", 3000);
                 }
             }
         }
@@ -1408,13 +1426,13 @@ class GameEngine {
                 }
                 if (die.hasEnhancementForCurrentFace?.('gold')) {
                     this.updateGoldAnimated(ENHANCEMENT_BONUSES.GOLD_COINS, 'gold enhancement');
-                    window.game?.showMessage?.('Gold enhancement: +1 Gold!');
+                    this.showMessage?.('Gold enhancement: +1 Gold!');
                 }
                 if (die.hasEnhancementForCurrentFace?.('parchment')) {
                     const parchmentRoll = this.prng.random();
                     if (parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE) {
                         this.updateGoldAnimated(ENHANCEMENT_BONUSES.PARCHMENT_GOLD, 'parchment');
-                        window.game?.showMessage?.(`Parchment fortune: +${ENHANCEMENT_BONUSES.PARCHMENT_GOLD} Gold!`);
+                        this.showMessage?.(`Parchment fortune: +${ENHANCEMENT_BONUSES.PARCHMENT_GOLD} Gold!`);
                     }
                 }
             });
@@ -1427,7 +1445,7 @@ class GameEngine {
                     if (parchmentRoll >= ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE
                         && parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE + ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
                         favour += ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR;
-                        if (isActualScoring) window.game?.showMessage?.('Parchment blessing: +1 Favour!');
+                        if (isActualScoring) this.showMessage?.('Parchment blessing: +1 Favour!');
                     }
                 }
             });
@@ -1513,7 +1531,7 @@ class GameEngine {
     nextTurn() {
         // Apply TURN_END boon effects before advancing turn (Balatro-inspired timing)
         this.state.boons.forEach(boon => {
-            boon.onTimingEvent('turn_end', this.state);
+            boon.onTimingEvent('turn_end', this.state, undefined, this);
         });
         
         // Reset boon trigger counter for Eruption of Etna
@@ -1526,7 +1544,7 @@ class GameEngine {
         
         // Apply TURN_START effects AFTER setting default rolls (so Kronos can override)
         this.state.boons.forEach(boon => {
-            boon.onTimingEvent('turn_start', this.state);
+            boon.onTimingEvent('turn_start', this.state, undefined, this);
         });
         
         // Reset turn state
@@ -1617,7 +1635,7 @@ class GameEngine {
                     state: PlaytestRecorder.captureState(this),
                 });
             }
-            if (window.soundManager) window.soundManager.play('gong', { pitch: 0.9, volume: 0.5 });
+            if (this.sound) this.sound.play('gong', { pitch: 0.9, volume: 0.5 });
             this.showMessage(`Trial ${this.state.ante} cleared! Score: ${this.state.totalScore}/${this.state.scoreThreshold}`);
             
             if (this.state.ante >= 13 && !this.state.endlessMode) {
@@ -1680,7 +1698,7 @@ class GameEngine {
         // === ANTE_END TIMING HOOK - MUST run BEFORE reset so Odyssey/Message in a Bottle can read scorecard ===
         this.state.boons.forEach(boon => {
             if (boon.timing && boon.timing.ante_end) {
-                boon.onTimingEvent('ante_end', this.state, {});
+                boon.onTimingEvent('ante_end', this.state, {}, this);
             }
         });
         
@@ -1839,13 +1857,13 @@ class GameEngine {
      * @param {boolean} [immediate=false] - If true, bypass coalescing (e.g. loadGame, modal open)
      */
     updateAllUI(immediate = false) {
-        if (!window.uiManager || !this.domReady) return;
+        if (!this.uiManager || !this.domReady) return;
         if (!this.dom.diceContainer || !this.dom.rollButton) {
             if (this.dom.diceContainer || this.dom.rollButton) Logger.debug('Game elements not ready, skipping UI update');
             return;
         }
         const run = () => {
-            window.uiManager.updateAll(this.state, this);
+            this.uiManager.updateAll(this.state, this);
             this._updateAllUIScheduled = false;
         };
         if (immediate) {
@@ -1921,8 +1939,8 @@ class GameEngine {
         }
         // Interest is now awarded BEFORE shop opens (in showInterestThenOpenShop)
         // This method just opens the shop UI
-        if (window.shopManager) {
-            window.shopManager.openShop(this.state, this);
+        if (this.shopManager) {
+            this.shopManager.openShop(this.state, this);
         }
     }
 
@@ -1930,12 +1948,12 @@ class GameEngine {
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('shop_close', { turn: this.state.turn, ante: this.state.ante, gold: this.state.gold });
         }
-        if (window.soundManager) window.soundManager.play('cardSlide2', { pitch: 0.95, volume: 0.45 });
-        if (window.shopManager) {
-            window.shopManager.closeShop();
-        } else if (window.uiManager) {
+        if (this.sound) this.sound.play('cardSlide2', { pitch: 0.95, volume: 0.45 });
+        if (this.shopManager) {
+            this.shopManager.closeShop(this);
+        } else if (this.uiManager) {
             // Fallback to direct UIManager call
-            window.uiManager.closeShop();
+            this.uiManager.closeShop();
         } else {
             Logger.error('No shop manager available to close shop');
             return;
@@ -1950,8 +1968,8 @@ class GameEngine {
     }
 
     rerollShop() {
-        if (window.shopManager) {
-            window.shopManager.rerollShop(this.state, this);
+        if (this.shopManager) {
+            this.shopManager.rerollShop(this.state, this);
         }
     }
 
@@ -2229,9 +2247,9 @@ class GameEngine {
         this.updateMaxTurns(); // Recompute for unlocked Sevens/Eights/Nines
         this.applyArtifactEffects(); // Recompute boonSlots, shopPriceMultiplier from artifacts
         this.updateAllUI(true); // Immediate: restore from save
-        if (this.state.resumePhase === 'shop' && window.uiManager) {
+        if (this.state.resumePhase === 'shop' && this.uiManager) {
             // Return to shop: show shop stage and regenerate stock (PRNG restored = same stock)
-            window.uiManager.openShop(this.state, this);
+            this.uiManager.openShop(this.state, this);
         }
         return true;
     }
@@ -2242,8 +2260,8 @@ class GameEngine {
      * @returns {string}
      */
     formatFavour(favour) {
-        return (window.NumberFormat
-            ? window.NumberFormat.favour(favour, { prefix: false })
+        return (this.numberFormat
+            ? this.numberFormat.favour(favour, { prefix: false })
             : String(Number(favour) || 1));
     }
 
@@ -2254,17 +2272,17 @@ class GameEngine {
      * @returns {string} Formatted favour string (preserves decimals)
      */
     formatFavourContrib(favour) {
-        return (window.NumberFormat ? window.NumberFormat.favourContrib(favour) : String(Number(favour) || 0));
+        return (this.numberFormat ? this.numberFormat.favourContrib(favour) : String(Number(favour) || 0));
     }
 
     /**
      * Balatro-style tiered display format for pips / score-preview / total.
-     * Routes through window.NumberFormat so tier boundaries and commas/scientific
+     * Routes through this.numberFormat so tier boundaries and commas/scientific
      * are centralised in one place (see game/js/utils/NumberFormat.js).
      * @param {number} n
      * @returns {string}
      */
     formatDisplay(n) {
-        return (window.NumberFormat ? window.NumberFormat.display(n) : String(Math.trunc(Number(n) || 0)));
+        return (this.numberFormat ? this.numberFormat.display(n) : String(Math.trunc(Number(n) || 0)));
     }
 }
