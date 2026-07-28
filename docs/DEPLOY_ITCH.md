@@ -64,6 +64,7 @@ Upload the Tauri output as a **Windows** download on itch — separate from the 
 | Missing art / sounds locally | Run `npm install` (runs `ensure-art-junction.cjs`) |
 | Zip too large for itch | Free projects have size limits; run `npm run optimize-art` or trim music |
 | Blank page after upload | Confirm zip root contains `index.html`, not `dist/index.html` |
+| 404 on `/js/...` scripts | Rebuild with current Vite config (`classic-dist-assets` copies `game/js` → `dist/js`) |
 | Service worker warnings | Non-fatal on itch; offline cache may be limited until SW paths are relative |
 
 ## Version label
