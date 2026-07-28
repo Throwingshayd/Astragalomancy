@@ -24,7 +24,6 @@ self.__SW_PRECACHE_ASSETS = [
   "/ART/artifacts-chest-open.png",
   "/ART/ascetics vow.png",
   "/ART/assembly of heroes.png",
-  "/ART/astragalomancy-title.png",
   "/ART/background swirl.png",
   "/ART/bellows of war.png",
   "/ART/betrayal by paris.png",

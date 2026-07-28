@@ -41,9 +41,14 @@ class LiveScoreController {
         return !!(s && !s.hasRolled && s.ante === 1 && (s.turn || 1) === 1);
     }
 
-    /** @param {string} _text */
-    _setOfferingMessage(_text) {
-        /* Trial banner owns the former offering slot — see InfoBarRenderer.updateTrialBanner */
+    /** Shared center banner (`#trialDisplay`) — entry tutorial + trial remaining. */
+    _setOfferingMessage(text) {
+        const el = document.getElementById('trialDisplay')
+            || this.dom.liveScoreDisplay?.querySelector('[data-live="category"]');
+        if (el) {
+            el.textContent = text ?? '';
+            if (text) el.setAttribute('aria-label', text);
+        }
     }
 
     /** Hover an unrolled die → matching tutorial line in the offering message. */
@@ -158,6 +163,7 @@ class LiveScoreController {
         if (!category || !e.state.hasRolled) {
             const levelBonus = category ? e.getCategoryLevelBonuses(category) : { pips: 0, mult: 1 };
             const hint = !category ? this.entryHintMessage() : null;
+            if (hint != null) this._setOfferingMessage(hint);
             this.updateValues(el, {
                 category: hint != null ? hint : e.getLiveOfferingTitle(category, slotFilled),
                 pips: '0',

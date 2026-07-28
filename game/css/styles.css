@@ -7548,9 +7548,9 @@ body::after {
     .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Nines"] { --px: 94%; }
 }
 
-/* Shop: keep Pantheon behind the shop stage so chips don’t intercept clicks / cover UI */
+/* Shop: pantheon (esp. lower-tier god names) above shopfront art; frieze is pointer-events: none except chips */
 .main-game.shop-active .pantheon-frieze {
-    z-index: 5;
+    z-index: 12;
 }
 
 /* ── 2. LEFT CONSUMABLE BAR (vertical) ── */

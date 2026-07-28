@@ -34,7 +34,7 @@ const InfoBarRenderer = {
     },
 
     /**
-     * Water colour / crack state driven off turns left.
+     * Sand colour / urgency driven off turns left.
      * @param {number} remaining
      */
     clepsydraState(remaining) {
@@ -45,8 +45,8 @@ const InfoBarRenderer = {
     },
 
     /**
-     * Ticks are rebuilt only when maxTurns changes — unlocking Sevens/Eights/Nines
-     * raises it above the base 13.
+     * Ticks along the hourglass pillar — rebuilt when maxTurns changes
+     * (unlocking Sevens/Eights/Nines raises it above the base 13).
      * @param {number} maxT
      */
     syncClepsydraTicks(maxT) {
@@ -73,7 +73,54 @@ const InfoBarRenderer = {
         // Reflow so the settle animation replays on back-to-back turns.
         root.getBoundingClientRect();
         root.classList.add('is-draining');
+        this.burstSandGrains(14);
         this._drainTimer = setTimeout(() => root.classList.remove('is-draining'), 520);
+    },
+
+    /** Flip when a new trial/ante restores a full turn count. */
+    flipClepsydra(root) {
+        clearTimeout(this._flipTimer);
+        root.classList.remove('is-flipping');
+        root.getBoundingClientRect();
+        root.classList.add('is-flipping');
+        this.burstSandGrains(22);
+        if (window.soundManager) {
+            window.soundManager.play('whoosh', { pitch: 0.85, volume: 0.35 });
+        }
+        this._flipTimer = setTimeout(() => root.classList.remove('is-flipping'), 980);
+    },
+
+    /**
+     * Lightweight grain particles at the hourglass neck (DOM, not Unity PS).
+     * @param {number} count
+     */
+    burstSandGrains(count) {
+        const host = document.getElementById('clepsydraGrains');
+        if (!host) return;
+        const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+        if (reduce) return;
+        const n = Math.max(1, Math.min(28, count | 0));
+        for (let i = 0; i < n; i++) {
+            const g = document.createElement('span');
+            g.className = 'clepsydra-grain';
+            const drift = ((Math.random() * 10) - 5).toFixed(1);
+            g.style.setProperty('--gx', `${drift}px`);
+            g.style.animationDelay = `${(Math.random() * 0.18).toFixed(2)}s`;
+            g.style.width = `${2 + Math.floor(Math.random() * 3)}px`;
+            g.style.height = g.style.width;
+            host.appendChild(g);
+            setTimeout(() => g.remove(), 1100);
+        }
+    },
+
+    /** Idle trickle while turns remain. */
+    ensureSandTrickle(active) {
+        clearInterval(this._grainTrickle);
+        this._grainTrickle = null;
+        if (!active) return;
+        const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+        if (reduce) return;
+        this._grainTrickle = setInterval(() => this.burstSandGrains(2), 420);
     },
 
     updateClepsydra(gameState) {
@@ -81,8 +128,7 @@ const InfoBarRenderer = {
         const maxT = Math.max(1, gameState.maxTurns || 13);
         const roman = this.toRoman(remaining);
         const pct = Math.max(0, Math.min(100, (remaining / maxT) * 100));
-        const water = document.getElementById('clepsydraWater');
-        const spent = document.getElementById('clepsydraSpent');
+        const stream = document.getElementById('clepsydraStream');
         const root = document.getElementById('clepsydra');
         const turnEl = document.getElementById('turnDisplay');
         if (turnEl) {
@@ -90,8 +136,12 @@ const InfoBarRenderer = {
             turnEl.style.color = '';
             turnEl.style.fontWeight = '';
         }
-        if (water) water.style.height = `${pct}%`;
-        if (spent) spent.style.height = `${100 - pct}%`;
+        // Fill vars kept for ticks / future art swaps; sand is baked into the sprite.
+        if (root) {
+            root.style.setProperty('--clep-top', `${pct}%`);
+            root.style.setProperty('--clep-bot', `${100 - pct}%`);
+        }
+        if (stream) stream.style.opacity = remaining <= 0 ? '0' : '';
         if (!root) return;
 
         const previous = Number(root.dataset.remaining);
@@ -108,7 +158,13 @@ const InfoBarRenderer = {
             tick.classList.toggle('is-current', n === remaining);
         });
 
-        if (Number.isFinite(previous) && remaining < previous) this.pulseClepsydra(root);
+        this.ensureSandTrickle(remaining > 0);
+
+        if (Number.isFinite(previous)) {
+            if (remaining < previous) this.pulseClepsydra(root);
+            // New ante / restored clock — cinematic flip like resetting an hourglass.
+            if (remaining > previous && remaining >= maxT - 0.5) this.flipClepsydra(root);
+        }
     },
 
     updateRollsPips(gameState) {
@@ -126,21 +182,37 @@ const InfoBarRenderer = {
         }
     },
 
-    /** @param {{ ante?: number, totalScore?: number, scoreThreshold?: number }} gameState */
+    /** @param {number} n */
+    toOrdinal(n) {
+        const num = Math.floor(Number(n));
+        if (!Number.isFinite(num) || num <= 0) return String(n);
+        const mod100 = num % 100;
+        if (mod100 >= 11 && mod100 <= 13) return `${num}th`;
+        switch (num % 10) {
+            case 1: return `${num}st`;
+            case 2: return `${num}nd`;
+            case 3: return `${num}rd`;
+            default: return `${num}th`;
+        }
+    },
+
+    /** @param {{ ante?: number, totalScore?: number, scoreThreshold?: number, hasRolled?: boolean, turn?: number }} gameState */
     formatTrialBanner(gameState) {
         const fmt = (n) => (window.NumberFormat ? window.NumberFormat.display(n) : String(n));
         const ante = Math.max(1, gameState.ante ?? 1);
         const threshold = Math.max(0, gameState.scoreThreshold ?? 0);
         const total = Math.max(0, gameState.totalScore ?? 0);
         const remaining = Math.max(0, threshold - total);
-        const trialLabel = ante === 1 ? 'Trial' : `Trial ${fmt(ante)}`;
-        return `${trialLabel}: ${fmt(remaining)} remaining`;
+        return `${this.toOrdinal(ante)} Trial: ${fmt(remaining)} remaining`;
     },
 
     updateTrialBanner(dom, gameState) {
         const el = dom.trialDisplay || document.getElementById('trialDisplay');
         if (!el) return;
-        const text = this.formatTrialBanner(gameState);
+        // Entry hover tutorial owns this slot until the first cast (ante 1 / turn 1).
+        const live = window.game?.ensureLiveScore?.();
+        const hint = live?.entryHintMessage?.();
+        const text = hint != null ? hint : this.formatTrialBanner(gameState);
         el.textContent = text;
         el.setAttribute('aria-label', text);
     },
