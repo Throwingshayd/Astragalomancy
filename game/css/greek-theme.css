@@ -85,9 +85,11 @@
 #gameViewport.game-screen .main-game {
     background-color: #07181c;
     background-image: url("/ART/main-menu-background.png");
-    background-size: 100% 100%;
+    background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 /* ── 3. PLAY ARENA — experiment: no game-board.png; dice float on menu bg */
@@ -1307,13 +1309,21 @@
     left: calc(50% + 320px) !important;
 }
 
-/* ── Clepsydra — water clock for turns remaining (left gutter) ── */
+/* ── Clepsydra of Kronos — water clock for turns remaining (left gutter) ──
+   Upper chamber holds the turns left; it drains through the bronze spout into
+   the basin, which fills with turns already spent. --clep-* recolour the water
+   per state so the whole vessel shifts together (calm → low → critical). */
 .main-game .center-game-area .clepsydra {
+    --clep-water-top: rgba(176, 226, 255, 0.62);
+    --clep-water-mid: rgba(66, 142, 194, 0.8);
+    --clep-water-deep: rgba(28, 92, 142, 0.92);
+    --clep-glow: rgba(126, 196, 244, 0.4);
+    --clep-tick: rgba(205, 162, 76, 0.7);
     position: absolute;
-    left: 88px;
-    top: 168px;
-    width: 110px;
-    height: 380px;
+    left: 76px;
+    top: 150px;
+    width: 128px;
+    height: 440px;
     z-index: 15;
     display: flex;
     flex-direction: column;
@@ -1322,41 +1332,73 @@
     pointer-events: none;
 }
 
+.main-game .center-game-area .clepsydra[data-state="low"] {
+    --clep-water-top: rgba(255, 224, 158, 0.66);
+    --clep-water-mid: rgba(226, 154, 58, 0.84);
+    --clep-water-deep: rgba(166, 96, 26, 0.94);
+    --clep-glow: rgba(248, 186, 92, 0.48);
+}
+
+.main-game .center-game-area .clepsydra[data-state="critical"],
+.main-game .center-game-area .clepsydra[data-state="empty"] {
+    --clep-water-top: rgba(255, 186, 158, 0.68);
+    --clep-water-mid: rgba(206, 78, 48, 0.86);
+    --clep-water-deep: rgba(138, 34, 24, 0.95);
+    --clep-glow: rgba(238, 106, 74, 0.55);
+    --clep-tick: rgba(226, 132, 96, 0.75);
+}
+
 .main-game .center-game-area .clepsydra-label {
     font-family: var(--font-epic-title);
     font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: rgba(255, 248, 220, 0.78);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 
-.main-game .center-game-area .clepsydra-body {
+.main-game .center-game-area .clepsydra-frame {
     position: relative;
-    flex: 1 1 auto;
-    width: 100%;
-    min-height: 0;
     display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 6px;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
-.main-game .center-game-area .clepsydra-vessel {
+/* Upper chamber — alabaster vessel with a gold rim and foot */
+.main-game .center-game-area .clepsydra-chamber {
     position: relative;
-    width: 48px;
-    flex: 0 0 48px;
-    border-radius: 10px 10px 18px 18px;
+    width: 76px;
+    height: 214px;
+    box-sizing: border-box;
     border: 2px solid var(--gk-gold-2);
+    border-radius: 8px 8px 30px 30px;
     background:
-        linear-gradient(160deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 40%),
-        linear-gradient(180deg, rgba(236, 226, 204, 0.55) 0%, rgba(210, 190, 155, 0.35) 100%);
+        linear-gradient(158deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(180deg, rgba(240, 231, 211, 0.5) 0%, rgba(206, 186, 150, 0.32) 100%);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.55),
-        inset 0 -10px 18px rgba(60, 40, 20, 0.12),
-        0 8px 20px rgba(0, 0, 0, 0.35);
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -12px 20px rgba(60, 40, 20, 0.14),
+        0 10px 26px rgba(0, 0, 0, 0.42);
     overflow: hidden;
+}
+
+/* Gold collar across the mouth of the vessel */
+.main-game .center-game-area .clepsydra-chamber::before {
+    content: "";
+    position: absolute;
+    left: -2px;
+    right: -2px;
+    top: 0;
+    height: 11px;
+    z-index: 3;
+    background-image: var(--gk-meander-h);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-color: rgba(37, 26, 14, 0.72);
+    border-bottom: 1px solid var(--gk-gold-3);
+    opacity: 0.9;
 }
 
 .main-game .center-game-area .clepsydra-water {
@@ -1365,78 +1407,180 @@
     right: 0;
     bottom: 0;
     height: 100%;
-    background:
-        linear-gradient(180deg, rgba(170, 220, 255, 0.55) 0%, rgba(70, 140, 190, 0.72) 55%, rgba(40, 100, 150, 0.85) 100%);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.35),
-        0 0 18px rgba(120, 190, 240, 0.25);
-    transition: height 0.55s ease;
     z-index: 0;
+    background: linear-gradient(
+        180deg,
+        var(--clep-water-top) 0%,
+        var(--clep-water-mid) 52%,
+        var(--clep-water-deep) 100%
+    );
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.38),
+        0 0 20px var(--clep-glow);
+    transition: height 0.6s cubic-bezier(0.33, 0.9, 0.45, 1), background 0.5s ease;
 }
 
-.main-game .center-game-area .clepsydra-water::before {
-    content: "";
+/* Meniscus — bright line where the water meets the marble */
+.main-game .center-game-area .clepsydra-surface {
     position: absolute;
-    left: 8%;
-    right: 8%;
+    left: 4%;
+    right: 4%;
     top: 0;
-    height: 10px;
+    height: 8px;
     border-radius: 50%;
-    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.55) 0%, rgba(180, 220, 255, 0.2) 60%, transparent 100%);
-    transform: translateY(-40%);
+    transform: translateY(-45%);
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 255, 255, 0.7) 0%,
+        var(--clep-glow) 55%,
+        transparent 100%
+    );
+}
+
+/* Turn ticks — one per turn, built from maxTurns (13–16) */
+.main-game .center-game-area .clepsydra-marks {
+    position: absolute;
+    inset: 11px 0 0;
+    z-index: 2;
+}
+
+.main-game .center-game-area .clepsydra-tick {
+    position: absolute;
+    right: 0;
+    width: 11px;
+    height: 1px;
+    background: var(--clep-tick);
+    opacity: 0.85;
+    transition: width 0.3s ease, opacity 0.3s ease, background 0.4s ease;
+}
+
+.main-game .center-game-area .clepsydra-tick.is-major {
+    width: 20px;
+    height: 2px;
+}
+
+.main-game .center-game-area .clepsydra-tick.is-drained {
+    opacity: 0.28;
+}
+
+.main-game .center-game-area .clepsydra-tick.is-current {
+    width: 100%;
+    height: 2px;
+    opacity: 1;
+    background: linear-gradient(90deg, transparent 0%, var(--gk-gold-1) 100%);
+}
+
+/* Hairline fracture — only surfaces once the vessel runs dry */
+.main-game .center-game-area .clepsydra-crack {
+    position: absolute;
+    left: 22%;
+    top: 14%;
+    width: 2px;
+    height: 62%;
+    z-index: 2;
+    opacity: 0;
+    transform: rotate(8deg);
+    background: linear-gradient(180deg, transparent 0%, rgba(38, 22, 12, 0.75) 30%, rgba(38, 22, 12, 0.5) 70%, transparent 100%);
+    transition: opacity 0.6s ease;
+}
+
+.main-game .center-game-area .clepsydra[data-state="empty"] .clepsydra-crack {
+    opacity: 1;
 }
 
 .main-game .center-game-area .clepsydra-glass {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0%, transparent 28%, transparent 72%, rgba(255, 255, 255, 0.08) 100%);
     pointer-events: none;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.26) 0%,
+        transparent 26%,
+        transparent 70%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
 }
 
-.main-game .center-game-area .clepsydra-marks {
+/* Throat — bronze spout and the falling drop */
+.main-game .center-game-area .clepsydra-throat {
     position: relative;
-    flex: 1 1 auto;
-    margin: 4px 0;
-    padding: 0;
-    list-style: none;
+    width: 100%;
+    height: 30px;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    pointer-events: none;
+    justify-content: center;
 }
 
-.main-game .center-game-area .clepsydra-marks li {
+.main-game .center-game-area .clepsydra-spout {
+    position: absolute;
+    top: 0;
+    width: 20px;
+    height: 12px;
+    background: linear-gradient(180deg, var(--gk-gold-2) 0%, var(--gk-gold-3) 100%);
+    clip-path: polygon(0 0, 100% 0, 66% 100%, 34% 100%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.main-game .center-game-area .clepsydra-drop {
+    position: absolute;
+    top: 12px;
+    width: 5px;
+    height: 7px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: var(--clep-water-mid);
+    box-shadow: 0 0 6px var(--clep-glow);
+    opacity: 0;
+    animation: clepsydraDrip 3.4s linear infinite;
+}
+
+@keyframes clepsydraDrip {
+    0%, 62% { opacity: 0; transform: translateY(0) scaleY(0.7); }
+    68% { opacity: 1; transform: translateY(0) scaleY(1); }
+    96% { opacity: 1; transform: translateY(16px) scaleY(1.25); }
+    100% { opacity: 0; transform: translateY(18px) scaleY(0.6); }
+}
+
+/* Vessel drained — no more water to fall */
+.main-game .center-game-area .clepsydra[data-state="empty"] .clepsydra-drop {
+    animation: none;
+    opacity: 0;
+}
+
+/* Basin — shallow bowl catching the turns already spent */
+.main-game .center-game-area .clepsydra-basin {
     position: relative;
-    font-family: var(--font-manuscript);
-    font-size: 10px;
-    line-height: 1;
-    letter-spacing: 0.04em;
-    color: rgba(255, 248, 220, 0.78);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
-    padding-left: 10px;
-    white-space: nowrap;
-    transition: color 0.35s ease, opacity 0.35s ease;
+    width: 100px;
+    height: 62px;
+    box-sizing: border-box;
+    border: 2px solid var(--gk-gold-2);
+    border-top-width: 1px;
+    border-radius: 6px 6px 40px 40px;
+    background:
+        linear-gradient(158deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 46%),
+        linear-gradient(180deg, rgba(240, 231, 211, 0.42) 0%, rgba(206, 186, 150, 0.28) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 10px 22px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
 }
 
-.main-game .center-game-area .clepsydra-marks li::before {
-    content: "";
+.main-game .center-game-area .clepsydra-spent {
     position: absolute;
     left: 0;
-    top: 50%;
-    width: 6px;
-    height: 1px;
-    background: rgba(205, 162, 76, 0.75);
-    transform: translateY(-50%);
-}
-
-.main-game .center-game-area .clepsydra-marks li.is-drained {
-    color: rgba(255, 248, 220, 0.28);
-    opacity: 0.5;
+    right: 0;
+    bottom: 0;
+    height: 0;
+    background: linear-gradient(
+        180deg,
+        var(--clep-water-mid) 0%,
+        var(--clep-water-deep) 100%
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: height 0.6s cubic-bezier(0.33, 0.9, 0.45, 1), background 0.5s ease;
 }
 
 .main-game .center-game-area .clepsydra-readout {
-    min-height: 36px;
+    min-height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1444,17 +1588,49 @@
 
 .main-game .center-game-area .clepsydra-roman {
     font-family: var(--font-manuscript);
-    font-size: 28px;
+    font-size: 30px;
     letter-spacing: 0.06em;
     color: #fff6dc;
     text-shadow:
         0 1px 0 rgba(0, 0, 0, 0.35),
         0 2px 10px rgba(0, 0, 0, 0.45),
-        0 0 16px rgba(255, 220, 140, 0.2);
+        0 0 16px var(--clep-glow);
+    transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+.main-game .center-game-area .clepsydra[data-state="critical"] .clepsydra-roman {
+    color: #ffd9c6;
+}
+
+/* Per-turn transition: the vessel settles as the level drops */
+.main-game .center-game-area .clepsydra.is-draining .clepsydra-chamber {
+    animation: clepsydraSettle 0.5s ease-out;
+}
+
+@keyframes clepsydraSettle {
+    0% { transform: translateY(0); }
+    40% { transform: translateY(2px); }
+    100% { transform: translateY(0); }
 }
 
 .main-game.shop-active .center-game-area .clepsydra {
     opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .main-game .center-game-area .clepsydra-drop {
+        animation: none;
+        opacity: 0;
+    }
+
+    .main-game .center-game-area .clepsydra.is-draining .clepsydra-chamber {
+        animation: none;
+    }
+
+    .main-game .center-game-area .clepsydra-water,
+    .main-game .center-game-area .clepsydra-spent {
+        transition: none;
+    }
 }
 
 /* ── Rolls pips — three die-coloured dots between dice and info bar ── */

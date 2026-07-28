@@ -32,6 +32,7 @@
                 <div id="startScreen">
                     <div class="modal-content start-screen-modal">
                         <div class="start-hero" aria-hidden="true">
+                            <h1 class="start-hero-title">Astragalomancy</h1>
                             <p class="start-hero-sub">Cast fate. Court the gods. Build the pantheon.</p>
                             <span class="start-version-pill">v1.7 — Open stage</span>
                         </div>
@@ -186,29 +187,28 @@
                     <!-- Trial status — replaces offering message (ante + score remaining) -->
                     <div id="trialDisplay" class="offering-message trial-banner" aria-live="polite">Trial: 200 remaining</div>
 
-                    <!-- Clepsydra — turns remaining (XIII → ·), left gutter -->
-                    <div class="clepsydra" id="clepsydra" role="meter" aria-label="Turns remaining" aria-valuemin="0" aria-valuemax="13" aria-valuenow="13">
+                    <!-- Clepsydra of Kronos — turns remaining (XIII → ·), left gutter.
+                         Upper chamber drains into the lower basin; ticks are built from
+                         maxTurns by InfoBarRenderer since high categories can raise it. -->
+                    <div class="clepsydra" id="clepsydra" role="meter" aria-label="Turns remaining" aria-valuemin="0" aria-valuemax="13" aria-valuenow="13" data-state="calm">
                         <div class="clepsydra-label">Turns</div>
-                        <div class="clepsydra-body">
-                            <div class="clepsydra-vessel">
-                                <div class="clepsydra-water" id="clepsydraWater"></div>
-                                <div class="clepsydra-glass" aria-hidden="true"></div>
+                        <div class="clepsydra-frame" aria-hidden="true">
+                            <div class="clepsydra-chamber">
+                                <div class="clepsydra-water" id="clepsydraWater">
+                                    <span class="clepsydra-surface"></span>
+                                </div>
+                                <div class="clepsydra-marks" id="clepsydraMarks"></div>
+                                <div class="clepsydra-crack"></div>
+                                <div class="clepsydra-glass"></div>
                             </div>
-                            <ol class="clepsydra-marks" aria-hidden="true">
-                                <li data-n="13">XIII</li>
-                                <li data-n="12">XII</li>
-                                <li data-n="11">XI</li>
-                                <li data-n="10">X</li>
-                                <li data-n="9">IX</li>
-                                <li data-n="8">VIII</li>
-                                <li data-n="7">VII</li>
-                                <li data-n="6">VI</li>
-                                <li data-n="5">V</li>
-                                <li data-n="4">IV</li>
-                                <li data-n="3">III</li>
-                                <li data-n="2">II</li>
-                                <li data-n="1">I</li>
-                            </ol>
+                            <div class="clepsydra-throat">
+                                <span class="clepsydra-spout"></span>
+                                <span class="clepsydra-drop"></span>
+                            </div>
+                            <div class="clepsydra-basin">
+                                <div class="clepsydra-spent" id="clepsydraSpent"></div>
+                                <div class="clepsydra-glass"></div>
+                            </div>
                         </div>
                         <div class="clepsydra-readout">
                             <span class="clepsydra-roman" id="turnDisplay">XIII</span>

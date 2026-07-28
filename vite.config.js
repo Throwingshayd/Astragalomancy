@@ -8,7 +8,7 @@ export default defineConfig({
     outDir: '../dist',
     emptyOutDir: true,
     assetsDir: 'assets',
-    sourcemap: true,
+    sourcemap: false,
   },
   
   // Development server configuration
