@@ -170,6 +170,33 @@
     margin-top: 0;
     padding-top: 18px;
     padding-bottom: 6px;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 4px 5px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+/* Lower row fits up to 9 chips (6 base + Sevens/Eights/Nines) without wrapping */
+.main-game .pantheon-frieze .pantheon-tier-lower .pantheon-chip {
+    width: 132px !important;
+    min-width: 118px !important;
+    max-width: 132px !important;
+    flex: 0 0 auto !important;
+    padding: 0 2px 2px !important;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-lower .pantheon-chip .pantheon-cat {
+    font-size: 15px;
+    padding: 2px 4px;
+    letter-spacing: 0.03em;
+    min-height: auto;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-lower .pantheon-chip .pantheon-deity {
+    font-size: 9.5px;
+    letter-spacing: 0.03em;
+    line-height: 1.15;
 }
 
 .main-game .pantheon-frieze .pantheon-tier-upper::before {
@@ -549,10 +576,11 @@
 }
 
 .center-game-area .felt-score-felt .felt-label-value {
-    font-family: var(--font-manuscript);
-    font-weight: normal;
+    font-family: var(--font-pantheon-hand);
+    font-weight: 600;
     font-size: 38px;
     line-height: 1;
+    letter-spacing: 0.03em;
     color: var(--felt-panel-ink);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
 }

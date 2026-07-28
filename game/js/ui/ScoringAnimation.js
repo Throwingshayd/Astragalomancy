@@ -210,6 +210,10 @@ class ScoringAnimation {
                         callback();
                     };
                     if (scorecardEl) {
+                        const chipRow = scorecardEl.closest('.score-row');
+                        if (chipRow) {
+                            chipRow.classList.add('used', 'pantheon-scored');
+                        }
                         this.engine.animateNumberCount(scorecardEl, 0, finalScore, this.engine.scaleDelay(650), afterResolve);
                         scorecardEl.classList.add('score-flash');
                         setTimeout(() => {
@@ -323,7 +327,7 @@ class ScoringAnimation {
             
             // Test what this boon adds
             const testData = { category, pips: basePips, favour: baseFavour, favourMult: 1 };
-            const resultData = boon.onTimingEvent('before_score', this.engine.state, testData);
+            const resultData = boon.onTimingEvent('before_score', this.engine.state, testData, this.engine);
             
             const pipsAdded = (resultData.pips || 0) - basePips;
             const favourAdded = (resultData.favour || 0) - baseFavour;

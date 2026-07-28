@@ -34,6 +34,7 @@ describe('Greek theme wiring', () => {
         expect(styles).toMatch(/\.pantheon-frieze \.pantheon-chip[\s\S]*font-family: var\(--font-pantheon-hand\)/);
         expect(css).toContain('felt-epic-title');
         expect(css).toContain('var(--gk-marble-1)');
+        expect(css).toContain('play-stela-pillar.png');
         expect(css).toContain('CONSUMABLES');
         expect(css).toContain('BOONS');
         expect(css).toContain('Greater Pantheon');

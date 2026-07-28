@@ -100,6 +100,28 @@
 
 
 
+.card[data-card-surface="rack"].boon-card.has-asset .card-type-indicator,
+
+#shopDefaultView .card.boon-card.has-asset .card-type-indicator,
+
+#packOpeningView .card.boon-card.has-asset .card-type-indicator,
+
+.pack-cards-grid .card.boon-card.has-asset .card-type-indicator,
+
+.shop-drag-lift.card.boon-card.has-asset .card-type-indicator,
+
+.drag-ghost.card.boon-card.has-asset .card-type-indicator,
+
+.card-drag-appearance.card.boon-card.has-asset .card-type-indicator {
+
+    display: none !important;
+
+    visibility: hidden !important;
+
+}
+
+
+
 .card[data-card-surface="owned"].boon-card .card-type-indicator,
 
 .card[data-card-surface="rack"].boon-card .card-type-indicator {

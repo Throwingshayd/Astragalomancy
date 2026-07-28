@@ -83,6 +83,7 @@ const ScorecardRenderer = {
                 const lowerBonus = lowerComplete ? 35 : 0;
                 const combined = upperBonus + lowerBonus;
                 row.classList.remove('used');
+                row.classList.toggle('pantheon-scored', combined > 0);
                 const worshipLevel = gameState.worshipLevels?.["Pandora's Box"] || 0;
                 const categorySpan = row.querySelector('span');
                 if (categorySpan) {
@@ -112,13 +113,14 @@ const ScorecardRenderer = {
                 && DevotionUtils.canRescore(gameState, category);
             if (scored) {
                 row.classList.add('used');
+                row.classList.add('pantheon-scored');
                 row.classList.toggle('devotion-rescorable', canRescore);
                 row.classList.remove('available-category');
                 row.classList.remove('category-available-highlight');
                 const rounded = Math.round(gameState.scorecard[category] || 0);
                 scoreDisplay.textContent = rounded === 0 ? 'X' : String(rounded);
             } else {
-                row.classList.remove('used', 'devotion-rescorable');
+                row.classList.remove('used', 'devotion-rescorable', 'pantheon-scored');
                 scoreDisplay.textContent = '';
                 if (gameState.hasRolled && window.game && (canRescore || !scored)) {
                     let showGreen;

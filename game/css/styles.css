@@ -1798,6 +1798,12 @@ body::after {
     z-index: 1;
 }
 
+/* Boon art: normalized 284×380 PNGs — show full illustration, slight fill */
+.card.boon-card.has-asset .card-background {
+    background-size: contain;
+    background-position: center center;
+}
+
 /* Fallback for cards without assets */
 .card-fallback-bg {
     position: absolute;
@@ -3246,7 +3252,7 @@ body::after {
     inset: 0;
     width: 100%;
     height: 100%;
-    background-image: url('/ART/Title art.png');
+    background-image: url('/ART/main-menu-background.png');
     background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;
@@ -7036,9 +7042,9 @@ body::after {
 
 /* ── Center game area: expanded to occupy central column ── */
 .main-game .center-game-area {
-    top: 260px;
-    left: 260px;
-    width: 1400px;
+    top: var(--layout-center-game-top, 200px);
+    left: var(--layout-center-left, 300px);
+    width: var(--layout-center-w, 1320px);
     height: 780px;
     overflow: visible;
     z-index: 6;
@@ -7060,8 +7066,8 @@ body::after {
 .pantheon-frieze {
     position: absolute;
     top: -24px;
-    left: 260px;
-    width: 1400px;
+    left: var(--layout-center-left, 300px);
+    width: var(--layout-center-w, 1320px);
     height: auto;
     min-height: 0;
     z-index: 10;
@@ -7248,11 +7254,16 @@ body::after {
     grid-row: 1;
     grid-column: 1;
     z-index: 1;
-    display: block;
-    align-self: start;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
     justify-self: center;
     width: calc(100% - 14px);
-    margin-top: 9px;
+    min-height: var(--tablet-h);
+    margin: 0;
+    padding: 4px 6px;
+    box-sizing: border-box;
     font-family: var(--font-pantheon-hand);
     font-size: 17px;
     line-height: 1.2;
@@ -7316,15 +7327,15 @@ body::after {
     grid-row: 1;
     grid-column: 1;
     z-index: 1;
-    display: flex;
+    display: none;
     min-width: 0;
     width: calc(100% - 14px);
-    min-height: 1.4em;
+    min-height: var(--tablet-h);
     justify-content: center;
     align-items: center;
-    align-self: end;
+    align-self: center;
     justify-self: center;
-    margin: 0 0 8px;
+    margin: 0;
 }
 
 /* Devotion trial marks live on worship cards only — not on pantheon score tiles. */
@@ -7373,26 +7384,66 @@ body::after {
 
 .pantheon-frieze .pantheon-chip .potential-score {
     display: block;
-    font-family: var(--font-manuscript);
-    font-size: 19px;
-    font-weight: normal;
-    line-height: 1.2;
-    letter-spacing: 0.01em;
-    color: #4a2f16;
-    min-height: 1em;
-    text-shadow: none;
+    font-family: var(--font-pantheon-hand);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    color: #5a3d8a;
+    min-height: 0;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35);
     -webkit-font-smoothing: antialiased;
 }
 
-/* Keep score slot height stable even when score text is blank */
-.pantheon-frieze .pantheon-chip .potential-score:empty::before {
-    content: '\00a0';
+/* Unscored: category label centred in tablet; score slot hidden */
+.pantheon-frieze .pantheon-chip:not(.used):not(.pantheon-scored) .score-details {
+    display: none !important;
 }
 
-.pantheon-frieze .pantheon-chip.used .potential-score {
-    font-family: var(--font-manuscript);
-    font-weight: normal;
+/* Scored: hide labels, show centred final score in tablet */
+.pantheon-frieze .pantheon-chip.used .pantheon-cat,
+.pantheon-frieze .pantheon-chip.pantheon-scored .pantheon-cat {
+    display: none !important;
+}
+
+.pantheon-frieze .pantheon-chip.used .pantheon-deity,
+.pantheon-frieze .pantheon-chip.pantheon-scored .pantheon-deity {
+    display: none !important;
+}
+
+.pantheon-frieze .pantheon-chip.used .score-details,
+.pantheon-frieze .pantheon-chip.pantheon-scored .score-details {
+    display: flex !important;
+}
+
+.pantheon-frieze .pantheon-chip.used .potential-score,
+.pantheon-frieze .pantheon-chip.pantheon-scored .potential-score {
+    font-family: var(--font-pantheon-hand);
+    font-size: 1.85rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.04em;
     color: #5a3d8a;
+}
+
+.pantheon-frieze .pantheon-chip.used .potential-score.score-flash,
+.pantheon-frieze .pantheon-chip.pantheon-scored .potential-score.score-flash {
+    animation: pantheon-score-reveal 0.45s ease-out;
+}
+
+@keyframes pantheon-score-reveal {
+    0% {
+        opacity: 0;
+        transform: scale(1.35);
+    }
+    55% {
+        opacity: 1;
+        transform: scale(1.06);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .pantheon-frieze .pantheon-chip.used {
@@ -7402,13 +7453,10 @@ body::after {
     cursor: default;
 }
 
-.pantheon-frieze .pantheon-chip.used .pantheon-cat {
-    color: rgba(47, 28, 16, 0.65);
-}
-
-.pantheon-frieze .pantheon-chip.used .pantheon-deity {
-    color: rgba(125, 90, 48, 0.55);
-    opacity: 0.8;
+.pantheon-frieze .pantheon-chip.pantheon-scored:not(.used) {
+    --chip-bg: #c9b896;
+    --chip-border: #6f4d29;
+    --chip-inset: inset 0 2px 4px rgba(0, 0, 0, 0.22);
 }
 
 /* Available: blue emphasis on marble tablet only (::before), not deity caption */
@@ -7662,10 +7710,11 @@ body::after {
 }
 
 .center-game-area .felt-score-felt .felt-label-value {
-    font-family: var(--font-manuscript);
+    font-family: var(--font-pantheon-hand);
     font-size: 40px;
-    font-weight: normal;
+    font-weight: 600;
     line-height: 1;
+    letter-spacing: 0.03em;
 }
 
 /* Total + Required — 2 die below pantheon lower border; inward of Gold / Ante columns. */
@@ -7674,7 +7723,7 @@ body::after {
     top: calc(
         var(--layout-pantheon-top, -10px)
         + var(--layout-pantheon-frieze-height, 318px)
-        - var(--layout-center-game-top, 260px)
+        - var(--layout-center-game-top, 200px)
         + 0.5 * var(--felt-die-size, 95px)
     );
 }
