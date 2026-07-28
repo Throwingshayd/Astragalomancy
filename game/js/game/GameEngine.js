@@ -196,6 +196,7 @@ class GameEngine {
             diceContainer: document.getElementById('diceContainer'),
             diceRollZone: document.getElementById('diceRollZone'),
             rollButton: document.getElementById('rollButton'),
+            departButton: document.getElementById('departButton'),
             liveScoreDisplay: document.getElementById('liveScoreDisplay'),
             liveCashoutContent: document.getElementById('liveCashoutContent'),
             liveCashoutLine: document.getElementById('liveCashoutLine'),
@@ -264,6 +265,15 @@ class GameEngine {
                 const shopOpen = shopStage && !shopStage.classList.contains('hidden');
                 if (shopOpen) this.rerollShop();
                 else this.rollDice();
+            });
+        }
+
+        const departBtn = document.getElementById('departButton');
+        if (departBtn) {
+            this.dom.departButton = departBtn;
+            departBtn.addEventListener('click', () => {
+                if (this.sound) this.sound.play('button', { volume: 0.5 });
+                this.departEarly();
             });
         }
 
@@ -1585,140 +1595,29 @@ class GameEngine {
         this.state.maxTurns = base + highCount;
     }
 
-    /**
-     * Check if all available score categories have been filled
-     * @returns {boolean} True if all categories are scored
-     */
     areAllCategoriesFilled() {
-        // Get all available categories (including unlocked high categories)
-        const upperCats = ["Ones", "Twos", "Threes", "Fours", "Fives", "Sixes"];
-        const lowerCats = ["Three of a Kind", "Small Straight", "Full House", "Four of a Kind", "Large Straight", "Yahtzee", "Chance"];
-        
-        // Add high categories if unlocked
-        const highCats = [];
-        if (this.state.unlockedCategories.Sevens) highCats.push("Sevens");
-        if (this.state.unlockedCategories.Eights) highCats.push("Eights");
-        if (this.state.unlockedCategories.Nines) highCats.push("Nines");
-        
-        const allCategories = [...upperCats, ...lowerCats, ...highCats];
-        
-        // Check if all categories have been scored (not undefined)
-        return allCategories.every(category => (
-            typeof DevotionUtils !== 'undefined'
-                ? DevotionUtils.hasBeenScored(this.state, category)
-                : this.state.scorecard[category] !== undefined
-        ));
+        return TrialCompletion.areAllCategoriesFilled(this.state);
+    }
+
+    canDepartEarly() {
+        return TrialCompletion.canDepartEarly(this.state);
+    }
+
+    /** Hubris: clear Trial early when over threshold; unfilled slots stay empty. */
+    departEarly() {
+        TrialCompletion.departEarly(this);
     }
 
     endAnte() {
-        // Check if all categories are filled AND score threshold is reached
-        const allCategoriesFilled = this.areAllCategoriesFilled();
-        const scoreThresholdReached = this.state.totalScore >= this.state.scoreThreshold;
-
-        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
-            PlaytestRecorder.log('ante_check', {
-                allCategoriesFilled,
-                scoreThresholdReached,
-                totalScore: this.state.totalScore,
-                scoreThreshold: this.state.scoreThreshold,
-                ante: this.state.ante,
-            });
-        }
-        
-        // Player must complete all categories AND meet the score threshold
-        if (allCategoriesFilled && scoreThresholdReached) {
-            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
-                PlaytestRecorder.log('ante_cleared', {
-                    ante: this.state.ante,
-                    totalScore: this.state.totalScore,
-                    scoreThreshold: this.state.scoreThreshold,
-                    state: PlaytestRecorder.captureState(this),
-                });
-            }
-            if (this.sound) this.sound.play('gong', { pitch: 0.9, volume: 0.5 });
-            this.showMessage(`Trial ${this.state.ante} cleared! Score: ${this.state.totalScore}/${this.state.scoreThreshold}`);
-            
-            if (this.state.ante >= 13 && !this.state.endlessMode) {
-                this.state.endlessMode = true;
-                this.showMessage("The Apotheosis is complete! The Odyssey begins...");
-            }
-
-            // Compute tally numbers BEFORE resetting state
-            const upperCats = ["Ones","Twos","Threes","Fours","Fives","Sixes"];
-            const lowerCats = ["Three of a Kind","Small Straight","Full House","Four of a Kind","Large Straight","Yahtzee","Chance"];
-            const sumUpper = upperCats.reduce((s,c)=> s + (this.state.scorecard[c] || 0), 0);
-            const sumLower = lowerCats.reduce((s,c)=> s + (this.state.scorecard[c] || 0), 0);
-            const upperBonus = sumUpper >= 63 ? 35 : 0;
-            // Lower bonus only when all lower categories filled AND each has score > 0
-            const lowerBonus = lowerCats.every(c => {
-                const v = this.state.scorecard[c];
-                return v !== undefined && (typeof v === 'number' ? v > 0 : true);
-            }) ? 35 : 0;
-
-            // Show dramatic tally, then reset state and open shop
-            this.runEndOfAnteTallyThenOpenShop({ sumUpper, sumLower, upperBonus, lowerBonus });
-        } else if (allCategoriesFilled && !scoreThresholdReached) {
-            // All categories filled but didn't meet threshold - GAME OVER
-            this.state.gameOver = true;
-            this.showMessage(`Trial ${this.state.ante} failed! Score: ${this.state.totalScore}/${this.state.scoreThreshold}`);
-            
-            // Show Balatro-style game over screen
-            this.showGameOverScreen(false, { reason: 'ante_threshold_failed' });
-            
-            // Update statistics
-            this.dataManager.updateStats({
-                won: false,
-                score: this.state.totalScore,
-                ante: this.state.ante,
-                goldEarned: this.state.gold
-            });
-        } else {
-            // Not all categories filled yet - shouldn't reach here in normal flow
-            Logger.warn('endAnte() called but not all categories filled yet', {
-                filled: allCategoriesFilled,
-                threshold: scoreThresholdReached,
-                totalScore: this.state.totalScore,
-                scoreThreshold: this.state.scoreThreshold
-            });
-        }
+        TrialCompletion.endAnte(this);
     }
 
-    // Show pantheon total + interest/cashout overlay, then open shop (end of ante)
-    runEndOfAnteTallyThenOpenShop({ sumUpper, sumLower, upperBonus, lowerBonus }) {
-        const totalPantheon = (sumUpper + sumLower) + (upperBonus + lowerBonus);
-        const thresholdBeat = this.state.scoreThreshold;
-        this.finishAnteAndOpenShop({ pantheonTotal: totalPantheon, pantheonThreshold: thresholdBeat });
+    runEndOfAnteTallyThenOpenShop(tally) {
+        TrialCompletion.runEndOfAnteTallyThenOpenShop(this, tally);
     }
 
-    // Reset state for next ante and open shop (or mid-ante cashout)
     finishAnteAndOpenShop(opts = {}) {
-        this.state.ante++;
-        this.state.turn = 1;
-        
-        // === ANTE_END TIMING HOOK - MUST run BEFORE reset so Odyssey/Message in a Bottle can read scorecard ===
-        this.state.boons.forEach(boon => {
-            if (boon.timing && boon.timing.ante_end) {
-                boon.onTimingEvent('ante_end', this.state, {}, this);
-            }
-        });
-        
-        // Defer scorecard reset until shop opens — keep pantheon scores visible during cashout
-        // (The Heretic stacks reset via ante_end boon timing above)
-        
-        // Reset The Zealot's last worship god at end of ante
-        this.state.lastWorshipGod = null;
-
-        if (typeof WorshipCard !== 'undefined') {
-            WorshipCard.tickHeldDevotionTrials(this.state, this);
-        }
-        
-        // Get threshold from AnteData array (Balatro-style progression)
-        const nextAnteData = AnteData[this.state.ante - 1];
-        if (nextAnteData) {
-            this.state.scoreThreshold = nextAnteData.scoreThreshold;
-        }
-        // Cashout (scores gold + interest) in overlay, then open shop
-        this.showInterestThenOpenShop(opts);
+        TrialCompletion.finishAnteAndOpenShop(this, opts);
     }
 
     checkWinConditions() {

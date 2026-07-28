@@ -33,7 +33,7 @@
                     <div class="modal-content start-screen-modal">
                         <div class="start-hero" aria-hidden="true">
                             <p class="start-hero-sub">Cast fate. Court the gods. Build the pantheon.</p>
-                            <span class="start-version-pill">v1.6.1 — Worship ascension</span>
+                            <span class="start-version-pill">v1.7 — Open stage</span>
                         </div>
                         <div class="main-menu-bar">
                             <div class="start-options">
@@ -154,10 +154,13 @@
                         <span class="felt-label-name felt-epic-title">Required</span>
                         <span class="felt-label-value" id="scoreThresholdDisplay">500</span>
                     </div>
+                    <button id="departButton" class="felt-label felt-score-felt felt-stone-depart hidden" type="button" aria-label="Depart early — hubris">
+                        <span class="felt-label-name felt-epic-title">Hubris</span>
+                        <span class="felt-label-value">Depart</span>
+                    </button>
 
-                    <!-- Live score: printed on felt, above the dice -->
+                    <!-- Live score metrics (pips × favour) — positioned independently from offering message -->
                     <div id="liveScoreDisplay" class="live-score-display felt-live visible" data-live-root>
-                        <span class="gnosis-category-name" data-live="category">Offering</span>
                         <div class="gnosis-cashout-content hidden" id="liveCashoutContent" aria-live="polite">
                             <span class="gnosis-cashout-line" id="liveCashoutLine"></span>
                         </div>
@@ -180,20 +183,51 @@
                         </div>
                         <div class="gnosis-row gnosis-row-na" data-live="row-na" hidden><span class="n-letter">N</span><span class="slash-symbol">/</span><span class="a-letter">A</span></div>
                     </div>
+                    <!-- Trial status — replaces offering message (ante + score remaining) -->
+                    <div id="trialDisplay" class="offering-message trial-banner" aria-live="polite">Trial: 200 remaining</div>
 
-                    <!-- Stones: rolls / trial / gold / turn. Gold + trial persist in shop; rolls + turn hide. -->
-                    <div class="felt-stone felt-stone-rolls" data-felt="rolls">
-                        <span class="felt-stone-label">Rolls</span>
-                        <span class="felt-stone-value" id="rollsLeft">3</span>
+                    <!-- Clepsydra — turns remaining (XIII → ·), left gutter -->
+                    <div class="clepsydra" id="clepsydra" role="meter" aria-label="Turns remaining" aria-valuemin="0" aria-valuemax="13" aria-valuenow="13">
+                        <div class="clepsydra-label">Turns</div>
+                        <div class="clepsydra-body">
+                            <div class="clepsydra-vessel">
+                                <div class="clepsydra-water" id="clepsydraWater"></div>
+                                <div class="clepsydra-glass" aria-hidden="true"></div>
+                            </div>
+                            <ol class="clepsydra-marks" aria-hidden="true">
+                                <li data-n="13">XIII</li>
+                                <li data-n="12">XII</li>
+                                <li data-n="11">XI</li>
+                                <li data-n="10">X</li>
+                                <li data-n="9">IX</li>
+                                <li data-n="8">VIII</li>
+                                <li data-n="7">VII</li>
+                                <li data-n="6">VI</li>
+                                <li data-n="5">V</li>
+                                <li data-n="4">IV</li>
+                                <li data-n="3">III</li>
+                                <li data-n="2">II</li>
+                                <li data-n="1">I</li>
+                            </ol>
+                        </div>
+                        <div class="clepsydra-readout">
+                            <span class="clepsydra-roman" id="turnDisplay">XIII</span>
+                        </div>
                     </div>
-                    <div class="felt-stone felt-stone-trial" data-felt="trial">
-                        <span class="felt-stone-label">Trial</span>
-                        <span class="felt-stone-value" id="trialDisplay">1</span>
+
+                    <!-- Rolls remaining — three die-coloured pips between dice and info bar -->
+                    <div class="rolls-pips" id="rollsPips" role="meter" aria-label="Rolls remaining" aria-valuemin="0" aria-valuemax="3" aria-valuenow="3">
+                        <span class="rolls-pip" data-roll="1" aria-hidden="true"></span>
+                        <span class="rolls-pip" data-roll="2" aria-hidden="true"></span>
+                        <span class="rolls-pip" data-roll="3" aria-hidden="true"></span>
+                        <span id="rollsLeft" class="rolls-pips-sr">3</span>
                     </div>
+
                     <button type="button" class="shop-continue-btn" id="shopContinueBtn" title="Continue to next round" aria-label="Continue to next round">
                         <span class="shop-continue-label">Continue</span>
                         <span class="shop-continue-arrow" aria-hidden="true">→</span>
                     </button>
+                    <!-- Gold — above artifacts chest, aligned with dice row -->
                     <div class="felt-stone felt-stone-gold" data-felt="gold" id="goldStone">
                         <span class="felt-stone-label">Gold</span>
                         <span class="felt-stone-value" id="goldDisplay">0</span>
@@ -205,10 +239,6 @@
                             <img class="artifacts-chest-skin artifacts-chest-skin--open" src="/ART/artifacts-chest-open.png" alt="" draggable="false">
                             <span class="artifacts-chest-slots" id="artifactSlots" aria-hidden="true"></span>
                         </button>
-                    </div>
-                    <div class="felt-stone felt-stone-turn" data-felt="turn">
-                        <span class="felt-stone-label">Turn</span>
-                        <span class="felt-stone-value" id="turnDisplay">1</span>
                     </div>
 
                     <!-- ROUND: Play area (dice only; action button lives as a sibling below so it persists across stage swap) -->
@@ -241,7 +271,7 @@
                         </div>
                     </div>
 
-                    <!-- Single action button: "Cast the Bones" in play / "Reroll" in shop. Cost badge is a sibling, not on the button. -->
+                    <!-- Cast the Bones in play / Reroll in shop. Cost badge is a sibling, not on the button. -->
                     <div class="rolling-controls" id="rollingControls">
                         <button id="rollButton" class="roll-button">Cast the Bones</button>
                         <span id="actionCostBadge" class="action-cost-badge hidden" aria-hidden="true">4g</span>
@@ -335,6 +365,7 @@
     <script defer src="js/ui/LiveScoreController.js"></script>
     <script defer src="js/ui/ScoringAnimation.js"></script>
     <script defer src="js/game/GameEngineTestModes.js"></script>
+    <script defer src="js/game/TrialCompletion.js"></script>
     <script defer src="js/game/GameEngine.js"></script>
     <script defer src="js/ui/renderers/InfoBarRenderer.js"></script>
     <script defer src="js/ui/renderers/DiceRenderer.js"></script>
@@ -352,6 +383,8 @@
     <script defer src="js/ui/JuiceIntegration.js"></script>
     <script defer src="js/ui/SettingsOverlay.js"></script>
     <script defer src="js/ui/RunInfoOverlay.js"></script>
+    <script defer src="js/ui/SoftPause.js"></script>
+    <script defer src="js/ui/KeyboardShortcuts.js"></script>
     <script defer src="js/Main.js"></script>
 
     <!-- Cash out feature removed as requested -->

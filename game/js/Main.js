@@ -123,8 +123,8 @@ class App {
         // Collection tabs
         this.setupCollectionTabs();
         
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
+        this.softPause = new SoftPause(this);
+        bindAppKeyboardShortcuts(this);
         
         // Window events
         window.addEventListener('beforeunload', () => this.handleBeforeUnload());
@@ -192,6 +192,7 @@ class App {
 
     /** Balatro: overlay_menu — create pause menu with Run Info (G.UIDEF.run_info) */
     showPauseMenu() {
+        this.softPause?.resume();
         if (this._pauseOverlay) {
             this._pauseOverlay.remove();
         }
@@ -285,6 +286,7 @@ class App {
     }
 
     showStartScreen() {
+        this.softPause?.resume();
         this.switchToScreen('start');
         this.currentScreen = 'start';
         this.updateContinueButton();
@@ -517,74 +519,6 @@ class App {
         if (this.autoSaveInterval) {
             clearInterval(this.autoSaveInterval);
             this.autoSaveInterval = null;
-        }
-    }
-
-    // Keyboard shortcuts
-    handleKeyboardShortcuts(e) {
-        // Only handle shortcuts when not typing in input fields
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            return;
-        }
-
-        switch (e.key.toLowerCase()) {
-            case 'r':
-                if (this.game && this.currentScreen === 'game') {
-                    e.preventDefault();
-                    this.game.rollDice();
-                }
-                break;
-                
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-                if (this.game && this.currentScreen === 'game') {
-                    e.preventDefault();
-                    const index = parseInt(e.key) - 1;
-                    this.game.toggleHold(index);
-                }
-                break;
-                
-            case 'escape':
-                e.preventDefault();
-                if (this.currentScreen === 'game') {
-                    if (window.settingsOverlay?.isVisible?.()) {
-                        this.hideSettings();
-                    } else if (this._pauseOverlay) {
-                        this.hidePauseMenu();
-                    } else {
-                        this.showPauseMenu();
-                    }
-                } else if (this.currentScreen === 'collection') {
-                    this.showStartScreen();
-                } else if (this.currentScreen === 'start') {
-                    if (window.settingsOverlay?.isVisible?.()) this.hideSettings();
-                }
-                break;
-                
-            case 'c':
-                if (this.currentScreen === 'start') {
-                    e.preventDefault();
-                    this.showCollection();
-                }
-                break;
-                
-                case 's':
-                if (e.ctrlKey || e.metaKey) {
-                    e.preventDefault();
-                    if (this.game) {
-                        const saved = this.game.saveGame({ force: true, silent: false });
-                        if (saved) {
-                            this.showMessage('Game saved!');
-                            this.showSaveIndicator();
-                        } else {
-                            this.showMessage('Cannot save right now', 2000);
-                        }
-                    }
-                }
-                break;
         }
     }
 

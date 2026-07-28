@@ -41,7 +41,7 @@
     --felt-panel-ink: var(--gk-ink);
     --felt-panel-label: var(--gk-bronze);
     --layout-center-game-top: 260px;
-    --layout-pantheon-top: -10px;
+    --layout-pantheon-top: 8px;
     --layout-center-left: 260px;
     --layout-center-w: 1400px;
     --layout-center-h: 780px;
@@ -81,22 +81,21 @@
 /* Reusable gold double-rule via box-shadow handled inline per element. */
 
 /* ── 2. IN-GAME STAGE BACKGROUND ───────────────────────────────────────── */
+/* Experiment: reuse main-menu art full-bleed (see #startScreen). */
 #gameViewport.game-screen .main-game {
-    background:
-        radial-gradient(120% 85% at 50% 36%, rgba(40, 104, 94, 0.45) 0%, rgba(8, 26, 30, 0) 62%),
-        radial-gradient(140% 120% at 50% 120%, rgba(7, 20, 24, 0.85) 0%, rgba(7, 20, 24, 0) 55%),
-        linear-gradient(180deg, var(--gk-sea-1) 0%, var(--gk-sea-2) 52%, var(--gk-sea-3) 100%);
+    background-color: #07181c;
+    background-image: url("/ART/main-menu-background.png");
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
-/* ── 3. PLAY ARENA — keep dice-table art; dice stack floats above (see DICE STACK) */
+/* ── 3. PLAY ARENA — experiment: no game-board.png; dice float on menu bg */
 .main-game .center-game-area .game-board-bg {
-    background-color: transparent;
-    background-image: url("/ART/game-board.png");
-    background-size: contain;
-    background-position: center calc(50% + var(--felt-game-board-offset-y, 18px));
-    background-repeat: no-repeat;
-    opacity: 1;
-    filter: brightness(1.18) contrast(1.06) saturate(1.08);
+    background: none;
+    background-image: none;
+    opacity: 0;
+    visibility: hidden;
 }
 
 /* Felt play oval — no decorative ring (keeps dice-roll-zone for layout/drag). */
@@ -105,42 +104,71 @@
     box-shadow: none;
 }
 
-/* ── 4. PANTHEON — marble frieze (PNG art disabled until replacement asset is ready) ─ */
+/* ── 4. PANTHEON — holy rays only (no heavy cloud wash) ─ */
 .main-game .pantheon-frieze {
-    top: -10px;
+    --pantheon-cloud-mask: url("/ART/pantheon-cloud-mask.png");
+    top: var(--layout-pantheon-top, 22px);
     min-height: 0;
     padding: 24px 16px 18px;
-    border-radius: 16px;
+    border-radius: 0;
     position: absolute;
-    background:
-        linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 38%),
-        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%) !important;
-    border: 2px solid var(--gk-gold-2) !important;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        inset 0 0 0 1px rgba(154, 119, 48, 0.25),
-        0 12px 34px rgba(0, 0, 0, 0.42) !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
     overflow: visible;
     z-index: 11;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
-/* Gold meander bands top & bottom of the frieze */
-.main-game .pantheon-frieze::before,
-.main-game .pantheon-frieze::after {
+/* Holy crepuscular rays — light, soft, fade out at edges (no hard clip) */
+.main-game .pantheon-frieze::before {
     content: "";
     position: absolute;
-    left: 18px;
-    right: 18px;
-    height: 16px;
-    background-image: var(--gk-meander-h);
-    background-repeat: repeat-x;
-    background-size: auto 16px;
-    opacity: 0.92;
+    inset: -40% -18% -28%;
+    background: repeating-conic-gradient(
+        from -8deg at 50% 12%,
+        rgba(255, 250, 220, 0.16) 0deg,
+        rgba(255, 250, 220, 0.16) 2.2deg,
+        rgba(255, 255, 255, 0.03) 2.2deg,
+        transparent 12deg
+    );
+    -webkit-mask-image: radial-gradient(
+        ellipse 92% 88% at 50% 42%,
+        #000 0%,
+        #000 28%,
+        rgba(0, 0, 0, 0.55) 52%,
+        rgba(0, 0, 0, 0.18) 72%,
+        transparent 92%
+    );
+    mask-image: radial-gradient(
+        ellipse 92% 88% at 50% 42%,
+        #000 0%,
+        #000 28%,
+        rgba(0, 0, 0, 0.55) 52%,
+        rgba(0, 0, 0, 0.18) 72%,
+        transparent 92%
+    );
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    opacity: 0.72;
     pointer-events: none;
-    z-index: 1;
+    z-index: 0;
+    animation: pantheon-heaven-rays 10s ease-in-out infinite alternate;
 }
-.main-game .pantheon-frieze::before { top: 8px; }
-.main-game .pantheon-frieze::after { bottom: 8px; }
+
+/* Drop the pale cloud body — rays carry the heavenly vibe alone */
+.main-game .pantheon-frieze::after {
+    content: none;
+    display: none;
+}
+
+@keyframes pantheon-heaven-rays {
+    0% { opacity: 0.55; transform: scale(1); }
+    100% { opacity: 0.78; transform: scale(1.02); }
+}
 
 .main-game .pantheon-frieze .pantheon-tier {
     display: flex;
@@ -161,14 +189,14 @@
     height: auto;
     min-height: 0;
     margin-bottom: 2px;
-    padding-top: 26px;
+    padding-top: 48px;
 }
 
 .main-game .pantheon-frieze .pantheon-tier-lower {
     height: auto;
     min-height: 0;
-    margin-top: 0;
-    padding-top: 18px;
+    margin-top: -6px;
+    padding-top: 36px;
     padding-bottom: 6px;
     flex-wrap: nowrap;
     justify-content: center;
@@ -194,23 +222,24 @@
 }
 
 .main-game .pantheon-frieze .pantheon-tier-lower .pantheon-chip .pantheon-deity {
-    font-size: 9.5px;
-    letter-spacing: 0.03em;
-    line-height: 1.15;
+    font-size: 15.6px;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
 }
 
 .main-game .pantheon-frieze .pantheon-tier-upper::before {
     content: "Greater Pantheon";
     position: absolute;
-    top: 8px;
+    top: 2px;
     left: 50%;
     transform: translateX(-50%);
     font-family: var(--font-manuscript);
-    font-size: 14px;
+    font-size: 30px;
     font-weight: normal;
-    letter-spacing: 0.1em;
-    color: var(--gk-ink-soft);
-    opacity: 0.88;
+    letter-spacing: 0.12em;
+    color: rgba(255, 248, 220, 0.92);
+    opacity: 0.95;
+    text-shadow: 0 0 14px rgba(255, 240, 180, 0.55), 0 1px 2px rgba(40, 80, 120, 0.35);
     pointer-events: none;
     z-index: 3;
     white-space: nowrap;
@@ -219,15 +248,16 @@
 .main-game .pantheon-frieze .pantheon-tier-lower::before {
     content: "Lesser Pantheon";
     position: absolute;
-    top: 2px;
+    top: -2px;
     left: 50%;
     transform: translateX(-50%);
     font-family: var(--font-manuscript);
-    font-size: 14px;
+    font-size: 30px;
     font-weight: normal;
-    letter-spacing: 0.1em;
-    color: var(--gk-ink-soft);
-    opacity: 0.88;
+    letter-spacing: 0.12em;
+    color: rgba(255, 248, 220, 0.92);
+    opacity: 0.95;
+    text-shadow: 0 0 14px rgba(255, 240, 180, 0.55), 0 1px 2px rgba(40, 80, 120, 0.35);
     pointer-events: none;
     z-index: 3;
     white-space: nowrap;
@@ -275,24 +305,33 @@
 }
 
 .main-game .pantheon-frieze .pantheon-chip .pantheon-deity {
-    font-family: var(--font-pantheon-caption);
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    color: var(--gk-bronze);
+    font-family: var(--font-manuscript);
+    font-size: 16.8px;
+    font-weight: normal;
+    letter-spacing: 0.08em;
+    color: rgba(255, 248, 220, 0.92);
     background: transparent;
     border: none;
     box-shadow: none;
-    text-shadow: none;
-    padding: 3px 2px 0;
+    text-shadow: 0 0 12px rgba(255, 240, 180, 0.55), 0 1px 2px rgba(40, 80, 120, 0.35);
+    padding: 4px 2px 0;
+    opacity: 0.95;
 }
 
 .main-game .pantheon-frieze .pantheon-chip .pantheon-deity::before {
-    background: linear-gradient(90deg, transparent, var(--gk-gold-2), transparent);
-    opacity: 0.75;
+    background: linear-gradient(90deg, transparent, rgba(255, 248, 220, 0.55), transparent);
+    opacity: 0.65;
 }
 
 .main-game .pantheon-frieze .pantheon-chip:hover:not(.used) .pantheon-deity {
-    color: var(--gk-gold-1);
+    color: #fff8e4;
+    text-shadow: 0 0 16px rgba(255, 240, 180, 0.75), 0 1px 2px rgba(40, 80, 120, 0.35);
+}
+
+/* Keep god names under the tablet after scoring (score replaces category label only) */
+.main-game .pantheon-frieze .pantheon-chip.used .pantheon-deity,
+.main-game .pantheon-frieze .pantheon-chip.pantheon-scored .pantheon-deity {
+    display: block !important;
 }
 
 .main-game .pantheon-frieze .pantheon-chip .potential-score {
@@ -327,7 +366,7 @@
 /* ── 5. SIDE PANELS — marble pillar stelae (Consumables left, Boons right) ─ */
 .main-game .left-consumable-bar.inventory-panel-consumables,
 .main-game .right-boon-bar.inventory-panel-boons {
-    padding: 56px 6px 48px;
+    padding: 28px 6px 48px;
     z-index: 10;
     position: absolute;
     box-sizing: border-box;
@@ -344,64 +383,20 @@
     right: auto;
 }
 
-/* Full pillar — spans outward edge → ½ die past Trial / Gold; height fills bar + bleed */
-.main-game .left-consumable-bar.inventory-panel-consumables::before {
-    content: "";
-    position: absolute;
-    top: calc(-1 * var(--side-stela-bleed-top));
-    bottom: calc(-1 * var(--side-stela-bleed-bottom));
-    left: var(--side-stela-left-offset);
-    right: auto;
-    width: var(--side-stela-left-w);
-    z-index: 0;
-    border: none;
-    border-radius: 0;
-    background: url("/ART/play-stela-pillar.png") center top / auto 95% no-repeat;
-    box-shadow: none;
-    pointer-events: none;
-    transform-origin: top center;
-    transform: scaleY(var(--side-stela-stretch-y));
-}
-
+/* Experiment: hide stela pillar art — cards/slots stay; no play-stela-pillar.png */
+.main-game .left-consumable-bar.inventory-panel-consumables::before,
 .main-game .right-boon-bar.inventory-panel-boons::before {
-    content: "";
-    position: absolute;
-    top: calc(-1 * var(--side-stela-bleed-top));
-    bottom: calc(-1 * var(--side-stela-bleed-bottom));
-    right: var(--side-stela-right-offset);
-    left: auto;
-    width: var(--side-stela-right-w);
-    z-index: 0;
-    border: none;
-    border-radius: 0;
-    background: url("/ART/play-stela-pillar.png") center top / auto 95% no-repeat;
-    box-shadow: none;
-    pointer-events: none;
-    transform-origin: top center;
-    transform: scaleY(var(--side-stela-stretch-y)) scaleX(-1);
+    content: none;
+    display: none;
+    background: none;
 }
 
-/* Manuscript caption below pediment frieze */
+/* No Consumables / Boons column titles */
 .main-game .left-consumable-bar.inventory-panel-consumables::after,
 .main-game .right-boon-bar.inventory-panel-boons::after {
-    content: "";
-    position: absolute;
-    top: 48px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: var(--font-manuscript);
-    font-weight: normal;
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    color: var(--gk-ink-soft);
-    opacity: 0.92;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
-    white-space: nowrap;
-    z-index: 2;
-    pointer-events: none;
+    content: none !important;
+    display: none !important;
 }
-.main-game .left-consumable-bar.inventory-panel-consumables::after { content: "CONSUMABLES"; }
-.main-game .right-boon-bar.inventory-panel-boons::after { content: "BOONS"; }
 
 .main-game .left-consumable-bar .consumable-bar-counter,
 .main-game .right-boon-bar .boon-bar-counter {
@@ -585,22 +580,24 @@
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
 }
 
+/* Depart is a real button — keep marble chrome, allow clicks (score plaques are pointer-events: none). */
+.center-game-area button.felt-stone-depart.felt-score-felt {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.center-game-area .felt-stone-depart .felt-label-value {
+    font-size: 28px;
+}
+
 /* ============================================================================
    PHASE 2 — Stage swirl, arena frame, pantheon growth, dice/controls, drag UX
-   ============================================================================ */
+============================================================================ */
 
-/* Decorative swirl behind the whole board (subtle; does not fight the felt). */
+/* Experiment: menu bg is already full-bleed on .main-game — no extra swirl layer. */
 #gameViewport.game-screen .main-game::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: url("/ART/background swirl.png");
-    background-size: 115% auto;
-    background-position: center 38%;
-    background-repeat: no-repeat;
-    opacity: 0.11;
-    pointer-events: none;
-    z-index: 0;
+    content: none;
+    display: none;
 }
 
 /* Play column frame removed — no gold vignette outline on the felt stage. */
@@ -995,5 +992,530 @@
 .shop-drag-lift {
     will-change: transform;
     contain: layout style paint;
+}
+
+/* ============================================================================
+   EXPERIMENT — Open-stage HUD (no game board)
+   Status as a readable metric strip; Total / Required / Offering as hero type.
+   ============================================================================ */
+
+/* Drop marble tablet chrome — info is type, not buttons */
+.main-game .center-game-area .felt-stone:not(.felt-score-felt),
+.main-game .center-game-area .felt-score-felt:not(.felt-stone-depart) {
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    border-radius: 0;
+    overflow: visible;
+    isolation: auto;
+}
+
+.main-game .center-game-area .felt-stone:not(.felt-score-felt)::before,
+.main-game .center-game-area .felt-score-felt:not(.felt-stone-depart)::before,
+.main-game .center-game-area .felt-stone:not(.felt-score-felt):not(.felt-stone-gold)::after,
+.main-game .center-game-area .felt-score-felt:not(.felt-stone-depart)::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* Gold keeps a soft pill hit-target (sell drop) without looking like a stone button */
+.main-game .center-game-area .felt-stone-gold {
+    position: absolute;
+    top: calc(472px - var(--felt-die-size, 95px) + (var(--felt-die-size, 95px) - var(--felt-stone-h, 72px)) / 2 - 2 * var(--felt-die-size, 95px));
+    left: calc(1018px + 258px / 2);
+    transform: translateX(-50%);
+    z-index: 18;
+    pointer-events: auto;
+    display: flex !important;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    border-radius: 999px !important;
+    background: rgba(20, 36, 42, 0.35) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 248, 220, 0.22) !important;
+    padding: 10px 18px !important;
+    border: none !important;
+}
+
+.main-game .center-game-area .felt-stone-gold .felt-stone-label {
+    font-family: var(--font-epic-title);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 248, 220, 0.82);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.main-game .center-game-area .felt-stone-gold .felt-stone-value {
+    font-family: var(--font-manuscript);
+    font-size: 32px !important;
+    line-height: 1;
+    color: #fff6dc;
+    text-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.main-game .center-game-area .felt-stone-gold::after {
+    content: none;
+    background-image: none;
+}
+
+.main-game.consumable-drag-active .center-game-area .felt-stone-gold.drop-target-sell {
+    transform: translateX(-50%) scale(1.08);
+}
+
+/* Artifacts chest — raised one die height under gold */
+.main-game .center-game-area .artifacts-chest {
+    top: calc(468px - var(--felt-die-size, 95px));
+}
+
+/* ── Info bar: marble frieze chrome (old pantheon look) ── */
+.main-game .center-game-area .felt-status-bar {
+    position: absolute;
+    top: calc(590px - var(--felt-die-size, 95px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 16;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 18px 36px 16px;
+    border-radius: 16px;
+    border: 2px solid var(--gk-gold-2);
+    background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 38%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 0 0 1px rgba(154, 119, 48, 0.25),
+        0 10px 28px rgba(0, 0, 0, 0.38);
+    pointer-events: none;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.main-game .center-game-area .felt-status-bar::before,
+.main-game .center-game-area .felt-status-bar::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    height: 11px;
+    background-image: var(--gk-meander-h);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: auto 11px;
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.main-game .center-game-area .felt-status-bar::before { top: 5px; }
+.main-game .center-game-area .felt-status-bar::after { bottom: 5px; }
+
+.main-game .center-game-area .felt-status-bar .felt-stone {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: flex !important;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    padding: 6px 8px;
+    transform: none !important;
+    pointer-events: none;
+    z-index: 1;
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.main-game .center-game-area .felt-status-bar .felt-stone-label {
+    font-family: var(--font-epic-title);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gk-bronze);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+    opacity: 1;
+}
+
+.main-game .center-game-area .felt-status-bar .felt-stone-value,
+.main-game .center-game-area .felt-status-bar .felt-stone-rolls .felt-stone-value,
+.main-game .center-game-area .felt-status-bar .felt-stone-rolls .rolls-left {
+    font-family: var(--font-manuscript);
+    font-size: 32px !important;
+    line-height: 1;
+    color: var(--gk-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+/* ── Score heroes: Total / Required hidden for this layout experiment ── */
+.main-game .center-game-area .felt-stone-total,
+.main-game .center-game-area .felt-stone-required {
+    display: none !important;
+}
+
+.main-game .center-game-area .felt-stone-depart {
+    top: 96px !important;
+    left: 89% !important;
+}
+
+.main-game .center-game-area .felt-score-felt:not(.felt-stone-depart) {
+    min-width: 0;
+    max-width: none;
+    padding: 0;
+    gap: 6px;
+}
+
+.main-game .center-game-area .felt-score-felt .felt-epic-title {
+    margin: 0;
+    padding: 0;
+    font-size: 0.95rem;
+    letter-spacing: 0.2em;
+    color: rgba(255, 248, 220, 0.78);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+.main-game .center-game-area .felt-score-felt .felt-label-value {
+    font-size: 72px !important;
+    line-height: 0.92;
+    letter-spacing: 0.02em;
+    color: #fff6dc;
+    text-shadow:
+        0 2px 0 rgba(0, 0, 0, 0.35),
+        0 6px 22px rgba(0, 0, 0, 0.5),
+        0 0 28px rgba(255, 220, 140, 0.22);
+}
+
+/* Depart stays a small actionable chip */
+.main-game .center-game-area button.felt-stone-depart.felt-score-felt {
+    border: 1px solid rgba(244, 214, 128, 0.55) !important;
+    background: rgba(28, 42, 40, 0.72) !important;
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+}
+
+.main-game .center-game-area .felt-stone-depart .felt-label-value {
+    font-size: 22px !important;
+}
+
+/* ── Live offering — pips×favour up top; message sits separately below ── */
+.main-game .center-game-area .live-score-display.felt-live {
+    top: 122px !important;
+    width: min(720px, calc(100% - 280px));
+    min-width: 320px;
+    max-width: min(720px, calc(100% - 280px));
+}
+
+.main-game .center-game-area .offering-message,
+.main-game .center-game-area .trial-banner {
+    position: absolute;
+    top: 262px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 22;
+    width: min(760px, calc(100% - 200px));
+    margin: 0;
+    padding: 0 12px;
+    box-sizing: border-box;
+    text-align: center;
+    pointer-events: none;
+    font-family: var(--font-pantheon-hand);
+    font-weight: 600;
+    font-size: 1.55rem;
+    letter-spacing: 0.08em;
+    line-height: 1.28;
+    color: var(--gk-gold-1);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.main-game .center-game-area .live-score-display.felt-live.cashout-mode ~ .offering-message,
+.main-game .center-game-area .live-score-display.felt-live.cashout-mode ~ .trial-banner,
+.main-game.shop-active .center-game-area .offering-message,
+.main-game.shop-active .center-game-area .trial-banner {
+    display: none !important;
+}
+
+/* Status bar removed from this layout experiment */
+.main-game .center-game-area .felt-status-bar {
+    display: none !important;
+}
+
+.main-game .center-game-area .live-score-display.felt-live .gnosis-category-name {
+    font-size: 1.55rem !important;
+    margin-top: 12px;
+    margin-bottom: 0;
+    max-width: 100%;
+    line-height: 1.28;
+}
+
+.main-game .center-game-area .live-score-display.felt-live .pips,
+.main-game .center-game-area .live-score-display.felt-live .favour {
+    font-size: 3.4rem !important;
+    line-height: 1;
+}
+
+.main-game .center-game-area .live-score-display.felt-live .gnosis-times,
+.main-game .center-game-area .live-score-display.felt-live .multiply-symbol {
+    font-size: 2.2rem !important;
+}
+
+.main-game .center-game-area .live-score-display.felt-live .gnosis-pips-bonus,
+.main-game .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
+    font-size: 0.95rem !important;
+    letter-spacing: 0.14em;
+}
+
+/* Dice + info bar + Cast the Bones — raised one die height */
+.main-game .center-game-area #playStage {
+    padding-top: calc(472px - var(--felt-die-size, 95px)) !important;
+}
+
+.main-game .center-game-area .rolling-controls,
+.main-game .center-game-area .rollingControls {
+    top: calc(632px - var(--felt-die-size, 95px)) !important;
+}
+
+/* Shop: keep Continue near the info bar / gold */
+.main-game.shop-active .center-game-area .shop-continue-btn {
+    top: calc(590px - var(--felt-die-size, 95px)) !important;
+    left: calc(50% + 320px) !important;
+}
+
+/* ── Clepsydra — water clock for turns remaining (left gutter) ── */
+.main-game .center-game-area .clepsydra {
+    position: absolute;
+    left: 88px;
+    top: 168px;
+    width: 110px;
+    height: 380px;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.main-game .center-game-area .clepsydra-label {
+    font-family: var(--font-epic-title);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 248, 220, 0.78);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.main-game .center-game-area .clepsydra-body {
+    position: relative;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.main-game .center-game-area .clepsydra-vessel {
+    position: relative;
+    width: 48px;
+    flex: 0 0 48px;
+    border-radius: 10px 10px 18px 18px;
+    border: 2px solid var(--gk-gold-2);
+    background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 40%),
+        linear-gradient(180deg, rgba(236, 226, 204, 0.55) 0%, rgba(210, 190, 155, 0.35) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        inset 0 -10px 18px rgba(60, 40, 20, 0.12),
+        0 8px 20px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.main-game .center-game-area .clepsydra-water {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    background:
+        linear-gradient(180deg, rgba(170, 220, 255, 0.55) 0%, rgba(70, 140, 190, 0.72) 55%, rgba(40, 100, 150, 0.85) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 0 18px rgba(120, 190, 240, 0.25);
+    transition: height 0.55s ease;
+    z-index: 0;
+}
+
+.main-game .center-game-area .clepsydra-water::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 0;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.55) 0%, rgba(180, 220, 255, 0.2) 60%, transparent 100%);
+    transform: translateY(-40%);
+}
+
+.main-game .center-game-area .clepsydra-glass {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0%, transparent 28%, transparent 72%, rgba(255, 255, 255, 0.08) 100%);
+    pointer-events: none;
+}
+
+.main-game .center-game-area .clepsydra-marks {
+    position: relative;
+    flex: 1 1 auto;
+    margin: 4px 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.main-game .center-game-area .clepsydra-marks li {
+    position: relative;
+    font-family: var(--font-manuscript);
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    color: rgba(255, 248, 220, 0.78);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    padding-left: 10px;
+    white-space: nowrap;
+    transition: color 0.35s ease, opacity 0.35s ease;
+}
+
+.main-game .center-game-area .clepsydra-marks li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 6px;
+    height: 1px;
+    background: rgba(205, 162, 76, 0.75);
+    transform: translateY(-50%);
+}
+
+.main-game .center-game-area .clepsydra-marks li.is-drained {
+    color: rgba(255, 248, 220, 0.28);
+    opacity: 0.5;
+}
+
+.main-game .center-game-area .clepsydra-readout {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-game .center-game-area .clepsydra-roman {
+    font-family: var(--font-manuscript);
+    font-size: 28px;
+    letter-spacing: 0.06em;
+    color: #fff6dc;
+    text-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.35),
+        0 2px 10px rgba(0, 0, 0, 0.45),
+        0 0 16px rgba(255, 220, 140, 0.2);
+}
+
+.main-game.shop-active .center-game-area .clepsydra {
+    opacity: 0.72;
+}
+
+/* ── Rolls pips — three die-coloured dots between dice and info bar ── */
+.main-game .center-game-area .rolls-pips {
+    position: absolute;
+    left: 50%;
+    /* Between dice row and Cast the Bones */
+    top: calc(633px - var(--felt-die-size, 95px));
+    transform: translateX(-50%);
+    z-index: 25;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    pointer-events: none;
+}
+
+.main-game .center-game-area .rolls-pip {
+    display: block;
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    box-sizing: border-box;
+    background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(180deg, #f8e4b1 0%, #e8c98a 100%);
+    border: 2.5px solid var(--gk-gold-3, #6b4b30);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        inset 0 0 8px rgba(107, 75, 48, 0.22),
+        0 0 0 1px rgba(244, 214, 128, 0.35),
+        0 3px 8px rgba(0, 0, 0, 0.5);
+    transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
+}
+
+.main-game .center-game-area .rolls-pip:not(.is-spent) {
+    filter: drop-shadow(0 0 6px rgba(244, 214, 128, 0.45));
+}
+
+.main-game .center-game-area .rolls-pip.is-spent {
+    opacity: 0.32;
+    filter: grayscale(0.45) brightness(0.7);
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.35);
+    transform: scale(0.88);
+}
+
+.main-game .center-game-area .rolls-pips-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.main-game.shop-active .center-game-area .rolls-pips {
+    display: none;
 }
 

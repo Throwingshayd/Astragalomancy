@@ -1,15 +1,19 @@
 /**
- * SoundManager — SFX + roguelike run soundtrack (game/public/ART/Music/)
+ * SoundManager — SFX + dual-bed run soundtrack (game/public/ART/Music/)
  *
- * Music: seeded deck shuffle per run (MUSIC_POOL in musicPool.js). No stage/event
- * gating. Light slowdown, random entry, stoa reverb (forward playback).
+ * Base bed: preexisting Phi shuffle (always on, 80% gain).
+ * Top bed: layered tracks over that; shop/pack swaps top to looping market.
  */
-/* global MUSIC_POOL, MUSIC_TRACKS, SeededRNG, Logger */
+/* global MUSIC_BASE_POOL, MUSIC_LAYER_POOL, MUSIC_TRACKS, MUSIC_SHOP_TRACK_ID, SeededRNG, Logger */
 
 /** Slight slowdown (was 0.606 Balatro); higher = clearer, less mud */
 const MUSIC_BASE_PLAYBACK_RATE = 0.8;
 const MUSIC_RUN_RATE_SPREAD = 0.03;
 const MUSIC_PLAY_RATE_JITTER = 0.015;
+
+/** Under bed vs accompaniment */
+const MUSIC_BASE_TRACK_GAIN = 0.8;
+const MUSIC_LAYER_TRACK_GAIN = 1;
 
 /** Dry/wet mix for music convolver */
 const MUSIC_REVERB_DRY = 0.95;
@@ -32,7 +36,8 @@ const LEGACY_MUSIC_TRACKS = {
     music5: 'ART/Music/lute 5 w effects.ogg'
 };
 
-const FALLBACK_POOL = ['music1', 'music2', 'music3', 'music4', 'music5'];
+const FALLBACK_BASE_POOL = ['music1', 'music2', 'music3', 'music4', 'music5'];
+const FALLBACK_LAYER_POOL = [];
 
 class SoundManager {
     constructor() {
@@ -47,32 +52,50 @@ class SoundManager {
         this.sfxGain = null;
         this._initialized = false;
         this._musicPlaying = false;
+        /** @deprecated Prefer base/layer sources — kept for any external peek */
         this.musicSource = null;
         this._musicSourceGain = null;
         this._reverbIR = null;
-        this._musicLoadFailCount = 0;
         this._musicMasterIn = null;
 
-        /** Roguelike deck state */
+        this._baseSource = null;
+        this._baseGain = null;
+        this._layerSource = null;
+        this._layerGain = null;
+        this._baseFailCount = 0;
+        this._layerFailCount = 0;
+
         this._deckSeed = null;
         this._musicRng = null;
-        this._deck = [];
-        this._lastTrackId = null;
+        this._baseDeck = [];
+        this._layerDeck = [];
+        this._lastBaseId = null;
+        this._lastLayerId = null;
         this._runPlaybackRate = MUSIC_BASE_PLAYBACK_RATE;
+        /** 'play' | 'shop' — shop swaps top bed to market loop; base keeps going */
+        this._musicContext = 'play';
     }
 
     _tracks() {
         return (typeof MUSIC_TRACKS !== 'undefined' && MUSIC_TRACKS) || LEGACY_MUSIC_TRACKS;
     }
 
-    _pool() {
-        if (typeof MUSIC_POOL !== 'undefined' && MUSIC_POOL?.length) return [...MUSIC_POOL];
-        return [...FALLBACK_POOL];
+    _basePool() {
+        if (typeof MUSIC_BASE_POOL !== 'undefined' && MUSIC_BASE_POOL?.length) {
+            return [...MUSIC_BASE_POOL];
+        }
+        return [...FALLBACK_BASE_POOL];
+    }
+
+    _layerPool() {
+        if (typeof MUSIC_LAYER_POOL !== 'undefined' && MUSIC_LAYER_POOL?.length) {
+            return [...MUSIC_LAYER_POOL];
+        }
+        return [...FALLBACK_LAYER_POOL];
     }
 
     /**
-     * Build shuffled deck for this run (deterministic from seed + ':music' salt).
-     * Call when a new run starts; same seed on continue preserves order if already inited.
+     * Build shuffled decks for this run (deterministic from seed + ':music' salt).
      */
     initRunDeck(seed) {
         const s = String(seed || 'NEWRUN');
@@ -82,26 +105,52 @@ class SoundManager {
         this._musicRng = new SeededRNG(`${s}:music`);
         this._runPlaybackRate = MUSIC_BASE_PLAYBACK_RATE
             + (this._musicRng.random() - 0.5) * 2 * MUSIC_RUN_RATE_SPREAD;
-        this._lastTrackId = null;
-        this._reshuffleDeck();
+        this._lastBaseId = null;
+        this._lastLayerId = null;
+        this._reshuffleBaseDeck();
+        this._reshuffleLayerDeck();
         if (typeof Logger !== 'undefined') {
-            Logger.info('SoundManager: run deck init', s, this._deck.join(' → '));
+            Logger.info(
+                'SoundManager: dual-bed deck init',
+                s,
+                'base', this._baseDeck.join(' → '),
+                'layer', this._layerDeck.join(' → ')
+            );
         }
     }
 
-    _reshuffleDeck() {
-        let order = this._musicRng.shuffle(this._pool());
-        if (this._lastTrackId && order.length > 1 && order[order.length - 1] === this._lastTrackId) {
+    _reshuffleAvoidingLast(pool, lastId) {
+        let order = this._musicRng.shuffle(pool);
+        if (lastId && order.length > 1 && order[order.length - 1] === lastId) {
             const j = Math.floor(this._musicRng.random() * (order.length - 1));
             [order[order.length - 1], order[j]] = [order[j], order[order.length - 1]];
         }
-        this._deck = order;
+        return order;
     }
 
-    _pickNextTrackId() {
-        if (!this._deck.length) this._reshuffleDeck();
-        const id = this._deck.pop();
-        this._lastTrackId = id;
+    _reshuffleBaseDeck() {
+        this._baseDeck = this._reshuffleAvoidingLast(this._basePool(), this._lastBaseId);
+    }
+
+    _reshuffleLayerDeck() {
+        const pool = this._layerPool();
+        this._layerDeck = pool.length
+            ? this._reshuffleAvoidingLast(pool, this._lastLayerId)
+            : [];
+    }
+
+    _pickNextBaseId() {
+        if (!this._baseDeck.length) this._reshuffleBaseDeck();
+        const id = this._baseDeck.pop();
+        this._lastBaseId = id;
+        return id;
+    }
+
+    _pickNextLayerId() {
+        if (!this._layerDeck.length) this._reshuffleLayerDeck();
+        if (!this._layerDeck.length) return null;
+        const id = this._layerDeck.pop();
+        this._lastLayerId = id;
         return id;
     }
 
@@ -166,9 +215,9 @@ class SoundManager {
         airShelf.connect(glue);
         glue.connect(this.musicGain);
         this.musicGain.connect(ac.destination);
-        this.musicFxRevision = 5;
+        this.musicFxRevision = 6;
         if (typeof Logger !== 'undefined') {
-            Logger.info('SoundManager: music bus v' + this.musicFxRevision + ' (deck shuffle, brighter bus)');
+            Logger.info('SoundManager: music bus v' + this.musicFxRevision + ' (dual-bed)');
         }
     }
 
@@ -203,7 +252,6 @@ class SoundManager {
         return ir;
     }
 
-    /** Seeded random entry — skip intros, stay out of outros */
     _seededStartOffset(buffer) {
         const dur = buffer.duration;
         if (dur < 5) return 0;
@@ -274,12 +322,56 @@ class SoundManager {
         if (this.audioContext.state === 'suspended') await this.audioContext.resume();
         if (!this._deckSeed) this.initRunDeck('NEWRUN');
         this._musicPlaying = true;
-        this._playNextFromDeck();
+        this._musicContext = 'play';
+        this._playNextBase();
+        this._playNextLayer();
     }
 
-    /** Kept for shop/pack callers — deck is not gated by context. */
-    setMusicContext(_context) {
-        /* no-op: roguelike deck plays through regardless of UI mode */
+    /** Shop / pack → market on top; play → resume layer deck. Base bed never stops. */
+    setMusicContext(context) {
+        const wantShop = context === 'shop' || context === 'pack';
+        if (wantShop) this._enterShopMusic();
+        else this._leaveShopMusic();
+    }
+
+    _stopSource(kind) {
+        const srcKey = kind === 'base' ? '_baseSource' : '_layerSource';
+        const gainKey = kind === 'base' ? '_baseGain' : '_layerGain';
+        const src = this[srcKey];
+        if (src) {
+            try {
+                src.onended = null;
+                src.stop();
+            } catch (_) { /* ignore */ }
+            this[srcKey] = null;
+        }
+        this[gainKey] = null;
+        if (kind === 'layer') {
+            this.musicSource = null;
+            this._musicSourceGain = null;
+        }
+    }
+
+    async _enterShopMusic() {
+        this.ensureReady();
+        if (!this.audioContext) return;
+        if (this._musicContext === 'shop' && this._layerSource) return;
+        this._musicContext = 'shop';
+        this._stopSource('layer');
+        if (this.audioContext.state === 'suspended') await this.audioContext.resume();
+        if (!this._musicPlaying) {
+            this._musicPlaying = true;
+            this._playNextBase();
+        }
+        const shopId = (typeof MUSIC_SHOP_TRACK_ID !== 'undefined' && MUSIC_SHOP_TRACK_ID) || 'market';
+        await this._playOnBed('layer', shopId, { loop: true, gain: MUSIC_LAYER_TRACK_GAIN });
+    }
+
+    async _leaveShopMusic() {
+        if (this._musicContext !== 'shop') return;
+        this._musicContext = 'play';
+        this._stopSource('layer');
+        if (this._musicPlaying) this._playNextLayer();
     }
 
     async _loadTrackBuffer(trackId) {
@@ -290,7 +382,7 @@ class SoundManager {
         return this.audioContext.decodeAudioData(buf);
     }
 
-    _connectMusicSource(src, smoothing, srcGain) {
+    _connectMusicSource(smoothing, srcGain) {
         const dryGain = this.audioContext.createGain();
         const wetGain = this.audioContext.createGain();
         dryGain.gain.value = MUSIC_REVERB_DRY;
@@ -308,54 +400,107 @@ class SoundManager {
         smoothing.connect(dryGain);
     }
 
-    async _playNextFromDeck() {
+    async _playNextBase() {
         if (!this._musicPlaying || !this.audioContext) return;
-        const trackId = this._pickNextTrackId();
-        await this._playTrack(trackId);
+        const trackId = this._pickNextBaseId();
+        await this._playOnBed('base', trackId, {
+            gain: MUSIC_BASE_TRACK_GAIN,
+            rate: this._getPlaybackRate(),
+        });
     }
 
-    async _playTrack(trackId) {
+    async _playNextLayer() {
         if (!this._musicPlaying || !this.audioContext) return;
+        if (this._musicContext === 'shop') return;
+        const trackId = this._pickNextLayerId();
+        if (!trackId) return;
+        await this._playOnBed('layer', trackId, {
+            gain: MUSIC_LAYER_TRACK_GAIN,
+            rate: this._getPlaybackRate(),
+        });
+    }
+
+    /**
+     * @param {'base'|'layer'} bed
+     * @param {string} trackId
+     * @param {{ loop?: boolean, gain?: number, rate?: number }} [opts]
+     */
+    async _playOnBed(bed, trackId, opts = {}) {
+        if (!this.audioContext || !trackId) return;
+        const isShopLoop = !!opts.loop;
+        if (bed === 'layer' && !isShopLoop && this._musicContext === 'shop') return;
+        if (!this._musicPlaying && !isShopLoop) return;
+
         const tracks = this._tracks();
         const path = tracks[trackId] || tracks.music1;
         try {
             const audioBuffer = await this._loadTrackBuffer(trackId);
-            this._musicLoadFailCount = 0;
+            if (!this._musicPlaying && !isShopLoop) return;
+            if (bed === 'layer' && isShopLoop && this._musicContext !== 'shop') return;
+            if (bed === 'layer' && !isShopLoop && this._musicContext === 'shop') return;
+
+            if (bed === 'base') this._baseFailCount = 0;
+            else this._layerFailCount = 0;
+
+            this._stopSource(bed);
+
             const src = this.audioContext.createBufferSource();
             src.buffer = audioBuffer;
-            src.loop = false;
-            src.playbackRate.value = this._getPlaybackRate();
+            src.loop = isShopLoop;
+            src.playbackRate.value = opts.rate ?? (isShopLoop ? 1 : this._getPlaybackRate());
+
             const smoothing = this.audioContext.createBiquadFilter();
             smoothing.type = 'lowpass';
             smoothing.frequency.value = MUSIC_PRE_LP_HZ;
             smoothing.Q.value = MUSIC_PRE_LP_Q;
             src.connect(smoothing);
+
             const srcGain = this.audioContext.createGain();
-            srcGain.gain.value = 1;
+            srcGain.gain.value = opts.gain ?? (bed === 'base' ? MUSIC_BASE_TRACK_GAIN : MUSIC_LAYER_TRACK_GAIN);
             if (this._musicMasterIn) srcGain.connect(this._musicMasterIn);
             else srcGain.connect(this.musicGain);
-            this._connectMusicSource(src, smoothing, srcGain);
-            const startOffset = this._seededStartOffset(audioBuffer);
-            src.onended = () => this._playNextFromDeck();
+            this._connectMusicSource(smoothing, srcGain);
+
+            const startOffset = isShopLoop ? 0 : this._seededStartOffset(audioBuffer);
+            if (!isShopLoop) {
+                src.onended = () => {
+                    if (!this._musicPlaying) return;
+                    if (bed === 'base') this._playNextBase();
+                    else if (this._musicContext !== 'shop') this._playNextLayer();
+                };
+            }
+
             src.start(0, startOffset);
-            this.musicSource = src;
-            this._musicSourceGain = srcGain;
+
+            if (bed === 'base') {
+                this._baseSource = src;
+                this._baseGain = srcGain;
+            } else {
+                this._layerSource = src;
+                this._layerGain = srcGain;
+                this.musicSource = src;
+                this._musicSourceGain = srcGain;
+            }
         } catch (e) {
-            this._musicLoadFailCount = (this._musicLoadFailCount || 0) + 1;
-            if (typeof Logger !== 'undefined') Logger.warn('Music load failed:', trackId, path, e);
-            if (this._musicLoadFailCount < 8) {
-                setTimeout(() => this._playNextFromDeck(), 1000);
+            if (bed === 'base') {
+                this._baseFailCount = (this._baseFailCount || 0) + 1;
+                if (typeof Logger !== 'undefined') Logger.warn('Base music load failed:', trackId, path, e);
+                if (this._baseFailCount < 8) setTimeout(() => this._playNextBase(), 1000);
+            } else {
+                this._layerFailCount = (this._layerFailCount || 0) + 1;
+                if (typeof Logger !== 'undefined') Logger.warn('Layer music load failed:', trackId, path, e);
+                if (!isShopLoop && this._layerFailCount < 8) {
+                    setTimeout(() => this._playNextLayer(), 1000);
+                }
             }
         }
     }
 
     stopMusic() {
         this._musicPlaying = false;
-        if (this.musicSource) {
-            try { this.musicSource.stop(); } catch (_) { /* ignore */ }
-            this.musicSource = null;
-        }
-        this._musicSourceGain = null;
+        this._musicContext = 'play';
+        this._stopSource('base');
+        this._stopSource('layer');
     }
 
     setMusicVolume(v) {

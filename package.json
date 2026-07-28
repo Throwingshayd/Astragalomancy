@@ -1,6 +1,6 @@
 {
   "name": "dice-of-dionysus",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "An elegant dice strategy game of pips, favour, and devotion",
   "type": "module",
   "scripts": {

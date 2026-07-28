@@ -7738,6 +7738,36 @@ body::after {
     transform: translateX(-50%);
 }
 
+/* Hubris Depart — same marble plaque as Total/Required, parked beside Required. */
+.center-game-area .felt-stone-depart {
+    top: calc(
+        var(--layout-pantheon-top, -10px)
+        + var(--layout-pantheon-frieze-height, 318px)
+        - var(--layout-center-game-top, 200px)
+        + 0.5 * var(--felt-die-size, 95px)
+    );
+    left: calc(var(--felt-score-required-left) + 168px);
+    transform: translateX(-50%);
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 15;
+    font: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+}
+.center-game-area .felt-stone-depart.hidden {
+    display: none !important;
+}
+.center-game-area .felt-stone-depart:hover:not(:disabled) {
+    filter: brightness(1.04);
+}
+.center-game-area .felt-stone-depart:disabled {
+    cursor: default;
+}
+.main-game.shop-active .center-game-area .felt-stone-depart {
+    display: none !important;
+}
+
 .felt-area-btn {
     cursor: default;
 }
@@ -7775,9 +7805,9 @@ body::after {
     line-height: 1.22;
     padding: 0 6px;
     box-sizing: border-box;
-    margin-top: -6px;
-    margin-bottom: -8px;
-    transform: translateY(-10px);
+    margin-top: 4px;
+    margin-bottom: 0;
+    transform: none;
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-row {
@@ -8462,5 +8492,45 @@ body::after {
 
 .expulsion-choice-card {
     cursor: pointer;
+}
+
+/* Soft pause (P) — blocks input, no pause menu */
+.soft-pause-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 12000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 14, 18, 0.55);
+    pointer-events: auto;
+    cursor: default;
+}
+
+.soft-pause-card {
+    text-align: center;
+    padding: 28px 48px;
+    border-radius: 16px;
+    background: rgba(16, 32, 36, 0.72);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 248, 220, 0.22),
+        0 12px 36px rgba(0, 0, 0, 0.4);
+}
+
+.soft-pause-title {
+    font-family: var(--font-epic-title), serif;
+    font-size: 2.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #fff6dc;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.soft-pause-hint {
+    margin-top: 10px;
+    font-family: var(--font-manuscript), serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    color: rgba(255, 248, 220, 0.72);
 }
 

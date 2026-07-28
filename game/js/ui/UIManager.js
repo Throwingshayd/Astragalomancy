@@ -38,6 +38,7 @@ class UIManager {
             // Dice and rolling
             diceContainer: document.getElementById('diceContainer'),
             rollButton: document.getElementById('rollButton'),
+            departButton: document.getElementById('departButton'),
             liveScoreDisplay: document.getElementById('liveScoreDisplay'),
             
             // Scorecard
@@ -204,10 +205,26 @@ class UIManager {
         this.updateScorecardUI(gameState, gameEngine);
         this.updatePlayAreaSlots(gameState, gameEngine);
         this.updateBlindUI(gameState, gameEngine);
+        this.updateDepartButton(gameState, gameEngine);
         // Keep the single action button (#rollButton) synced with shop state: label + cost badge + affordability.
         if (this.shopUI && document.querySelector('.main-game')?.classList.contains('shop-active')) {
             this.shopUI.applyShopActionButton(gameState, true);
         }
+    }
+
+    /** Show Depart when over Trial threshold with unfilled pantheon slots (hubris early clear). */
+    updateDepartButton(gameState, gameEngine) {
+        const btn = this.dom.departButton || document.getElementById('departButton');
+        if (!btn) return;
+        this.dom.departButton = btn;
+        const shopOpen = document.querySelector('.main-game')?.classList.contains('shop-active');
+        const canDepart = !shopOpen
+            && !gameState?.gameOver
+            && !gameEngine?.isScoring
+            && (gameEngine?.canDepartEarly?.()
+                ?? (typeof TrialCompletion !== 'undefined' && TrialCompletion.canDepartEarly(gameState)));
+        btn.classList.toggle('hidden', !canDepart);
+        btn.disabled = !canDepart;
     }
 
     updateInfoUI(gameState, _gameEngine) {

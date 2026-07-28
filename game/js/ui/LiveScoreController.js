@@ -7,11 +7,24 @@
 /* global GnosisDisplay, TIMING, GAME_BALANCE, Logger */
 
 class LiveScoreController {
+    /** Resting entry title — stays until an unrolled die is hovered. */
+    static ENTRY_TITLE = 'Astragalomancy,';
+
+    /** One line per die (index 0–4), shown while hovering that unrolled (?) die. */
+    static ENTRY_DIE_LINES = [
+        'Here lie the astragali',
+        'Roll to make offerings to the pantheon',
+        'Earn obols from the gods',
+        'Drink libations, acquire boons, worship gods',
+        'Acquire their favour and be rewarded.',
+    ];
+
     /** @param {GameEngine} engine */
     constructor(engine) {
         this.engine = engine;
         this._previewTimeout = null;
         this._cashoutInProgress = false;
+        this._hoveredDieIndex = null;
     }
 
     get dom() {
@@ -20,6 +33,44 @@ class LiveScoreController {
 
     get domReady() {
         return this.engine.domReady;
+    }
+
+    /** First ante / first turn only, before the first cast. */
+    canShowUnrolledDieHints() {
+        const s = this.engine?.state;
+        return !!(s && !s.hasRolled && s.ante === 1 && (s.turn || 1) === 1);
+    }
+
+    /** @param {string} _text */
+    _setOfferingMessage(_text) {
+        /* Trial banner owns the former offering slot — see InfoBarRenderer.updateTrialBanner */
+    }
+
+    /** Hover an unrolled die → matching tutorial line in the offering message. */
+    onUnrolledDieHover(dieIndex) {
+        if (!this.canShowUnrolledDieHints()) return;
+        if (!Number.isInteger(dieIndex) || dieIndex < 0) return;
+        const line = LiveScoreController.ENTRY_DIE_LINES[dieIndex];
+        if (!line) return;
+        this._hoveredDieIndex = dieIndex;
+        this._setOfferingMessage(line);
+    }
+
+    /** Leave die → restore resting title (unless another die is already hovered). */
+    onUnrolledDieLeave(dieIndex) {
+        if (this._hoveredDieIndex !== dieIndex) return;
+        this._hoveredDieIndex = null;
+        if (!this.canShowUnrolledDieHints()) return;
+        this._setOfferingMessage(LiveScoreController.ENTRY_TITLE);
+    }
+
+    /** Offering text while entry hints are active. */
+    entryHintMessage() {
+        if (!this.canShowUnrolledDieHints()) return null;
+        if (this._hoveredDieIndex != null) {
+            return LiveScoreController.ENTRY_DIE_LINES[this._hoveredDieIndex] || LiveScoreController.ENTRY_TITLE;
+        }
+        return LiveScoreController.ENTRY_TITLE;
     }
 
     schedulePreview(category) {
@@ -49,7 +100,9 @@ class LiveScoreController {
         const hide = (key) => { const n = q(key); if (n) n.setAttribute('hidden', ''); };
         const show = (key) => { const n = q(key); if (n) n.removeAttribute('hidden'); };
 
-        set('category', o.category);
+        // Category label (if present inside live-score root only).
+        const categoryEl = q('category');
+        if (categoryEl) categoryEl.textContent = o.category ?? '';
         const row = q('row');
         const rowNa = q('row-na');
         if (o.showNa) {
@@ -94,6 +147,9 @@ class LiveScoreController {
             if (row) window.juiceManager.cancelJuice(row);
         }
 
+        // First roll clears die-hover tutorial state.
+        if (e.state.hasRolled) this._hoveredDieIndex = null;
+
         const slotFilled = !!(category && typeof DevotionUtils !== 'undefined'
             ? !DevotionUtils.canScoreCategory(e.state, category)
             : e.state.scorecard[category] !== undefined);
@@ -101,8 +157,9 @@ class LiveScoreController {
 
         if (!category || !e.state.hasRolled) {
             const levelBonus = category ? e.getCategoryLevelBonuses(category) : { pips: 0, mult: 1 };
+            const hint = !category ? this.entryHintMessage() : null;
             this.updateValues(el, {
-                category: e.getLiveOfferingTitle(category, slotFilled),
+                category: hint != null ? hint : e.getLiveOfferingTitle(category, slotFilled),
                 pips: '0',
                 pipsLabel: gnosis ? gnosis.formatPipsLabel(category, e.state) : 'pips',
                 pipsAdd: false,
@@ -212,6 +269,13 @@ class LiveScoreController {
         const steps = [];
         if (pantheonTotal != null) {
             steps.push({ type: 'pantheon', text: `Pantheon reckoning: ${pantheonTotal}` });
+        }
+        if (opts.hubrisDepart) {
+            const left = opts.unusedCategories;
+            const rites = (left != null && left > 0)
+                ? `${left} rite${left === 1 ? '' : 's'} unfinished`
+                : 'rites unfinished';
+            steps.push({ type: 'hubris', text: `Hubris — left the symposium early (${rites})` });
         }
         steps.push({ type: 'offerings', text: `Offerings made: +${scoresGold} ${drachmaWord(scoresGold)}` });
         steps.push({ type: 'surplus', text: `Surplus of the gods: +${interest} ${drachmaWord(interest)}` });

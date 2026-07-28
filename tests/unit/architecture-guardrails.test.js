@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
  * the same regression fail `npm test` instead of relying on anyone re-reading a doc.
  */
 const CEILINGS = {
-    'game/js/game/GameEngine.js': { lines: 2288, windowRefs: 10 },
+    'game/js/game/GameEngine.js': { lines: 2187, windowRefs: 10 },
     'game/js/classes/Boon.js': { lines: 1096, windowRefs: 16 },
     'game/js/ui/ShopUI.js': { lines: 877, windowRefs: 7 },
     'game/js/ui/BalatroEffects.js': { lines: 865, windowRefs: 6 },

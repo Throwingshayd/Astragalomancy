@@ -1,13 +1,13 @@
 /**
- * Run music pool — shuffled deck per seed (roguelike soundtrack).
- * Phi-Psonics remixes: scripts/remix-phi-psonics.cjs (bass-forward, warm retro band-limit).
+ * Dual-bed soundtrack: preexisting Phi beds run continuously underneath;
+ * layered tracks (and market in shop) play on top.
  *
  * @see SoundManager.initRunDeck
  */
-/* exported MUSIC_POOL, MUSIC_TRACKS */
+/* exported MUSIC_BASE_POOL, MUSIC_LAYER_POOL, MUSIC_POOL, MUSIC_TRACKS, MUSIC_LAYER_IDS, MUSIC_SHOP_TRACK_ID */
 
-/** Track IDs consumed by the per-run shuffle deck (no stage/event gating). */
-const MUSIC_POOL = [
+/** Preexisting Phi beds — always-on under bed (80% gain). */
+const MUSIC_BASE_POOL = [
     'phi_prelude_expansion',
     'phi_theres_still_hope',
     'phi_healing_time',
@@ -20,8 +20,26 @@ const MUSIC_POOL = [
     'phi_it_finds_a_way',
     'phi_sounds_of_the_universe',
     'phi_new_pyramid',
-    'phi_mysteries_of_the_dark'
+    'phi_mysteries_of_the_dark',
 ];
+
+/** New beds — shuffle on top of the base layer (full gain). */
+const MUSIC_LAYER_POOL = [
+    'greek_tales',
+    'celtic_mystical',
+    'veil_of_ash',
+    'davids_vigilance',
+    'ancientone',
+];
+
+/** @deprecated Prefer MUSIC_BASE_POOL / MUSIC_LAYER_POOL — kept as base alias. */
+const MUSIC_POOL = MUSIC_BASE_POOL;
+
+/** Layer track IDs (top bed). */
+const MUSIC_LAYER_IDS = Object.freeze(MUSIC_LAYER_POOL.slice());
+
+/** Shop / pack top-bed loop — not in the run layer deck. */
+const MUSIC_SHOP_TRACK_ID = 'market';
 
 /** Track ID → file under game/public/ */
 const MUSIC_TRACKS = {
@@ -39,7 +57,12 @@ const MUSIC_TRACKS = {
     phi_before_the_pyramids: 'ART/Music/phi/12_before_the_pyramids.mp3',
     phi_new_pyramid: 'ART/Music/phi/13_new_pyramid.mp3',
     phi_mysteries_of_the_dark: 'ART/Music/phi/14_mysteries_of_the_dark.mp3',
-    // Original MusicGPT stems (optional — add IDs to MUSIC_POOL to include)
+    greek_tales: 'ART/Music/layer/greek_tales.mp3',
+    celtic_mystical: 'ART/Music/layer/celtic_mystical.mp3',
+    veil_of_ash: 'ART/Music/layer/veil_of_ash.mp3',
+    davids_vigilance: 'ART/Music/layer/davids_vigilance.mp3',
+    ancientone: 'ART/Music/layer/ancientone.mp3',
+    market: 'ART/Music/layer/market.mp3',
     frame_drum: 'ART/Music/frame_drum_pulse.mp3',
     gods_dice: 'ART/Music/gods_dice_game.mp3',
     gods_dice_alt: 'ART/Music/gods_dice_game_alt.mp3',
@@ -48,5 +71,5 @@ const MUSIC_TRACKS = {
     music2: 'ART/Music/lute 2 w effects.ogg',
     music3: 'ART/Music/lute 3 w effects.ogg',
     music4: 'ART/Music/lute 4 w effects.ogg',
-    music5: 'ART/Music/lute 5 w effects.ogg'
+    music5: 'ART/Music/lute 5 w effects.ogg',
 };

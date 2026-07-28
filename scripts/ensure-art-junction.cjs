@@ -1,20 +1,24 @@
 'use strict';
 /**
- * Vite serves game/public/* at the site root (/ART/...).
- * Live Server / Live Preview use root "game/", so /ART/ would miss public/ART.
- * This links game/ART → game/public/ART so /ART/ and relative ART/ work everywhere.
+ * Vite + Live Server serve from game/ as site root. Assets live under game/public/,
+ * but absolute URLs like /ART/, /fonts/, /sounds/ only resolve if those folders
+ * also exist under game/ (publicDir-at-root is unreliable with this layout).
+ * This links game/<name> → game/public/<name> for each needed root path.
  */
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
 const gameRoot = path.resolve(__dirname, '..', 'game');
-const target = path.join(gameRoot, 'public', 'ART');
-const link = path.join(gameRoot, 'ART');
+const JUNCTIONS = ['ART', 'fonts', 'sounds'];
 
-function main() {
+function ensureJunction(name) {
+    const target = path.join(gameRoot, 'public', name);
+    const link = path.join(gameRoot, name);
+    const tag = `[ensure-art-junction] game/${name}`;
+
     if (!fs.existsSync(target)) {
-        console.warn('[ensure-art-junction] game/public/ART missing — skip');
+        console.warn(`${tag}: public/${name} missing — skip`);
         return;
     }
     if (fs.existsSync(link)) {
@@ -32,9 +36,8 @@ function main() {
             const inner = fs.readdirSync(link);
             if (inner.length > 0) {
                 console.warn(
-                    '[ensure-art-junction] game/ART exists and is not empty — remove or rename it, then run again'
+                    `${tag} exists and is not empty — remove or rename it, then run again`
                 );
-                process.exitCode = 0;
                 return;
             }
             fs.rmdirSync(link);
@@ -48,7 +51,13 @@ function main() {
         const rel = path.relative(path.dirname(link), target);
         fs.symlinkSync(rel, link, 'dir');
     }
-    console.log('[ensure-art-junction] game/ART → public/ART');
+    console.log(`${tag} → public/${name}`);
+}
+
+function main() {
+    for (const name of JUNCTIONS) {
+        ensureJunction(name);
+    }
 }
 
 main();

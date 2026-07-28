@@ -18,7 +18,7 @@ describe('Greek theme wiring', () => {
         expect(cardPresentIdx).toBeGreaterThan(cardSizesIdx);
     });
 
-    it('greek-theme.css defines marble pantheon frieze and side stelae', () => {
+    it('greek-theme.css defines open-stage HUD and pantheon frieze', () => {
         const css = readFileSync('game/css/greek-theme.css', 'utf8');
         const tokens = readFileSync('game/css/visual-tokens.css', 'utf8');
         const fonts = readFileSync('game/css/fonts-morris.css', 'utf8');
@@ -34,11 +34,11 @@ describe('Greek theme wiring', () => {
         expect(styles).toMatch(/\.pantheon-frieze \.pantheon-chip[\s\S]*font-family: var\(--font-pantheon-hand\)/);
         expect(css).toContain('felt-epic-title');
         expect(css).toContain('var(--gk-marble-1)');
-        expect(css).toContain('play-stela-pillar.png');
-        expect(css).toContain('CONSUMABLES');
-        expect(css).toContain('BOONS');
         expect(css).toContain('Greater Pantheon');
         expect(css).toContain('--gk-meander-v');
         expect(css).toContain('--gk-meander-h');
+        expect(css).toContain('.clepsydra');
+        expect(css).toContain('.trial-banner');
+        expect(css).toContain('.rolls-pips');
     });
 });

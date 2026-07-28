@@ -95,9 +95,23 @@ const DiceRenderer = {
         });
     },
 
+    _bindUnrolledDieHint(dieEl, index) {
+        if (!dieEl || dieEl._unrolledHintBound) return;
+        dieEl._unrolledHintBound = true;
+        dieEl.addEventListener('mouseenter', () => {
+            window.game?.ensureLiveScore?.()?.onUnrolledDieHover?.(index);
+        });
+        dieEl.addEventListener('mouseleave', () => {
+            window.game?.ensureLiveScore?.()?.onUnrolledDieLeave?.(index);
+        });
+    },
+
     _ensureDieShell(container, index) {
         let dieEl = container.querySelector(`.die[data-die-index="${index}"]`);
-        if (dieEl) return dieEl;
+        if (dieEl) {
+            this._bindUnrolledDieHint(dieEl, index);
+            return dieEl;
+        }
         dieEl = document.createElement('div');
         dieEl.className = 'die';
         dieEl.dataset.dieIndex = String(index);
@@ -106,6 +120,7 @@ const DiceRenderer = {
         dieIdBadge.className = 'die-id-badge';
         dieIdBadge.style.cssText = 'position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--stone-terracotta-dark);border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;border:1px solid var(--statue-cream);z-index:5;opacity:0.8;';
         dieEl.appendChild(dieIdBadge);
+        this._bindUnrolledDieHint(dieEl, index);
         container.appendChild(dieEl);
         return dieEl;
     },
