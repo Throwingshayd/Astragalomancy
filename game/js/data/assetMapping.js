@@ -83,7 +83,8 @@ const AssetMapping = {
         'worship_nyx': 'worship nyx.png',
         'worship_pleiades': 'worship pleasdes.png', // Note: asset has typo "pleasdes" instead of "pleiades"
         'worship_poseidon_eights': 'worship posiedon.png', // Note: asset has typo "posiedon" instead of "poseidon"
-        'worship_muses': 'worship muses.png'
+        'worship_muses': 'worship muses.png',
+        'worship_pandora': 'worship pandora.png'
     },
 
     // Libation Assets
@@ -117,7 +118,7 @@ const AssetMapping = {
     frames: {
         'boon': null, // CSS-based frame for boons
         'worship': null, // worship art has the shrine frame drawn in ('worship frame.png' is the blank source)
-        'libation': 'libation frame.png'
+        'libation': null // libation art has its cup frame drawn in ('libation frame.png' is the blank source)
     },
 
     // Dice face sprite sheet (built from diceFaceSources via npm run build-dice-spritesheet)

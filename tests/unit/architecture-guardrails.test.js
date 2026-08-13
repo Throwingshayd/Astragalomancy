@@ -16,7 +16,8 @@ const CEILINGS = {
     'game/js/game/GameEngine.js': { lines: 2187, windowRefs: 10 },
     'game/js/classes/Boon.js': { lines: 1096, windowRefs: 16 },
     'game/js/ui/ShopUI.js': { lines: 877, windowRefs: 7 },
-    'game/js/ui/BalatroEffects.js': { lines: 865, windowRefs: 6 },
+    // Ratcheted down 2026-08 when tooltip body HTML moved out to ui/TooltipContent.js.
+    'game/js/ui/BalatroEffects.js': { lines: 779, windowRefs: 5 },
     'game/js/classes/boonTimingHandlers.js': { lines: 612, windowRefs: 2 },
     // Main.js grew deliberately here: it now builds one `services` object (sound, effects, data,
     // stateManager, gameStates, numberFormat, uiManager, shopManager, app) at bootstrap and injects

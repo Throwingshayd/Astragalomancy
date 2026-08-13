@@ -119,7 +119,8 @@ const ConsumableDrag = {
             return null;
         };
 
-        const getConsumableBar = () => document.getElementById('leftConsumableBar');
+        // The rail this container belongs to — dragging inside it reorders rather than drops.
+        const getConsumableBar = () => container.closest('.inventory-panel-consumables');
         const worshipBlockedNow = (state) => (
             typeof BlindDirector !== 'undefined' && BlindDirector.blocksWorship(state)
         );

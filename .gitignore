@@ -59,5 +59,8 @@ debug-logs/
 BACKUP_*/
 MODERNIZED_BACKUP_*/
 
+# Pre-crop copies of card art kept by the trim-*-art scripts
+art-backup/
+
 # Distribution builds (exceeds GitHub 100MB limit)
 DiceOfDionysus-itchio.zip

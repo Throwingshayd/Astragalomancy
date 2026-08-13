@@ -1,5 +1,7 @@
 // Balatro-style Visual Effects Manager
 // Inspired by Balatro's polished UI and animation system
+// Tooltip body HTML lives in TooltipContent.js; this file owns placement + lifecycle.
+/* global TooltipContent */
 
 class BalatroEffects {
     constructor() {
@@ -213,7 +215,7 @@ class BalatroEffects {
             caret.className = 'tip-caret';
             const inner = document.createElement('div');
             inner.className = 'tooltip-inner';
-            inner.innerHTML = this.parseTooltipData(tooltipData);
+            inner.innerHTML = TooltipContent.render(tooltipData);
             tooltip.append(caret, inner);
 
             const root = this.ensureTooltipRoot();
@@ -339,7 +341,7 @@ class BalatroEffects {
         if (!tooltipData) return;
 
         const inner = tooltip.querySelector('.tooltip-inner');
-        if (inner) inner.innerHTML = this.parseTooltipData(tooltipData);
+        if (inner) inner.innerHTML = TooltipContent.render(tooltipData);
 
         const meta = this._tooltipHostMeta(element);
         const { isDie, isCard, isPackShelf, isInShopStage, cardEl } = meta;
@@ -460,94 +462,6 @@ class BalatroEffects {
             const preferBelow = isCard || isPackShelf || isInShopStage;
             this.positionPopover(tooltip, host, { preferBelow, gap: 10 });
         });
-    }
-
-    parseTooltipData(data) {
-        try {
-            const parsed = JSON.parse(data);
-
-            if (parsed.tooltipType === 'die') {
-                return this.parseDieTooltip(parsed);
-            }
-
-            let html = '';
-            if (parsed.title) html += `<div class="tooltip-title">${this.escapeHtml(parsed.title)}</div>`;
-            if (parsed.effect) html += `<div class="tooltip-effect">${this.escapeHtml(parsed.effect)}</div>`;
-            if (parsed.god) html += `<div class="tooltip-god">${this.escapeHtml(parsed.god)}</div>`;
-            return html;
-        } catch (e) {
-            return `<div class="tooltip-effect">${this.escapeHtml(data)}</div>`;
-        }
-    }
-
-    parseDieTooltip(parsed) {
-        const statusClass = parsed.held ? 'is-held' : 'is-free';
-        const statusLabel = parsed.held ? 'Held' : 'Free';
-
-        let html = `<article class="tip-die">`;
-        html += `<p class="tip-die-status ${statusClass}">${statusLabel}</p>`;
-
-        if (!parsed.rolled || !parsed.face) {
-            html += `<p class="tip-die-face">Roll to reveal</p>`;
-        } else {
-            html += `<p class="tip-die-face">Face ${this.escapeHtml(parsed.face)}</p>`;
-            const notes = [];
-            if (parsed.modified) {
-                notes.push(`Modified ${parsed.modified.from}→${parsed.modified.to}`);
-            }
-            if (parsed.wildMod !== null && parsed.wildMod !== undefined) {
-                const sign = parsed.wildMod > 0 ? '+' : '';
-                notes.push(`Wild ${sign}${parsed.wildMod}`);
-            }
-            if (notes.length > 0) {
-                html += `<p class="tip-die-note">${this.escapeHtml(notes.join(' · '))}</p>`;
-            }
-        }
-
-        if (parsed.rolled && parsed.enhancements?.length > 0) {
-            html += `<ul class="tip-die-enhs">`;
-            parsed.enhancements.forEach((enh) => {
-                const color = this.escapeAttr(enh.color || '');
-                const style = color ? ` style="--enh-color:${color}"` : '';
-                html += `<li class="tip-die-enh"${style}>
-                    <span class="tip-die-enh-name">${this.escapeHtml(enh.name)}</span>
-                    <span class="tip-die-enh-desc">${this.escapeHtml(enh.desc)}</span>
-                </li>`;
-            });
-            html += `</ul>`;
-        }
-
-        const footerLines = [];
-        if (parsed.tempMod) {
-            const sign = parsed.tempMod > 0 ? '+' : '';
-            footerLines.push(`<span class="tip-die-mod">Temp modifier ${sign}${parsed.tempMod}</span>`);
-        }
-        if (footerLines.length > 0) {
-            html += `<footer class="tip-die-footer">`;
-            footerLines.forEach((line) => {
-                html += `<div class="tip-die-footer-line">${line}</div>`;
-            });
-            html += `</footer>`;
-        }
-
-        html += `</article>`;
-        return html;
-    }
-
-    escapeHtml(s) {
-        return String(s)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-    }
-
-    getEnhDisplayName(enh) {
-        return window.EnhancementRegistry?.displayName?.(enh) || enh;
-    }
-
-    escapeAttr(s) {
-        return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     getRarityColor(rarity) {

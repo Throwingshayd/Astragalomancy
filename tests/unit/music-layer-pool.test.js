@@ -1,24 +1,30 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-describe('music pool — dual-bed layer + shop market', () => {
+describe('music pool — dual-bed layer, one rotation everywhere', () => {
     const poolSrc = readFileSync('game/js/data/musicPool.js', 'utf8');
     const soundSrc = readFileSync('game/js/ui/SoundManager.js', 'utf8');
+    const shopSrc = readFileSync('game/js/ui/ShopUI.js', 'utf8');
 
-    it('keeps base and layer pools separate; market is shop-only', () => {
+    it('keeps base and layer pools separate', () => {
         expect(poolSrc).toContain('MUSIC_BASE_POOL');
         expect(poolSrc).toContain('MUSIC_LAYER_POOL');
-        expect(poolSrc).toContain("market: 'ART/Music/layer/market.mp3'");
-        expect(poolSrc).toContain('MUSIC_SHOP_TRACK_ID');
         expect(poolSrc).not.toMatch(/MUSIC_POOL\s*=\s*\[\s*\.\.\.MUSIC_PHI_POOL\s*,\s*\.\.\.MUSIC_LAYER_POOL/);
     });
 
-    it('SoundManager runs dual beds and keeps base through shop', () => {
+    it('SoundManager runs dual beds', () => {
         expect(soundSrc).toContain('MUSIC_BASE_TRACK_GAIN = 0.8');
         expect(soundSrc).toContain('_playNextBase');
         expect(soundSrc).toContain('_playNextLayer');
-        expect(soundSrc).toContain("Base bed never stops");
-        expect(soundSrc).toContain('loop: true');
+    });
+
+    /** The shop used to stop the layer deck and loop a market track over the base bed. */
+    it('no screen swaps the soundtrack', () => {
+        for (const src of [poolSrc, soundSrc, shopSrc]) {
+            expect(src).not.toContain('MUSIC_SHOP_TRACK_ID');
+            expect(src).not.toContain('setMusicContext');
+            expect(src).not.toContain('_musicContext');
+        }
     });
 
     it('layer mp3 files are present on disk', () => {
@@ -28,7 +34,6 @@ describe('music pool — dual-bed layer + shop market', () => {
             'game/public/ART/Music/layer/veil_of_ash.mp3',
             'game/public/ART/Music/layer/davids_vigilance.mp3',
             'game/public/ART/Music/layer/ancientone.mp3',
-            'game/public/ART/Music/layer/market.mp3',
         ];
         for (const f of files) {
             expect(readFileSync(f).byteLength).toBeGreaterThan(1000);

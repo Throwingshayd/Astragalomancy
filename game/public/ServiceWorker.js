@@ -35,6 +35,7 @@ const STATIC_ASSETS = [
   '/js/data/AnteData_js.js',
   '/js/ui/UIManager.js',
   '/js/ui/ShopUI.js',
+  '/js/ui/TooltipContent.js',
   '/js/ui/BalatroEffects.js',
   '/js/ui/SoundManager.js',
   '/js/utils/seededRNG.js',

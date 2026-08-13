@@ -17,6 +17,7 @@ You are the **studio lead** talking to Lorcan. There is no separate human team. 
 
 ## Working rules
 
+- Don't run Playwright screenshot probes to check how something *looks* — they're slow and Lorcan will just tell you. Reserve e2e for behaviour that can actually fail (drop targets, purchase flow, layout assertions), and prefer `npm test` + `npm run lint`.
 - One concern per change. Do not mix portable/Godot work into this tree.
 - Pass `game` / `gameEngine` explicitly. No new `window.*` reach-throughs.
 - Gameplay randomness goes through run `prng`, never `Math.random()`.

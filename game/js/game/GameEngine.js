@@ -97,9 +97,11 @@ class GameEngine {
             consumables: [],
             packs: [], // Track opened packs for collection
             
-            // Slots (capacities)
+            // Slots (capacities) — worship and libations have separate rails
             boonSlots: GAME_BALANCE.STARTING_BOON_SLOTS,
-            consumableSlots: GAME_BALANCE.STARTING_LIBATION_SLOTS,
+            worshipSlots: GAME_BALANCE.STARTING_WORSHIP_SLOTS,
+            libationSlots: GAME_BALANCE.STARTING_LIBATION_SLOTS,
+            consumableSlots: GAME_BALANCE.STARTING_WORSHIP_SLOTS + GAME_BALANCE.STARTING_LIBATION_SLOTS,
             
             // Worship system (gods from GOD_TO_CATEGORY / GOD_METADATA)
             worshipLevels: {
@@ -219,8 +221,8 @@ class GameEngine {
             
             // Card slots
             boonSlots: document.getElementById('boonSlots'),
-            consumableSlots: document.getElementById('consumableSlots'),
-            artifactSlots: document.getElementById('artifactSlots'),
+            worshipSlots: document.getElementById('worshipSlots'),
+            libationSlots: document.getElementById('libationSlots'),
             
             // Shop
             shopStage: document.getElementById('shopStage'),
@@ -1528,7 +1530,8 @@ class GameEngine {
         if (eventType === 'general') {
             // FIXED: Only handle capacity bonuses - NO ROLL MODIFICATIONS
             let boonSlots = GAME_BALANCE.STARTING_BOON_SLOTS;
-            let consumableSlots = GAME_BALANCE.STARTING_LIBATION_SLOTS;
+            const worshipSlots = GAME_BALANCE.STARTING_WORSHIP_SLOTS;
+            let libationSlots = GAME_BALANCE.STARTING_LIBATION_SLOTS;
             this.state.shopPriceMultiplier = 1; // Reset; artifact_clearance_sale sets to 0.75
             this.state.artifacts.forEach(artifact => {
                 switch (artifact.id) {
@@ -1536,10 +1539,10 @@ class GameEngine {
                         boonSlots += 1;
                         break;
                     case 'libation_pouch':
-                        consumableSlots += 1;
+                        libationSlots += 1;
                         break;
                     case 'libation_pouch_plus':
-                        consumableSlots += 2;  // +2 slots for upgraded version
+                        libationSlots += 2;  // +2 slots for upgraded version
                         break;
                     case 'bronze_crown':
                         this.state.baseFavour += 1;
@@ -1566,7 +1569,7 @@ class GameEngine {
                         break;
                     case 'artifact_crystal_ball':
                         // Crystal Ball: +1 Libation slot (Divine Artifact)
-                        consumableSlots += 1;
+                        libationSlots += 1;
                         break;
                 }
             });
@@ -1586,7 +1589,9 @@ class GameEngine {
             
             // FIXED: Never touch roll mechanics
             this.state.boonSlots = boonSlots;
-            this.state.consumableSlots = consumableSlots;
+            this.state.worshipSlots = worshipSlots;
+            this.state.libationSlots = libationSlots;
+            this.state.consumableSlots = worshipSlots + libationSlots;
         }
         
         if (eventType === 'score') {
@@ -1595,13 +1600,13 @@ class GameEngine {
             const hasSacrificialDagger = this.state.artifacts.some(a => a.id === 'ritual_knife_plus');
             
             if (hasSacrificialDagger || (hasRitualKnife && this.state.lowerSanctumStreak >= 2)) {
-                if (this.state.consumables.length < this.state.consumableSlots) {
+                if (ConsumableSlots.hasRoom(this.state, 'libation')) {
                     const libation = new LibationCard(CardData.libations[Math.floor(this.prng.random() * CardData.libations.length)]);
                     this.state.consumables.push(libation);
                     this.showMessage(`Ritual fulfilled! Gained ${libation.name}.`);
                     if (hasRitualKnife && !hasSacrificialDagger) this.state.lowerSanctumStreak = 0;
                 } else {
-                    this.showMessage("Ritual fulfilled, but your consumable slots are full!");
+                    this.showMessage("Ritual fulfilled, but your libation slots are full!");
                 }
             }
             

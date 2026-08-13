@@ -1,10 +1,11 @@
 /**
  * Dual-bed soundtrack: preexisting Phi beds run continuously underneath;
- * layered tracks (and market in shop) play on top.
+ * layered tracks play on top. One rotation for the whole session — no
+ * per-screen tracks.
  *
  * @see SoundManager.initRunDeck
  */
-/* exported MUSIC_BASE_POOL, MUSIC_LAYER_POOL, MUSIC_POOL, MUSIC_TRACKS, MUSIC_LAYER_IDS, MUSIC_SHOP_TRACK_ID */
+/* exported MUSIC_BASE_POOL, MUSIC_LAYER_POOL, MUSIC_POOL, MUSIC_TRACKS, MUSIC_LAYER_IDS */
 
 /** Preexisting Phi beds — always-on under bed (80% gain). */
 const MUSIC_BASE_POOL = [
@@ -38,9 +39,6 @@ const MUSIC_POOL = MUSIC_BASE_POOL;
 /** Layer track IDs (top bed). */
 const MUSIC_LAYER_IDS = Object.freeze(MUSIC_LAYER_POOL.slice());
 
-/** Shop / pack top-bed loop — not in the run layer deck. */
-const MUSIC_SHOP_TRACK_ID = 'market';
-
 /** Track ID → file under game/public/ */
 const MUSIC_TRACKS = {
     phi_prelude_expansion: 'ART/Music/phi/01_prelude_expansion.mp3',
@@ -61,7 +59,6 @@ const MUSIC_TRACKS = {
     veil_of_ash: 'ART/Music/layer/veil_of_ash.mp3',
     davids_vigilance: 'ART/Music/layer/davids_vigilance.mp3',
     ancientone: 'ART/Music/layer/ancientone.mp3',
-    market: 'ART/Music/layer/market.mp3',
     music1: 'ART/Music/lute 1 effects.ogg',
     music2: 'ART/Music/lute 2 w effects.ogg',
     music3: 'ART/Music/lute 3 w effects.ogg',

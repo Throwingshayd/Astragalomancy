@@ -159,6 +159,10 @@ class RunInfoOverlay {
         wrap.appendChild(list);
     }
 
+    /**
+     * The chest is a shop drop target now, not an inventory, so this tab is the only
+     * place the artifacts you own this run are shown — hence the card art, not just rows.
+     */
     static _renderArtifacts(wrap, state) {
         const artifacts = state.artifacts || [];
 
@@ -170,11 +174,20 @@ class RunInfoOverlay {
         const list = document.createElement('div');
         list.className = 'run-info-artifacts-list';
         artifacts.forEach(a => {
-            const name = (a && a.name) || (a && a.base && a.base.name) || 'Unknown';
-            const effect = (a && a.effect) || (a && a.base && a.base.effect) || '';
+            const data = (a && a.base) || a || {};
+            const name = data.name || 'Unknown';
+            const effect = data.effect || '';
             const row = document.createElement('div');
             row.className = 'run-info-artifact-row';
-            row.innerHTML = `<div class="run-info-artifact-name">${name}</div><div class="run-info-artifact-effect">${effect}</div>`;
+            if (typeof Artifact !== 'undefined') {
+                const card = (a instanceof Artifact ? a : new Artifact(data)).render(false, false);
+                card.classList.add('run-info-artifact-card');
+                row.appendChild(card);
+            }
+            const text = document.createElement('div');
+            text.className = 'run-info-artifact-text';
+            text.innerHTML = `<div class="run-info-artifact-name">${name}</div><div class="run-info-artifact-effect">${effect}</div>`;
+            row.appendChild(text);
             list.appendChild(row);
         });
         wrap.appendChild(list);

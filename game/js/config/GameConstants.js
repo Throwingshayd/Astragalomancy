@@ -39,10 +39,10 @@ const GAME_BALANCE = {
     /** Max interest per cashout */
     MAX_INTEREST: 5,
     
-    // Slots (Card capacity)
+    // Slots (Card capacity) — worship and libations hold separate rails, see game/ConsumableSlots.js
     STARTING_BOON_SLOTS: 5,
-    STARTING_LIBATION_SLOTS: 5,
-    STARTING_WORSHIP_SLOTS: 3,
+    STARTING_LIBATION_SLOTS: 3,
+    STARTING_WORSHIP_SLOTS: 2,
     
     // Base multipliers
     BASE_FAVOUR: 1.5,

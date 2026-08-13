@@ -2,9 +2,10 @@
  * SoundManager — SFX + dual-bed run soundtrack (game/public/ART/Music/)
  *
  * Base bed: preexisting Phi shuffle (always on, 80% gain).
- * Top bed: layered tracks over that; shop/pack swaps top to looping market.
+ * Top bed: layered tracks over that. Both decks run the whole session — the
+ * shop and pack views do not swap the soundtrack.
  */
-/* global MUSIC_BASE_POOL, MUSIC_LAYER_POOL, MUSIC_TRACKS, MUSIC_SHOP_TRACK_ID, SeededRNG, Logger */
+/* global MUSIC_BASE_POOL, MUSIC_LAYER_POOL, MUSIC_TRACKS, SeededRNG, Logger */
 
 /** Slight slowdown (was 0.606 Balatro); higher = clearer, less mud */
 const MUSIC_BASE_PLAYBACK_RATE = 0.8;
@@ -72,8 +73,6 @@ class SoundManager {
         this._lastBaseId = null;
         this._lastLayerId = null;
         this._runPlaybackRate = MUSIC_BASE_PLAYBACK_RATE;
-        /** 'play' | 'shop' — shop swaps top bed to market loop; base keeps going */
-        this._musicContext = 'play';
     }
 
     _tracks() {
@@ -322,16 +321,8 @@ class SoundManager {
         if (this.audioContext.state === 'suspended') await this.audioContext.resume();
         if (!this._deckSeed) this.initRunDeck('NEWRUN');
         this._musicPlaying = true;
-        this._musicContext = 'play';
         this._playNextBase();
         this._playNextLayer();
-    }
-
-    /** Shop / pack → market on top; play → resume layer deck. Base bed never stops. */
-    setMusicContext(context) {
-        const wantShop = context === 'shop' || context === 'pack';
-        if (wantShop) this._enterShopMusic();
-        else this._leaveShopMusic();
     }
 
     _stopSource(kind) {
@@ -350,28 +341,6 @@ class SoundManager {
             this.musicSource = null;
             this._musicSourceGain = null;
         }
-    }
-
-    async _enterShopMusic() {
-        this.ensureReady();
-        if (!this.audioContext) return;
-        if (this._musicContext === 'shop' && this._layerSource) return;
-        this._musicContext = 'shop';
-        this._stopSource('layer');
-        if (this.audioContext.state === 'suspended') await this.audioContext.resume();
-        if (!this._musicPlaying) {
-            this._musicPlaying = true;
-            this._playNextBase();
-        }
-        const shopId = (typeof MUSIC_SHOP_TRACK_ID !== 'undefined' && MUSIC_SHOP_TRACK_ID) || 'market';
-        await this._playOnBed('layer', shopId, { loop: true, gain: MUSIC_LAYER_TRACK_GAIN });
-    }
-
-    async _leaveShopMusic() {
-        if (this._musicContext !== 'shop') return;
-        this._musicContext = 'play';
-        this._stopSource('layer');
-        if (this._musicPlaying) this._playNextLayer();
     }
 
     async _loadTrackBuffer(trackId) {
@@ -411,7 +380,6 @@ class SoundManager {
 
     async _playNextLayer() {
         if (!this._musicPlaying || !this.audioContext) return;
-        if (this._musicContext === 'shop') return;
         const trackId = this._pickNextLayerId();
         if (!trackId) return;
         await this._playOnBed('layer', trackId, {
@@ -423,21 +391,17 @@ class SoundManager {
     /**
      * @param {'base'|'layer'} bed
      * @param {string} trackId
-     * @param {{ loop?: boolean, gain?: number, rate?: number }} [opts]
+     * @param {{ gain?: number, rate?: number }} [opts]
      */
     async _playOnBed(bed, trackId, opts = {}) {
         if (!this.audioContext || !trackId) return;
-        const isShopLoop = !!opts.loop;
-        if (bed === 'layer' && !isShopLoop && this._musicContext === 'shop') return;
-        if (!this._musicPlaying && !isShopLoop) return;
+        if (!this._musicPlaying) return;
 
         const tracks = this._tracks();
         const path = tracks[trackId] || tracks.music1;
         try {
             const audioBuffer = await this._loadTrackBuffer(trackId);
-            if (!this._musicPlaying && !isShopLoop) return;
-            if (bed === 'layer' && isShopLoop && this._musicContext !== 'shop') return;
-            if (bed === 'layer' && !isShopLoop && this._musicContext === 'shop') return;
+            if (!this._musicPlaying) return;
 
             if (bed === 'base') this._baseFailCount = 0;
             else this._layerFailCount = 0;
@@ -446,8 +410,7 @@ class SoundManager {
 
             const src = this.audioContext.createBufferSource();
             src.buffer = audioBuffer;
-            src.loop = isShopLoop;
-            src.playbackRate.value = opts.rate ?? (isShopLoop ? 1 : this._getPlaybackRate());
+            src.playbackRate.value = opts.rate ?? this._getPlaybackRate();
 
             const smoothing = this.audioContext.createBiquadFilter();
             smoothing.type = 'lowpass';
@@ -461,16 +424,13 @@ class SoundManager {
             else srcGain.connect(this.musicGain);
             this._connectMusicSource(smoothing, srcGain);
 
-            const startOffset = isShopLoop ? 0 : this._seededStartOffset(audioBuffer);
-            if (!isShopLoop) {
-                src.onended = () => {
-                    if (!this._musicPlaying) return;
-                    if (bed === 'base') this._playNextBase();
-                    else if (this._musicContext !== 'shop') this._playNextLayer();
-                };
-            }
+            src.onended = () => {
+                if (!this._musicPlaying) return;
+                if (bed === 'base') this._playNextBase();
+                else this._playNextLayer();
+            };
 
-            src.start(0, startOffset);
+            src.start(0, this._seededStartOffset(audioBuffer));
 
             if (bed === 'base') {
                 this._baseSource = src;
@@ -489,16 +449,13 @@ class SoundManager {
             } else {
                 this._layerFailCount = (this._layerFailCount || 0) + 1;
                 if (typeof Logger !== 'undefined') Logger.warn('Layer music load failed:', trackId, path, e);
-                if (!isShopLoop && this._layerFailCount < 8) {
-                    setTimeout(() => this._playNextLayer(), 1000);
-                }
+                if (this._layerFailCount < 8) setTimeout(() => this._playNextLayer(), 1000);
             }
         }
     }
 
     stopMusic() {
         this._musicPlaying = false;
-        this._musicContext = 'play';
         this._stopSource('base');
         this._stopSource('layer');
     }

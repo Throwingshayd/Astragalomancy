@@ -1,5 +1,5 @@
 /**
- * InfoBarRenderer - Trial, rolls, gold, score, clepsydra (turns remaining)
+ * InfoBarRenderer - Trial, rolls, gold, score, clepsydra (turn count + draining sand)
  * @module ui/renderers/InfoBarRenderer
  */
 
@@ -31,6 +31,17 @@ const InfoBarRenderer = {
         const maxT = Math.max(1, gameState.maxTurns || 13);
         const turn = Math.max(1, gameState.turn || 1);
         return Math.max(0, maxT - turn + 1);
+    },
+
+    /**
+     * The turn number the player reads on the plaque: I on the first turn, rising to
+     * maxTurns. The relic still drains, so numeral and sand run opposite on purpose —
+     * the numeral answers "which turn is this", the sand "how much is left".
+     * @param {{ turn?: number, maxTurns?: number }} gameState
+     */
+    turnNumber(gameState) {
+        const maxT = Math.max(1, gameState.maxTurns || 13);
+        return Math.min(maxT, Math.max(1, gameState.turn || 1));
     },
 
     /**
@@ -126,7 +137,8 @@ const InfoBarRenderer = {
     updateClepsydra(gameState) {
         const remaining = this.turnsRemaining(gameState);
         const maxT = Math.max(1, gameState.maxTurns || 13);
-        const roman = this.toRoman(remaining);
+        const turnNo = this.turnNumber(gameState);
+        const roman = this.toRoman(turnNo);
         const pct = Math.max(0, Math.min(100, (remaining / maxT) * 100));
         const stream = document.getElementById('clepsydraStream');
         const root = document.getElementById('clepsydra');
@@ -147,9 +159,9 @@ const InfoBarRenderer = {
         const previous = Number(root.dataset.remaining);
         root.dataset.remaining = String(remaining);
         root.dataset.state = this.clepsydraState(remaining);
-        root.setAttribute('aria-valuenow', String(remaining));
+        root.setAttribute('aria-valuenow', String(turnNo));
         root.setAttribute('aria-valuemax', String(maxT));
-        root.setAttribute('aria-valuetext', remaining <= 0 ? 'No turns remaining' : `${roman} turns remaining`);
+        root.setAttribute('aria-valuetext', remaining <= 0 ? 'No turns remaining' : `Turn ${roman} of ${maxT}`);
 
         const marks = this.syncClepsydraTicks(maxT);
         marks?.querySelectorAll('.clepsydra-tick').forEach((tick) => {

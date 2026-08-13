@@ -99,12 +99,13 @@ class Card {
         }
 
         // Balatro-style dynamic stat display for boons (shows current values like +20 Pips, x3 Mult)
+        let dynamicStats = [];
         let dynamicStatsHtml = '';
         if (this.type === 'boon' && window.game && window.game.state) {
-            const stats = this.getDynamicDisplayStats ? this.getDynamicDisplayStats(window.game.state) : [];
-            if (stats && stats.length > 0) {
+            dynamicStats = (this.getDynamicDisplayStats ? this.getDynamicDisplayStats(window.game.state) : []) || [];
+            if (dynamicStats.length > 0) {
                 dynamicStatsHtml = '<div class="card-dynamic-stats">';
-                stats.forEach(stat => {
+                dynamicStats.forEach(stat => {
                     const colorClass = stat.type || 'pips'; // pips, mult, favour, gold, other
                     dynamicStatsHtml += `<div class="dynamic-stat ${colorClass}">${stat.value}</div>`;
                 });
@@ -174,7 +175,8 @@ class Card {
         el.dataset.inShop = isShopItem.toString();
         el.dataset.cardSurface = surface;
 
-        // Add Balatro-style tooltip with full information
+        // Add Balatro-style tooltip with full information. Live stats ride along
+        // because the boon rail overlaps cards, hiding the chips on the face.
         const tooltipData = {
             title: this.name,
             effect: this.effect,
@@ -182,7 +184,8 @@ class Card {
             sellValue: this.sellValue,
             rarity: this.rarity,
             god: this.god,
-            type: this.type
+            type: this.type,
+            stats: dynamicStats
         };
 
         el.setAttribute('data-tooltip', JSON.stringify(tooltipData));

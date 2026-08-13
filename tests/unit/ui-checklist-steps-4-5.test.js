@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 describe('UI checklist steps 4–5 wiring', () => {
-    it('artifacts use rack surface, shop drag-to-gold, and anthology render path', () => {
+    it('artifacts use rack surface, drag-into-chest buying, and anthology render path', () => {
         const artifact = readFileSync('game/js/classes/Artifact.js', 'utf8');
         const shop = readFileSync('game/js/ui/ShopUI.js', 'utf8');
         const main = readFileSync('game/js/Main.js', 'utf8');
@@ -17,6 +17,9 @@ describe('UI checklist steps 4–5 wiring', () => {
         expect(shop).toContain('shop-draggable-artifact');
         expect(shop).toContain("ctx.mode === 'artifact'");
         expect(shop).toContain('buyArtifact(ctx.artifactData');
+        // The chest is the drop target, so the gold stone is sell-only now.
+        expect(shop).toContain('ChestDrop.contains(px, py)');
+        expect(shop).not.toContain("getElementById('goldStone')");
 
         expect(main).toContain('collectionManager.populateCollection');
         expect(main).toContain('ensureAnthologyTooltipsReady');

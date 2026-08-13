@@ -62,6 +62,21 @@
     /* Top of both card pillars. The gutters are empty above the felt, so the
        stacks can ride higher than the play area. Tune here, not per-side. */
     --side-bar-top-main: 160px;
+    /* Blessings hold two slots, so the left pillar is short — it no longer runs
+       the height of the felt, which leaves the lower gutter free for libations. */
+    --blessing-bar-h: 420px;
+    /* Libation rail: three cards across the lower-left gutter, stopping just
+       short of the hourglass (its left edge is 52px + 1.5 die inside the centre
+       area, i.e. ~458px on the 1920 stage). */
+    --libation-rail-left: 18px;
+    --libation-rail-top: calc(620px + 2 * var(--felt-die-size, 95px));
+    --libation-rail-w: 432px;
+    --libation-rail-h: 224px;
+    /* Boons ride higher and taller than the consumable pillar: five is the
+       starting slot count but artifacts push it to seven, and at the shared
+       top the last card fell off the bottom of the stage. */
+    --boon-bar-top-main: 44px;
+    --boon-bar-h: 1004px;
     /* Pantheon tablet numerals — the score is the thing you read across the felt. */
     --pantheon-score-size: 26px;
     --pantheon-score-size-scored: 28px;
@@ -431,6 +446,21 @@
     right: auto;
 }
 
+.main-game .libation-rail.inventory-panel-consumables {
+    position: absolute;
+    left: var(--libation-rail-left);
+    right: auto;
+    z-index: 10;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.main-game .libation-rail.inventory-panel-consumables::before,
+.main-game .libation-rail.inventory-panel-consumables::after {
+    content: none !important;
+    display: none !important;
+}
+
 .main-game .right-boon-bar.inventory-panel-boons {
     left: var(--side-bar-right-main);
     right: auto;
@@ -451,6 +481,12 @@
     display: none !important;
 }
 
+.main-game .libation-rail .libation-bar-counter {
+    color: var(--gk-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    z-index: 2;
+}
+
 .main-game .left-consumable-bar .consumable-bar-counter,
 .main-game .right-boon-bar .boon-bar-counter {
     color: var(--gk-ink);
@@ -462,6 +498,7 @@
 
 /* Card names on stelae — manuscript face (readable vs IM Fell) */
 .main-game .left-consumable-bar .card .card-type-indicator,
+.main-game .libation-rail .card .card-type-indicator,
 .main-game .right-boon-bar .card .card-type-indicator {
     font-family: var(--font-manuscript) !important;
     font-weight: normal !important;
@@ -490,10 +527,6 @@
     display: block;
     margin: 0;
     padding: 0;
-}
-
-.main-game .consumable-drag-hint {
-    display: none !important;
 }
 
 .main-game .boon-reorder-hint {
@@ -792,6 +825,7 @@
 }
 
 .main-game.shop-active .left-consumable-bar.inventory-panel-consumables,
+.main-game.shop-active .libation-rail.inventory-panel-consumables,
 .main-game.shop-active .right-boon-bar.inventory-panel-boons {
     z-index: 14;
 }
@@ -1133,8 +1167,9 @@
 }
 
 /* Artifacts chest — raised one die height under gold */
+/* One die below the dice row, so the chest clears the gold stone stacked above it. */
 .main-game .center-game-area .artifacts-chest {
-    top: calc(468px - var(--felt-die-size, 95px));
+    top: 468px;
 }
 
 /* ── Info bar: marble frieze chrome (old pantheon look) ── */

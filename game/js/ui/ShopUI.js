@@ -5,7 +5,7 @@
  */
 
 /* exported ShopUI */
-/* global Boon, WorshipCard, LibationCard, Artifact, GAME_BALANCE, Logger */
+/* global Boon, WorshipCard, LibationCard, Artifact, GAME_BALANCE, Logger, ConsumableSlots, ChestDrop */
 
 class ShopUI {
     /**
@@ -79,7 +79,6 @@ class ShopUI {
         document.querySelector('.main-game')?.classList.add('shop-active');
 
         if (this.stateManager) this.stateManager.setState(this.gameStates?.SHOP || 'SHOP');
-        if (this.sound) this.sound.setMusicContext('shop');
         if (this.dom.shopTrial) this.dom.shopTrial.textContent = gameState.ante;
         if (this.dom.packOpeningView) this.dom.packOpeningView.classList.add('hidden');
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.remove('hidden');
@@ -103,7 +102,6 @@ class ShopUI {
         shopDefaultView?.classList.remove('hidden');
         document.querySelector('.main-game')?.classList.remove('shop-active');
         this.applyShopActionButton(null, false);
-        if (this.sound) this.sound.setMusicContext('play');
         if (this.stateManager) this.stateManager.setState(this.gameStates?.ROUND || 'ROUND');
         this.effects?.hideAllTooltips();
         const gameEngine = game || window.game;
@@ -382,20 +380,21 @@ class ShopUI {
         if (st.ghost) st.ghost.move(dx, dy);
     }
 
+    /** Where a bought card lands: boons right, blessings the left pillar, libations the lower rail. */
+    _inventoryBarFor(card) {
+        if (card instanceof Boon) return document.getElementById('rightBoonBar');
+        const rail = ConsumableSlots.kindOf(card) === 'libation' ? 'libationRail' : 'leftConsumableBar';
+        return document.getElementById(rail);
+    }
+
     _updateShopDropTargets(st, clientX, clientY) {
-        const gold = document.getElementById('goldStone');
-        const boonBar = document.getElementById('rightBoonBar');
-        const consumableBar = document.getElementById('leftConsumableBar');
         const px = clientX;
         const py = clientY;
         const { ctx } = st;
-        gold?.classList.toggle('shop-drop-target-hot', ctx.mode === 'packShelf' || ctx.mode === 'artifact'
-            ? this._shopPointIn(px, py, gold)
-            : false);
+        ChestDrop.updateHot(ctx.mode, px, py);
         if (ctx.mode === 'direct' || ctx.mode === 'packReveal') {
-            const isBoon = ctx.card instanceof Boon;
-            boonBar?.classList.toggle('shop-drop-target-hot', isBoon && this._shopPointIn(px, py, boonBar));
-            consumableBar?.classList.toggle('shop-drop-target-hot', !isBoon && this._shopPointIn(px, py, consumableBar));
+            const bar = this._inventoryBarFor(ctx.card);
+            bar?.classList.toggle('shop-drop-target-hot', this._shopPointIn(px, py, bar));
             WorshipDrop.updateHot(ctx, px, py, st.el);
         }
     }
@@ -433,13 +432,9 @@ class ShopUI {
             st.dragging = true;
             this._startShopDragGhost(st, e.clientX, e.clientY);
             document.querySelector('.main-game')?.classList.add('shop-drag-active');
-            const gold = document.getElementById('goldStone');
-            const boonBar = document.getElementById('rightBoonBar');
-            const consumableBar = document.getElementById('leftConsumableBar');
-            if (st.ctx.mode === 'packShelf' || st.ctx.mode === 'artifact') gold?.classList.add('shop-drop-glow');
+            ChestDrop.markTargets(st.ctx.mode);
             if (st.ctx.mode === 'direct' || st.ctx.mode === 'packReveal') {
-                if (st.ctx.card instanceof Boon) boonBar?.classList.add('shop-drop-glow');
-                else consumableBar?.classList.add('shop-drop-glow');
+                this._inventoryBarFor(st.ctx.card)?.classList.add('shop-drop-glow');
                 WorshipDrop.markTargets(st.ctx.card, st.ctx.gameState);
             }
         }
@@ -455,14 +450,10 @@ class ShopUI {
         try { st.el.releasePointerCapture(e.pointerId); } catch (_) { /* ignore */ }
         const px = e.clientX;
         const py = e.clientY;
-        const gold = document.getElementById('goldStone');
-        const boonBar = document.getElementById('rightBoonBar');
-        const consumableBar = document.getElementById('leftConsumableBar');
+        const dropBar = this._inventoryBarFor(st.ctx.card);
         document.querySelector('.main-game')?.classList.remove('shop-drag-active');
-        [gold, boonBar, consumableBar].forEach((n) => {
-            if (!n) return;
-            n.classList.remove('shop-drop-glow', 'shop-drop-target-hot');
-        });
+        dropBar?.classList.remove('shop-drop-glow', 'shop-drop-target-hot');
+        ChestDrop.clearTargets();
         WorshipDrop.clearTargets();
 
         const { ctx, dragging } = st;
@@ -479,18 +470,18 @@ class ShopUI {
         }
 
         const commitDrop = () => {
-            if (ctx.mode === 'packShelf' && ctx.packData && this._shopPointIn(px, py, gold)) {
+            if (ctx.mode === 'packShelf' && ctx.packData && ChestDrop.contains(px, py)) {
                 this.purchasePack(ctx.packData, ctx.gameState, ctx.gameEngine, st.el);
                 return !document.contains(st.el);
             }
-            if (ctx.mode === 'artifact' && ctx.artifactData && this._shopPointIn(px, py, gold)) {
+            if (ctx.mode === 'artifact' && ctx.artifactData && ChestDrop.contains(px, py)) {
                 this.buyArtifact(ctx.artifactData, ctx.gameState, ctx.gameEngine, st.el);
                 return !document.contains(st.el);
             }
             if (ctx.mode === 'direct' && ctx.card) {
                 if (WorshipDrop.tryShopDrop(this, ctx, px, py, st.el)) return !document.contains(st.el);
                 const isBoon = ctx.card instanceof Boon;
-                const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
+                const okSlot = this._shopPointIn(px, py, dropBar);
                 if (okSlot) {
                     this.buyCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
                     if (!document.contains(st.el) || this.expulsionPending) return true;
@@ -499,13 +490,13 @@ class ShopUI {
                 if (this.sound) this.sound.play('cancel', { volume: 0.45 });
                 ctx.gameEngine?.showMessage?.(isBoon
                     ? 'Drag the boon onto your Boon column (right).'
-                    : 'Drag the blessing onto your Libation column (left).');
+                    : `Drag it onto your ${ConsumableSlots.kindOf(ctx.card) === 'libation' ? 'Libation rail (lower left)' : 'Blessing column (upper left)'}.`);
                 return false;
             }
             if (ctx.mode === 'packReveal' && ctx.card) {
                 if (WorshipDrop.tryShopDrop(this, ctx, px, py, st.el)) return !document.contains(st.el);
                 const isBoon = ctx.card instanceof Boon;
-                const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
+                const okSlot = this._shopPointIn(px, py, dropBar);
                 if (okSlot) {
                     if (this.sound) this.sound.play(ctx.card instanceof Boon ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
                     this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
@@ -515,8 +506,13 @@ class ShopUI {
                 if (this.sound) this.sound.play('cancel', { volume: 0.45 });
                 ctx.gameEngine?.showMessage?.(isBoon
                     ? 'Drag onto your Boon column to claim.'
-                    : 'Drag onto your Libation column to claim.');
+                    : `Drag onto your ${ConsumableSlots.kindOf(ctx.card) === 'libation' ? 'Libation rail' : 'Blessing column'} to claim.`);
                 return false;
+            }
+            // Chest-bound buys fell short of the lid.
+            if (ChestDrop.accepts(ctx.mode)) {
+                if (this.sound) this.sound.play('cancel', { volume: 0.45 });
+                ctx.gameEngine?.showMessage?.('Drag it into the artifacts chest to buy.');
             }
             return false;
         };
@@ -551,10 +547,7 @@ class ShopUI {
         this.effects?.hideAllTooltips();
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.add('hidden');
         if (this.dom.packOpeningView) this.dom.packOpeningView.classList.remove('hidden');
-        if (this.sound) {
-            this.sound.setMusicContext('pack');
-            this.sound.play('cardFan2', { pitch: 0.9, volume: 0.45 });
-        }
+        if (this.sound) this.sound.play('cardFan2', { pitch: 0.9, volume: 0.45 });
 
         const shopDisplayedIds = this.getShopDisplayedCardIds();
         const packContents = ShopStockGenerator.generatePackContents(packData, gameState, gameEngine.prng, shopDisplayedIds);
@@ -600,7 +593,6 @@ class ShopUI {
         packOpeningView.classList.add('hidden');
         shopDefaultView.classList.remove('hidden');
         this.dom.shopStage?.classList.remove('pack-opening-stage');
-        if (this.sound) this.sound.setMusicContext('shop');
         if (revealedContainer) {
             revealedContainer.innerHTML = '';
             revealedContainer.dataset.packClaimed = 'false';
@@ -659,10 +651,10 @@ class ShopUI {
 
         const isDirectPurchase = element?.parentNode?.id === 'shopDirectSales';
         const boonSlotsFull = card instanceof Boon && gameState.boons.length >= gameState.boonSlots;
-        const consumableSlotsFull = (card instanceof WorshipCard || card instanceof LibationCard) && gameState.consumables.length >= gameState.consumableSlots;
+        const consumableSlotsFull = ConsumableSlots.isFull(gameState, card);
 
         if (boonSlotsFull || consumableSlotsFull) {
-            const inventory = card instanceof Boon ? gameState.boons : gameState.consumables;
+            const inventory = card instanceof Boon ? gameState.boons : ConsumableSlots.sameKindAs(gameState, card);
             if (inventory.length === 0) return;
             this.enterExpulsionMode(card, gameState, gameEngine, element, {
                 refundGold: isDirectPurchase ? this.getShopPrice(card.baseCost ?? card.cost, gameState) : undefined,
@@ -783,7 +775,7 @@ class ShopUI {
     enterExpulsionMode(card, gameState, gameEngine, element, opts = {}) {
         if (this.expulsionPending) return;
         const inventoryType = card instanceof Boon ? 'boon' : 'consumable';
-        const inventory = inventoryType === 'boon' ? gameState.boons : gameState.consumables;
+        const inventory = inventoryType === 'boon' ? gameState.boons : ConsumableSlots.sameKindAs(gameState, card);
         if (inventory.length === 0) return;
 
         const overlay = this.dom.expulsionOverlay || document.getElementById('expulsionOverlay');

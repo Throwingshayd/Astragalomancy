@@ -89,7 +89,7 @@ test.describe('UI checklist step 5 — Anthology', () => {
 });
 
 test.describe('UI checklist step 4 — shop artifact drag', () => {
-    test('drag shop artifact onto gold stone purchases it', async ({ page }) => {
+    test('drag shop artifact into the artifacts chest purchases it', async ({ page }) => {
         await clearSaves(page);
         await startRun(page);
 
@@ -107,21 +107,24 @@ test.describe('UI checklist step 4 — shop artifact drag', () => {
 
         const beforeCount = await page.evaluate(() => window.game.state.artifacts.length);
         const artBox = await artifact.boundingBox();
-        const goldBox = await page.locator('#goldStone').boundingBox();
-        expect(artBox && goldBox).toBeTruthy();
+        const chest = page.locator('#artifactsChest');
+        const chestBox = await chest.boundingBox();
+        expect(artBox && chestBox).toBeTruthy();
 
         await pointerDrag(
             page,
             artBox.x + artBox.width / 2,
             artBox.y + artBox.height / 2,
-            goldBox.x + goldBox.width / 2,
-            goldBox.y + goldBox.height / 2
+            chestBox.x + chestBox.width / 2,
+            chestBox.y + chestBox.height / 2
         );
 
         await expect.poll(async () =>
             page.evaluate(() => window.game.state.artifacts.length)
         ).toBe(beforeCount + 1);
         await expect(artifact).toHaveCount(0);
+        // The lid only opens for a live drag, so it must be shut again afterwards.
+        await expect(chest).not.toHaveClass(/is-open/);
     });
 
     test('artifacts anthology tab lists rack-surface artifact cards', async ({ page }) => {

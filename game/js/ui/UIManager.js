@@ -44,14 +44,13 @@ class UIManager {
             // Scorecard
             scorecardRows: document.querySelectorAll('.score-row'),
             
-            // Play-area: boon slots + consumable slots
+            // Play-area: boon slots + the two consumable rails (blessings, libations)
             boonSlots: document.getElementById('boonSlots'),
-            consumableSlots: document.getElementById('consumableSlots'),
-            artifactSlots: document.getElementById('artifactSlots'),
+            worshipSlots: document.getElementById('worshipSlots'),
+            libationSlots: document.getElementById('libationSlots'),
             boonSlotCounter: document.getElementById('boonSlotCounter'),
-            consumableSlotCounter: document.getElementById('consumableSlotCounter'),
-            artifactsChest: document.getElementById('artifactsChest'),
-            artifactsChestToggle: document.getElementById('artifactsChestToggle'),
+            worshipSlotCounter: document.getElementById('worshipSlotCounter'),
+            libationSlotCounter: document.getElementById('libationSlotCounter'),
             
             // Shop stage (replaces rolling area per 6-translator)
             playStage: document.getElementById('playStage'),

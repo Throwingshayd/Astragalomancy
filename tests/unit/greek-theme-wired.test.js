@@ -159,17 +159,20 @@ describe('Greek theme wiring', () => {
         expect(scoringAnim).not.toMatch(/shouldShowBonus/);
     });
 
-    it('both card pillars hang from one shared top token', () => {
+    it('card pillars hang from tokens, never from a number in the rule', () => {
         const css = readFileSync('game/css/greek-theme.css', 'utf8');
         const styles = readFileSync('game/css/styles.css', 'utf8');
 
         expect(css).toMatch(/--side-bar-top-main:\s*\d+px;/);
-        // Left and right must move together, so neither may carry its own number.
         expect(styles).toMatch(
             /\.left-consumable-bar\.inventory-panel-consumables \{[\s\S]*?top: var\(--side-bar-top-main/,
         );
+        // Boons carry their own top token — artifacts can grow that stack to seven
+        // cards, which no longer fits below the shared top — but it falls back to
+        // the shared one, so the pillars still tune from the same block.
+        expect(css).toMatch(/--boon-bar-top-main:\s*\d+px;/);
         expect(styles).toMatch(
-            /\.right-boon-bar\.inventory-panel-boons \{[\s\S]*?top: var\(--side-bar-top-main/,
+            /\.right-boon-bar\.inventory-panel-boons \{[\s\S]*?top: var\(--boon-bar-top-main, var\(--side-bar-top-main/,
         );
     });
 
