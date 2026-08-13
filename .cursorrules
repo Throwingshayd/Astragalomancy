@@ -1,6 +1,6 @@
-# Dice of Dionysus — Cursor Rules
+# Astragalomancy — Cursor Rules
 
-Vanilla JS, class-based roguelike dice game (Balatro-inspired). `GameEngine.state` is the single run state. End goal: playable desktop `.exe` via Tauri (`npm run tauri:build`), alongside the web/PWA build.
+Product name: **Astragalomancy**. Folder/GitHub may still say `DICE-OF-DIONYSUS-WORKING`. Vanilla JS, class-based roguelike dice game (Balatro-inspired). `GameEngine.state` is the single run state. End goal: playable desktop `.exe` via Tauri (`npm run tauri:build`), alongside the web/PWA build.
 
 Philosophy: stable shipping, small diffs, no framework churn. Enforcement lives in tests, not prose — if a rule matters, it should be a failing test in `tests/unit/`, not a paragraph in a doc nobody re-reads.
 

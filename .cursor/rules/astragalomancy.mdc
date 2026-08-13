@@ -1,0 +1,20 @@
+---
+description: Product identity and which tree this chat is allowed to treat as Astragalomancy
+alwaysApply: true
+---
+
+# Astragalomancy
+
+This workspace is **Astragalomancy** (the current JS/Tauri game). Use that name in chat. The disk folder and GitHub repo may still say `DICE-OF-DIONYSUS-WORKING` — that is historical, not a second project.
+
+## In scope
+
+- `C:\Users\Lorcan\Documents\DICE-OF-DIONYSUS-WORKING` (also linked as `C:\Users\Lorcan\Projects\Astragalomancy`)
+
+## Out of scope unless the user opened that workspace
+
+- Portable EXE packaging (`Documents\DICE of Dionysus port`)
+- Godot port (`D:\Extra Files\Astragalomancy port to godot project\...`)
+- `C:\Users\Lorcan\.cursor\projects` (cache, not source)
+
+Do not rename in-game strings, card data, or ship identity unless the user asks. Outside naming is already Astragalomancy.
