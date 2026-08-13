@@ -25,6 +25,7 @@ class LiveScoreController {
         this._previewTimeout = null;
         this._cashoutInProgress = false;
         this._hoveredDieIndex = null;
+        this._hoveredCategory = null;
     }
 
     get dom() {
@@ -41,14 +42,43 @@ class LiveScoreController {
         return !!(s && !s.hasRolled && s.ante === 1 && (s.turn || 1) === 1);
     }
 
-    /** Shared center banner (`#trialDisplay`) — entry tutorial + trial remaining. */
+    /** Shared center banner (`#trialDisplay`) — entry tutorial, offering hover, trial remaining. */
     _setOfferingMessage(text) {
-        const el = document.getElementById('trialDisplay')
-            || this.dom.liveScoreDisplay?.querySelector('[data-live="category"]');
+        const el = this.dom?.trialDisplay
+            || (typeof document !== 'undefined' ? document.getElementById('trialDisplay') : null)
+            || this.dom?.liveScoreDisplay?.querySelector('[data-live="category"]');
         if (el) {
             el.textContent = text ?? '';
             if (text) el.setAttribute('aria-label', text);
         }
+    }
+
+    _isSlotFilled(category) {
+        if (!category) return false;
+        const state = this.engine.state;
+        if (typeof DevotionUtils !== 'undefined') {
+            return DevotionUtils.getMarks(state, category) >= DevotionUtils.getCapacity(state, category);
+        }
+        return state.scorecard?.[category] !== undefined;
+    }
+
+    /** Offering line while a pantheon row is hovered (InfoBarRenderer must not clobber this). */
+    hoverOfferingMessage() {
+        if (!this._hoveredCategory) return null;
+        return this.engine.getLiveOfferingTitle(this._hoveredCategory, this._isSlotFilled(this._hoveredCategory));
+    }
+
+    _restoreTrialBanner() {
+        const hint = this.entryHintMessage();
+        if (hint != null) {
+            this._setOfferingMessage(hint);
+            return;
+        }
+        if (typeof InfoBarRenderer !== 'undefined' && InfoBarRenderer.formatTrialBanner) {
+            this._setOfferingMessage(InfoBarRenderer.formatTrialBanner(this.engine.state));
+            return;
+        }
+        this._setOfferingMessage('');
     }
 
     /** Hover an unrolled die → matching tutorial line in the offering message. */
@@ -79,6 +109,10 @@ class LiveScoreController {
     }
 
     schedulePreview(category) {
+        this._hoveredCategory = category || null;
+        if (category) {
+            this._setOfferingMessage(this.engine.getLiveOfferingTitle(category, this._isSlotFilled(category)));
+        }
         if (this._previewTimeout) clearTimeout(this._previewTimeout);
         this._previewTimeout = setTimeout(() => {
             this._previewTimeout = null;
@@ -87,10 +121,12 @@ class LiveScoreController {
     }
 
     cancelPreview() {
+        this._hoveredCategory = null;
         if (this._previewTimeout) {
             clearTimeout(this._previewTimeout);
             this._previewTimeout = null;
         }
+        this._restoreTrialBanner();
         this.updateDisplay(null);
     }
 
@@ -155,17 +191,18 @@ class LiveScoreController {
         // First roll clears die-hover tutorial state.
         if (e.state.hasRolled) this._hoveredDieIndex = null;
 
-        const slotFilled = !!(category && typeof DevotionUtils !== 'undefined'
-            ? !DevotionUtils.canScoreCategory(e.state, category)
-            : e.state.scorecard[category] !== undefined);
+        this._hoveredCategory = category || null;
+        const slotFilled = this._isSlotFilled(category);
         const gnosis = typeof GnosisDisplay !== 'undefined' ? GnosisDisplay : null;
+        const offeringTitle = category ? e.getLiveOfferingTitle(category, slotFilled) : null;
+        if (offeringTitle) this._setOfferingMessage(offeringTitle);
+        else this._restoreTrialBanner();
 
         if (!category || !e.state.hasRolled) {
             const levelBonus = category ? e.getCategoryLevelBonuses(category) : { pips: 0, mult: 1 };
             const hint = !category ? this.entryHintMessage() : null;
-            if (hint != null) this._setOfferingMessage(hint);
             this.updateValues(el, {
-                category: hint != null ? hint : e.getLiveOfferingTitle(category, slotFilled),
+                category: hint != null ? hint : (offeringTitle || e.getLiveOfferingTitle(category, slotFilled)),
                 pips: '0',
                 pipsLabel: gnosis ? gnosis.formatPipsLabel(category, e.state) : 'pips',
                 pipsAdd: false,
@@ -181,14 +218,24 @@ class LiveScoreController {
             return;
         }
 
+        // Full devotion: N/A preview without calling calculateScore (avoids devotion_full ERROR).
+        if (slotFilled) {
+            this.updateValues(el, {
+                category: offeringTitle,
+                pipsLabel: gnosis ? gnosis.formatPipsLabel(category, e.state) : 'pips',
+                showNa: true,
+            });
+            el.classList.remove('balatro-preview');
+            el.classList.add('visible');
+            return;
+        }
+
         const { pips, favour, isValid } = e.calculateScore(category);
 
         if (!isValid) {
             const counts = gnosis ? gnosis.getFacesAndCounts(e.state).counts : {};
             this.updateValues(el, {
-                category: e.getLiveOfferingTitle(category, typeof DevotionUtils !== 'undefined'
-                    ? !DevotionUtils.canScoreCategory(e.state, category)
-                    : e.state.scorecard[category] !== undefined),
+                category: offeringTitle,
                 pipsLabel: gnosis ? gnosis.formatPipsLabel(category, e.state, counts) : 'pips',
                 showNa: true,
             });
@@ -201,11 +248,8 @@ class LiveScoreController {
             ? gnosis.buildPreviewSplit(category, e.state, { pips, isValid })
             : { dicePips: pips, extraPips: 0, pipsLabel: 'pips', counts: {} };
 
-        const isScored = typeof DevotionUtils !== 'undefined'
-            ? !DevotionUtils.canScoreCategory(e.state, category)
-            : e.state.scorecard[category] !== undefined;
         this.updateValues(el, {
-            category: e.getLiveOfferingTitle(category, isScored),
+            category: offeringTitle,
             pips: String(split.dicePips),
             pipsLabel: split.pipsLabel,
             pipsAdd: split.extraPips > 0,
@@ -266,43 +310,61 @@ class LiveScoreController {
         const liveScoreDisplay = this.dom.liveScoreDisplay;
         const cashoutContent = this.dom.liveCashoutContent;
         const cashoutLine = this.dom.liveCashoutLine;
-        if (!this.domReady || !liveScoreDisplay || !cashoutContent || !cashoutLine) {
+        if (!this.domReady || !liveScoreDisplay || !cashoutContent) {
             doOpenShop();
             return;
         }
 
-        const drachmaWord = (n) => (Math.abs(n) === 1 ? 'drachma' : 'drachmae');
         const steps = [];
         if (pantheonTotal != null) {
-            steps.push({ type: 'pantheon', text: `Pantheon reckoning: ${pantheonTotal}` });
+            steps.push({
+                type: 'pantheon',
+                label: 'Pantheon',
+                amount: String(pantheonTotal),
+                hold: 900,
+            });
         }
         if (opts.hubrisDepart) {
             const left = opts.unusedCategories;
             const rites = (left != null && left > 0)
                 ? `${left} rite${left === 1 ? '' : 's'} unfinished`
                 : 'rites unfinished';
-            steps.push({ type: 'hubris', text: `Hubris — left the symposium early (${rites})` });
+            steps.push({
+                type: 'hubris',
+                text: `Hubris — left the symposium early (${rites})`,
+                hold: 900,
+            });
         }
-        steps.push({ type: 'offerings', text: `Offerings made: +${scoresGold} ${drachmaWord(scoresGold)}` });
-        steps.push({ type: 'surplus', text: `Surplus of the gods: +${interest} ${drachmaWord(interest)}` });
-        steps.push({ type: 'payout', text: `Drachma received: +${roundGained} ${drachmaWord(roundGained)}` });
-        steps.push({ type: 'footer', text: 'Off to market' });
+        steps.push({ type: 'offerings', label: 'Offerings', amount: `+${scoresGold}`, hold: 820 });
+        steps.push({ type: 'surplus', label: 'Surplus', amount: `+${interest}`, hold: 820 });
+        steps.push({ type: 'payout', label: 'Received', amount: `+${roundGained}`, hold: 1100 });
+
+        this._resetCashoutLedger(cashoutContent, cashoutLine);
 
         let i = 0;
-        const stepMs = e.scaleDelay(850);
-
         const renderStep = (stepIndex) => {
             const s = steps[stepIndex];
-            cashoutLine.textContent = s.text;
-            cashoutLine.classList.remove('gnosis-pantheon-value', 'pantheon-success-flash');
+            const row = this._appendCashoutRow(cashoutContent, s);
             if (s.type === 'pantheon') {
                 const scoreExceedsRequired = opts.pantheonThreshold != null && pantheonTotal >= opts.pantheonThreshold;
-                cashoutLine.classList.add('gnosis-pantheon-value');
-                if (scoreExceedsRequired) cashoutLine.classList.add('pantheon-success-flash');
+                row.classList.add('gnosis-pantheon-value');
+                if (scoreExceedsRequired) row.classList.add('pantheon-success-flash');
             }
             if (s.type === 'payout' && !payoutAwarded && roundGained > 0) {
                 e.updateGoldAnimated(roundGained, 'cashout');
                 payoutAwarded = true;
+            }
+            if (window.soundManager) {
+                if (s.type === 'offerings' || s.type === 'surplus') {
+                    window.soundManager.play('chips1', { pitch: 1.02, volume: 0.4 });
+                } else if (s.type === 'pantheon') {
+                    window.soundManager.play('foil1', { pitch: 0.96, volume: 0.42 });
+                } else if (s.type === 'hubris') {
+                    window.soundManager.play('whoosh', { pitch: 0.9, volume: 0.32 });
+                }
+            }
+            if (s.type === 'payout' && window.juiceManager) {
+                window.juiceManager.juiceUp(row, 0.18);
             }
             cashoutContent.classList.remove('hidden');
             liveScoreDisplay.classList.add('cashout-mode', 'visible');
@@ -314,18 +376,62 @@ class LiveScoreController {
                 setTimeout(() => {
                     liveScoreDisplay.classList.remove('cashout-mode');
                     cashoutContent.classList.add('hidden');
-                    cashoutLine.textContent = '';
+                    this._resetCashoutLedger(cashoutContent, cashoutLine);
                     this.updateDisplay(null);
                     Logger.info(`Cashout: +${roundGained}g (scores ${scoresGold}g + interest ${interest}g)`);
                     doOpenShop();
-                }, e.scaleDelay(650));
+                }, this._cashoutBeat(700));
                 return;
             }
+            const current = steps[i];
             renderStep(i);
             i += 1;
-            setTimeout(advance, stepMs);
+            setTimeout(advance, this._cashoutBeat(current.hold));
         };
         advance();
+    }
+
+    /**
+     * Cashout is a results ledger — hold wall-clock so game speed cannot blur it.
+     * @param {number} ms
+     */
+    _cashoutBeat(ms) {
+        return Math.max(1, Math.round(ms));
+    }
+
+    _resetCashoutLedger(cashoutContent, cashoutLine) {
+        if (!cashoutContent) return;
+        cashoutContent.querySelectorAll('[data-cashout-row]').forEach((n) => n.remove());
+        if (cashoutLine) {
+            cashoutLine.textContent = '';
+            cashoutLine.hidden = true;
+        }
+    }
+
+    _appendCashoutRow(cashoutContent, step) {
+        const row = document.createElement('div');
+        row.className = 'gnosis-cashout-line';
+        row.dataset.cashoutRow = step.type || '';
+        if (step.type === 'payout') row.classList.add('is-payout');
+        if (step.type === 'hubris') row.classList.add('is-hubris');
+        if (step.text && !step.label) {
+            row.textContent = step.text;
+        } else {
+            if (step.label) {
+                const why = document.createElement('span');
+                why.className = 'gnosis-cashout-why';
+                why.textContent = step.label;
+                row.appendChild(why);
+            }
+            if (step.amount != null) {
+                const amt = document.createElement('span');
+                amt.className = 'gnosis-cashout-amt';
+                amt.textContent = step.amount;
+                row.appendChild(amt);
+            }
+        }
+        cashoutContent.appendChild(row);
+        return row;
     }
 }
 

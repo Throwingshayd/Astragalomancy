@@ -1140,56 +1140,86 @@ body::after {
 }
 .live-score-display .gnosis-cashout-content {
     display: none;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 4px;
     text-align: center;
-    padding: 4px 0;
+    padding: 6px 8px;
+    min-width: min(360px, 100%);
 }
 .live-score-display .gnosis-cashout-content.hidden {
     display: none !important;
 }
 .live-score-display.cashout-mode .gnosis-cashout-content {
     display: flex !important;
-    justify-content: center;
 }
 .live-score-display.cashout-mode .gnosis-cashout-content.hidden {
     display: none !important;
 }
-/* Cashout: larger text, pantheon blue (cashout) and purple (total score) */
-@keyframes cashout-flash-blue {
-    0%, 100% { color: #4A90E2; text-shadow: 0 0 8px rgba(74, 144, 226, 0.6); }
-    50% { color: #6EC1E4; text-shadow: 0 0 16px rgba(110, 193, 228, 0.9); }
+/* Clunk in and stay — receipt, not a flash */
+@keyframes cashout-clunk {
+    0% { opacity: 0; transform: translateY(12px); }
+    55% { opacity: 1; transform: translateY(-1px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
-@keyframes pantheon-flash-purple {
-    0%, 100% { color: #9b59b6; text-shadow: 0 0 8px rgba(155, 89, 182, 0.6); }
-    50% { color: #e8b4f0; text-shadow: 0 0 20px rgba(232, 180, 240, 0.9); }
-}
-/* Success: total exceeds required — blue and green alternating */
 @keyframes pantheon-success-flash {
-    0%, 100% { color: #4A90E2; text-shadow: 0 0 12px rgba(74, 144, 226, 0.8); }
-    50% { color: #2ecc71; text-shadow: 0 0 16px rgba(46, 204, 113, 0.9); }
+    0% { color: #f4d680; text-shadow: 0 0 10px rgba(244, 214, 128, 0.55); }
+    45% { color: #7dcea0; text-shadow: 0 0 18px rgba(125, 206, 160, 0.85); }
+    100% { color: #f4d680; text-shadow: 0 0 12px rgba(244, 214, 128, 0.45); }
 }
 .live-score-display .gnosis-cashout-line {
-    font-family: var(--font-ui), sans-serif;
-    font-size: 27px;
-    font-weight: bold;
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 28px;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-pantheon-hand), var(--font-manuscript), serif;
+    font-size: 1.55rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    line-height: 1.25;
+    color: var(--gk-gold-1, #f4d680);
+    margin: 0;
+    text-shadow:
+        0 1px 4px rgba(0, 0, 0, 0.55),
+        0 0 14px rgba(244, 214, 128, 0.28);
+    animation: cashout-clunk 0.28s ease-out both;
+}
+.live-score-display .gnosis-cashout-why {
+    opacity: 0.88;
+}
+.live-score-display .gnosis-cashout-amt {
+    font-family: var(--font-manuscript), serif;
     letter-spacing: 0.04em;
-    text-transform: none;
-    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
 }
-.live-score-display .gnosis-cashout-line {
-    color: #4A90E2;
-    margin: 4px 0;
-    animation: cashout-flash-blue 1.2s ease-in-out infinite;
+.live-score-display .gnosis-cashout-line.is-payout {
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(244, 214, 128, 0.4);
+    font-size: 2.15rem;
+    color: #ffe7a8;
+    text-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.4),
+        0 0 18px rgba(255, 215, 120, 0.55);
+}
+.live-score-display .gnosis-cashout-line.is-hubris {
+    display: block;
+    font-size: 1.2rem;
+    color: #f0c4a0;
+    text-align: center;
 }
 .live-score-display .gnosis-cashout-line.gnosis-pantheon-value {
-    font-size: 54px;
-    font-family: var(--font-numeric);
-    color: #9b59b6;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    animation: pantheon-flash-purple 1.2s ease-in-out infinite;
+    font-size: 1.7rem;
+    color: #f4d680;
 }
 .live-score-display .gnosis-cashout-line.gnosis-pantheon-value.pantheon-success-flash {
-    animation: pantheon-success-flash 0.8s ease-in-out infinite;
+    animation:
+        cashout-clunk 0.28s ease-out both,
+        pantheon-success-flash 0.7s ease-in-out 0.15s 2;
 }
 
 /* Fixed-height cells – lock height so "+ contribution" animation doesn't shift layout */

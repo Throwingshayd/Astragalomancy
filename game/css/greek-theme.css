@@ -1002,7 +1002,7 @@
    ============================================================================ */
 
 /* Drop marble tablet chrome — info is type, not buttons */
-.main-game .center-game-area .felt-stone:not(.felt-score-felt),
+.main-game .center-game-area .felt-stone:not(.felt-score-felt):not(.felt-stone-gold),
 .main-game .center-game-area .felt-score-felt:not(.felt-stone-depart) {
     border: none !important;
     background: none !important;
@@ -1012,7 +1012,7 @@
     isolation: auto;
 }
 
-.main-game .center-game-area .felt-stone:not(.felt-score-felt)::before,
+.main-game .center-game-area .felt-stone:not(.felt-score-felt):not(.felt-stone-gold)::before,
 .main-game .center-game-area .felt-score-felt:not(.felt-stone-depart)::before,
 .main-game .center-game-area .felt-stone:not(.felt-score-felt):not(.felt-stone-gold)::after,
 .main-game .center-game-area .felt-score-felt:not(.felt-stone-depart)::after {
@@ -1020,7 +1020,7 @@
     display: none !important;
 }
 
-/* Gold keeps a soft pill hit-target (sell drop) without looking like a stone button */
+/* Gold — marble plaque above the artifacts chest (sell drop target) */
 .main-game .center-game-area .felt-stone-gold {
     position: absolute;
     top: calc(472px - var(--felt-die-size, 95px) + (var(--felt-die-size, 95px) - var(--felt-stone-h, 72px)) / 2 - 2 * var(--felt-die-size, 95px));
@@ -1028,47 +1028,47 @@
     transform: translateX(-50%);
     z-index: 18;
     pointer-events: auto;
+    overflow: visible !important;
     display: flex !important;
     flex-direction: row;
-    align-items: baseline;
+    align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     width: auto !important;
-    min-width: 0 !important;
+    min-width: 120px !important;
     max-width: none !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    border-radius: 999px !important;
-    background: rgba(20, 36, 42, 0.35) !important;
-    box-shadow: inset 0 0 0 1px rgba(255, 248, 220, 0.22) !important;
-    padding: 10px 18px !important;
-    border: none !important;
+    padding: 16px 20px 14px !important;
+    border-radius: 12px !important;
+    border: 2px solid var(--felt-panel-border, var(--gk-gold-2)) !important;
+    background:
+        radial-gradient(ellipse 120% 85% at 50% 0%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 58%),
+        var(--felt-panel-marble, #f4ebd6) !important;
+    box-shadow:
+        inset 0 1px 0 #fffef8,
+        inset 0 -14px 22px rgba(107, 75, 48, 0.11),
+        0 2px 0 rgba(90, 62, 36, 0.4),
+        0 5px 14px rgba(0, 0, 0, 0.34) !important;
 }
 
 .main-game .center-game-area .felt-stone-gold .felt-stone-label {
     font-family: var(--font-epic-title);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(255, 248, 220, 0.82);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    color: var(--felt-panel-label, #6b4b30);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .main-game .center-game-area .felt-stone-gold .felt-stone-value {
     font-family: var(--font-manuscript);
-    font-size: 32px !important;
+    font-size: 36px !important;
     line-height: 1;
-    color: #fff6dc;
-    text-shadow:
-        0 1px 0 rgba(0, 0, 0, 0.35),
-        0 2px 8px rgba(0, 0, 0, 0.45);
-}
-
-.main-game .center-game-area .felt-stone-gold::after {
-    content: none;
-    background-image: none;
+    color: var(--felt-panel-ink, #34250f);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
 }
 
 .main-game.consumable-drag-active .center-game-area .felt-stone-gold.drop-target-sell {
@@ -1303,9 +1303,9 @@
     top: calc(632px - var(--felt-die-size, 95px)) !important;
 }
 
-/* Shop: keep Continue near the info bar / gold */
+/* Shop: Continue sits one die above the info-bar / gold band */
 .main-game.shop-active .center-game-area .shop-continue-btn {
-    top: calc(590px - var(--felt-die-size, 95px)) !important;
+    top: calc(590px - 2 * var(--felt-die-size, 95px)) !important;
     left: calc(50% + 320px) !important;
 }
 
@@ -1317,10 +1317,10 @@
     --clep-glow: rgba(244, 214, 128, 0.55);
     --clep-tick: rgba(244, 214, 128, 0.85);
     position: absolute;
-    left: 52px;
-    top: 132px;
+    left: calc(52px + 1.5 * var(--felt-die-size, 95px));
+    top: calc(468px - var(--felt-die-size, 95px));
     width: 168px;
-    height: 460px;
+    height: auto;
     z-index: 15;
     display: flex;
     flex-direction: column;
@@ -1346,17 +1346,15 @@
     --clep-tick: rgba(255, 180, 140, 0.9);
 }
 
-.main-game .center-game-area .clepsydra-label {
-    font-family: var(--font-epic-title);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: #fff4d4;
-    text-shadow:
-        0 1px 0 rgba(0, 0, 0, 0.55),
-        0 2px 10px rgba(0, 0, 0, 0.55),
-        0 0 14px var(--clep-glow);
+.main-game .center-game-area .clepsydra-readout {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translate(-50%, var(--felt-die-size, 95px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 0;
 }
 
 .main-game .center-game-area .clepsydra-relic {

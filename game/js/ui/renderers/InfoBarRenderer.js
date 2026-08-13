@@ -212,7 +212,8 @@ const InfoBarRenderer = {
         // Entry hover tutorial owns this slot until the first cast (ante 1 / turn 1).
         const live = window.game?.ensureLiveScore?.();
         const hint = live?.entryHintMessage?.();
-        const text = hint != null ? hint : this.formatTrialBanner(gameState);
+        const hover = live?.hoverOfferingMessage?.();
+        const text = hint != null ? hint : (hover != null ? hover : this.formatTrialBanner(gameState));
         el.textContent = text;
         el.setAttribute('aria-label', text);
     },

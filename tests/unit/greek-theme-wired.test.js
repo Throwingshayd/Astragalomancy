@@ -41,4 +41,48 @@ describe('Greek theme wiring', () => {
         expect(css).toContain('.trial-banner');
         expect(css).toContain('.rolls-pips');
     });
+
+    it('Kronos hourglass sits on the artifacts row with Roman numerals above', () => {
+        const html = readFileSync('game/index.html', 'utf8');
+        const css = readFileSync('game/css/greek-theme.css', 'utf8');
+        const block = html.match(/id="clepsydra"[\s\S]*?id="rollsPips"/)[0];
+        expect(block).not.toContain('clepsydra-label');
+        expect(block.indexOf('clepsydra-readout')).toBeLessThan(block.indexOf('clepsydra-relic'));
+        expect(block.indexOf('turnDisplay')).toBeLessThan(block.indexOf('clepsydra-relic'));
+        expect(css).toMatch(
+            /\.main-game \.center-game-area \.clepsydra \{[\s\S]*?left:\s*calc\(52px \+ 1\.5 \* var\(--felt-die-size, 95px\)\)/,
+        );
+        expect(css).toMatch(
+            /\.main-game \.center-game-area \.clepsydra \{[\s\S]*?top:\s*calc\(468px - var\(--felt-die-size, 95px\)\)/,
+        );
+        expect(css).toMatch(
+            /\.main-game \.center-game-area \.clepsydra-readout \{[\s\S]*?bottom:\s*100%[\s\S]*?translate\(-50%, var\(--felt-die-size, 95px\)\)/,
+        );
+    });
+
+    it('shop Continue sits one die higher and gold has a marble plaque', () => {
+        const css = readFileSync('game/css/greek-theme.css', 'utf8');
+        expect(css).toMatch(
+            /\.main-game\.shop-active \.center-game-area \.shop-continue-btn \{[\s\S]*?top:\s*calc\(590px - 2 \* var\(--felt-die-size, 95px\)\)/,
+        );
+        expect(css).toMatch(
+            /\.main-game \.center-game-area \.felt-stone-gold \{[\s\S]*?felt-panel-marble/,
+        );
+    });
+
+    it('Greater Pantheon combo chips are in bonus-chip order', () => {
+        const html = readFileSync('game/index.html', 'utf8');
+        const upper = html.match(/pantheon-tier-upper[\s\S]*?<\/div>\s*<!-- Lower tier/)[0];
+        const cats = [...upper.matchAll(/data-category="([^"]+)"/g)].map((m) => m[1]);
+        expect(cats).toEqual([
+            'Chance',
+            'Three of a Kind',
+            'Small Straight',
+            'Full House',
+            'Four of a Kind',
+            'Large Straight',
+            'Yahtzee',
+            "Pandora's Box",
+        ]);
+    });
 });

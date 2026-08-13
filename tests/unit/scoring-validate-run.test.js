@@ -37,6 +37,16 @@ describe('ScoringEngine.validateRun wiring', () => {
         expect(engine).toContain('ensureLiveScore()?.schedulePreview');
     });
 
+    it('filled devotion preview skips calculateScore and does not log devotion_full', () => {
+        const ctrl = readFileSync('game/js/ui/LiveScoreController.js', 'utf8');
+        const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
+        const filledIdx = ctrl.indexOf('if (slotFilled)');
+        const calcIdx = ctrl.indexOf('e.calculateScore(category)');
+        expect(filledIdx).toBeGreaterThan(-1);
+        expect(calcIdx).toBeGreaterThan(filledIdx);
+        expect(engine).toContain("validation.reason !== 'devotion_full'");
+    });
+
     it('GameEngineTestModes extracted from GameEngine', () => {
         const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
         const modes = readFileSync('game/js/game/GameEngineTestModes.js', 'utf8');

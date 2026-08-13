@@ -1395,7 +1395,7 @@ class GameEngine {
         }
         const validation = ScoringEngine.validateRun(this.state, category);
         if (!validation.ok) {
-            if (validation.reason !== 'locked') {
+            if (validation.reason !== 'locked' && validation.reason !== 'devotion_full') {
                 Logger.error('calculateScore validation failed', { category, reason: validation.reason });
             }
             return fail;

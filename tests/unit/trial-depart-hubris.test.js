@@ -108,6 +108,12 @@ describe('TrialCompletion — hubris Depart', () => {
         const ctrl = readFileSync('game/js/ui/LiveScoreController.js', 'utf8');
         expect(ctrl).toContain('hubrisDepart');
         expect(ctrl).toContain('Hubris — left the symposium early');
+        expect(ctrl).toContain("label: 'Offerings'");
+        expect(ctrl).toContain("label: 'Surplus'");
+        expect(ctrl).toContain("label: 'Received'");
+        expect(ctrl).toContain('_cashoutBeat');
+        expect(ctrl).toContain('game speed cannot blur');
+        expect(ctrl).not.toContain('Off to market');
     });
 
     it('index wires TrialCompletion and Depart button beside Required', () => {

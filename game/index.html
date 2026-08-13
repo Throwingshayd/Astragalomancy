@@ -103,9 +103,9 @@
                     <div class="pantheon-tier pantheon-tier-upper">
                         <div class="score-row pantheon-chip" data-category="Chance"><span>Chance (Nyx)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Three of a Kind"><span>Three of a Kind (Hephaestus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Four of a Kind"><span>Four of a Kind (Ares)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Full House"><span>Full House (Dionysus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Small Straight"><span>Small Straight (Hermes)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Full House"><span>Full House (Dionysus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Four of a Kind"><span>Four of a Kind (Ares)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Large Straight"><span>Large Straight (Apollo)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Yahtzee"><span>Heureka (Zeus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Pandora's Box"><span>Pandora's Box</span><div class="score-details"><span class="potential-score">-</span></div></div>
@@ -187,19 +187,20 @@
                     <!-- Trial status — replaces offering message (ante + score remaining) -->
                     <div id="trialDisplay" class="offering-message trial-banner" aria-live="polite">Astragalomancy,</div>
 
-                    <!-- Hourglass of Kronos — turns remaining (XIII → ·), left gutter.
-                         Top bulb = turns left; bottom bulb = turns spent. Ticks from maxTurns. -->
+                    <!-- Hourglass of Kronos — turns remaining (XIII → ·), left of dice in line with artifacts.
+                         Roman readout sits tight above the glass. Top bulb = turns left; bottom = spent. -->
                     <div class="clepsydra" id="clepsydra" role="meter" aria-label="Turns remaining" aria-valuemin="0" aria-valuemax="13" aria-valuenow="13" data-state="calm">
-                        <div class="clepsydra-label">Kronos</div>
+                        <div class="clepsydra-readout">
+                            <div class="clepsydra-plaque">
+                                <span class="clepsydra-roman" id="turnDisplay">XIII</span>
+                            </div>
+                        </div>
                         <div class="clepsydra-relic" aria-hidden="true">
                             <img class="clepsydra-skin" src="/ART/kronos-hourglass-hud.png" alt="" draggable="false">
                             <div class="clepsydra-stream" id="clepsydraStream">
                                 <div class="clepsydra-grains" id="clepsydraGrains"></div>
                             </div>
                             <div class="clepsydra-marks" id="clepsydraMarks"></div>
-                        </div>
-                        <div class="clepsydra-plaque">
-                            <span class="clepsydra-roman" id="turnDisplay">XIII</span>
                         </div>
                     </div>
 
