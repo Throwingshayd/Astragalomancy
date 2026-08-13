@@ -60,27 +60,10 @@ const ConsumableDrag = {
             }
             return null;
         };
-        const worshipCategoryUnlocked = (category, state) => {
-            if (!category || !state) return false;
-            if (category === "Pandora's Box") return !!state.unlockedCategories?.["Pandora's Box"];
-            if (category === 'Sevens' || category === 'Eights' || category === 'Nines') {
-                return !!state.unlockedCategories?.[category];
-            }
-            return true;
-        };
-        const getWorshipCategory = (card) => {
-            if (!card) return null;
-            if (card.category) return card.category;
-            if (card.god && typeof GodUtils !== 'undefined') return GodUtils.getCategory(card.god);
-            return null;
-        };
-        const worshipMatchesCategory = (card, category, state) => {
-            if (card?.devotionAscended && category && worshipCategoryUnlocked(category, state)) {
-                return true;
-            }
-            const cardCat = getWorshipCategory(card);
-            return !!cardCat && cardCat === category && worshipCategoryUnlocked(category, state);
-        };
+        // Shared with the shop-shelf drag so both agree on what a card may be offered to.
+        const worshipCategoryUnlocked = (category, state) => WorshipDrop.categoryUnlocked(category, state);
+        const getWorshipCategory = (card) => WorshipDrop.cardCategory(card);
+        const worshipMatchesCategory = (card, category, state) => WorshipDrop.matches(card, category, state);
         const markAllPantheonTargets = (state) => {
             clearWorshipTargetChips();
             document.querySelectorAll('#scorecard .pantheon-chip').forEach((chip) => {
@@ -137,6 +120,9 @@ const ConsumableDrag = {
         };
 
         const getConsumableBar = () => document.getElementById('leftConsumableBar');
+        const worshipBlockedNow = (state) => (
+            typeof BlindDirector !== 'undefined' && BlindDirector.blocksWorship(state)
+        );
 
         const activateDropMode = (st, clientX, clientY) => {
             if (st.ghostMode === 'drop') return;
@@ -149,10 +135,12 @@ const ConsumableDrag = {
             st.main?.classList.add('consumable-drag-active');
             if (isWorship) {
                 st.main?.classList.add('drag-type-worship');
-                if (card.devotionAscended) {
-                    markAllPantheonTargets(window.game?.state);
-                } else {
-                    markWorshipTargetChips(getWorshipCategory(card));
+                if (!worshipBlockedNow(window.game?.state)) {
+                    if (card.devotionAscended) {
+                        markAllPantheonTargets(window.game?.state);
+                    } else {
+                        markWorshipTargetChips(getWorshipCategory(card));
+                    }
                 }
             } else if (isLibation) {
                 st.main?.classList.add('drag-type-libation');
@@ -564,6 +552,11 @@ const ConsumableDrag = {
             const worshipRowCategory = scoreRowUnder?.getAttribute?.('data-category') || null;
 
             if (isWorship) {
+                if (worshipBlockedNow(gameState)) {
+                    endDrag(st, false);
+                    gameEngine?.showMessage?.('Sacred Silence: Worship cannot be used this trial.');
+                    return;
+                }
                 if (card.devotionAscended) {
                     const chip = findScoreRowUnderPointer(px, py, st.cardEl);
                     const targetCat = chip?.getAttribute?.('data-category');

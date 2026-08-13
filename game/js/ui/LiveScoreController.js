@@ -19,6 +19,9 @@ class LiveScoreController {
         'Acquire their favour and be rewarded.',
     ];
 
+    /** Contribution chip: slide in from the right, then absorb into the number. */
+    static ADD_CHIP_ABSORB_MS = 170;
+
     /** @param {GameEngine} engine */
     constructor(engine) {
         this.engine = engine;
@@ -26,6 +29,7 @@ class LiveScoreController {
         this._cashoutInProgress = false;
         this._hoveredDieIndex = null;
         this._hoveredCategory = null;
+        this._addChipTimers = new Map();
     }
 
     get dom() {
@@ -65,7 +69,12 @@ class LiveScoreController {
     /** Offering line while a pantheon row is hovered (InfoBarRenderer must not clobber this). */
     hoverOfferingMessage() {
         if (!this._hoveredCategory) return null;
-        return this.engine.getLiveOfferingTitle(this._hoveredCategory, this._isSlotFilled(this._hoveredCategory));
+        const filled = this._isSlotFilled(this._hoveredCategory);
+        if (!filled && typeof BlindDirector !== 'undefined') {
+            const deny = BlindDirector.denyScore(this.engine.state, this._hoveredCategory);
+            if (deny) return deny;
+        }
+        return this.engine.getLiveOfferingTitle(this._hoveredCategory, filled);
     }
 
     _restoreTrialBanner() {
@@ -131,6 +140,51 @@ class LiveScoreController {
     }
 
     /**
+     * Contribution chip lifecycle: slide in from the right, hold, then absorb into
+     * the number it feeds. Never moves the number itself — the chip is out of flow.
+     * @param {HTMLElement|null} chip
+     * @param {HTMLElement|null} contribNode
+     * @param {boolean} wantShown
+     * @param {string} [text]
+     */
+    _setAddChip(chip, contribNode, wantShown, text) {
+        if (!chip) return;
+        const pending = this._addChipTimers.get(chip);
+        if (pending) {
+            clearTimeout(pending);
+            this._addChipTimers.delete(chip);
+        }
+
+        if (wantShown) {
+            if (contribNode) contribNode.textContent = text ?? '';
+            chip.classList.remove('is-absorbing');
+            chip.removeAttribute('hidden');
+            // Drop then re-add so a back-to-back contribution replays the slide-in.
+            chip.classList.remove('is-entering');
+            if (typeof chip.offsetWidth === 'number') void chip.offsetWidth;
+            chip.classList.add('is-entering');
+            return;
+        }
+
+        const wasShown = !chip.hasAttribute('hidden');
+        chip.classList.remove('is-entering');
+        if (!wasShown) {
+            if (contribNode) contribNode.textContent = '';
+            chip.setAttribute('hidden', '');
+            return;
+        }
+
+        chip.classList.add('is-absorbing');
+        const timer = setTimeout(() => {
+            this._addChipTimers.delete(chip);
+            chip.classList.remove('is-absorbing');
+            chip.setAttribute('hidden', '');
+            if (contribNode) contribNode.textContent = '';
+        }, LiveScoreController.ADD_CHIP_ABSORB_MS);
+        this._addChipTimers.set(chip, timer);
+    }
+
+    /**
      * @param {HTMLElement} el
      * @param {Object} o
      */
@@ -138,8 +192,6 @@ class LiveScoreController {
         if (!el || !el.hasAttribute('data-live-root')) return;
         const q = (key) => el.querySelector(`[data-live="${key}"]`);
         const set = (key, val) => { const n = q(key); if (n) n.textContent = val ?? ''; };
-        const hide = (key) => { const n = q(key); if (n) n.setAttribute('hidden', ''); };
-        const show = (key) => { const n = q(key); if (n) n.removeAttribute('hidden'); };
 
         // Category label (if present inside live-score root only).
         const categoryEl = q('category');
@@ -160,12 +212,10 @@ class LiveScoreController {
         set('favour-label', o.favourLabel);
 
         if (o.pipsAdd != null) {
-            set('pips-contrib', o.pipsAdd ? o.pipsContrib : '');
-            o.pipsAdd ? show('pips-add') : hide('pips-add');
+            this._setAddChip(q('pips-add'), q('pips-contrib'), o.pipsAdd, o.pipsContrib);
         }
         if (o.favourAdd != null) {
-            set('favour-contrib', o.favourAdd ? o.favourContrib : '');
-            o.favourAdd ? show('favour-add') : hide('favour-add');
+            this._setAddChip(q('favour-add'), q('favour-contrib'), o.favourAdd, o.favourContrib);
         }
         if (o.pipsPulse) {
             const p = q('pips');
@@ -182,11 +232,6 @@ class LiveScoreController {
         if (!this.domReady || !this.dom.liveScoreDisplay) return;
         if (e.liveScoreAnimationTimeout) clearTimeout(e.liveScoreAnimationTimeout);
         const el = this.dom.liveScoreDisplay;
-        if (window.juiceManager) {
-            window.juiceManager.cancelJuice(el);
-            const row = el.querySelector('[data-live="row"]');
-            if (row) window.juiceManager.cancelJuice(row);
-        }
 
         // First roll clears die-hover tutorial state.
         if (e.state.hasRolled) this._hoveredDieIndex = null;
@@ -261,14 +306,6 @@ class LiveScoreController {
         });
         el.classList.add('balatro-preview', 'visible');
 
-        if (window.juiceManager && (e.lastPreviewPips !== undefined || e.lastPreviewFavour !== undefined)) {
-            const dP = pips - (e.lastPreviewPips ?? 0);
-            const dF = favour - (e.lastPreviewFavour ?? 0);
-            if (dP !== 0 || dF !== 0) {
-                const row = el.querySelector('[data-live="row"]');
-                if (row) window.juiceManager.juiceUp(row, 0.12);
-            }
-        }
         e.lastPreviewPips = pips;
         e.lastPreviewFavour = favour;
     }

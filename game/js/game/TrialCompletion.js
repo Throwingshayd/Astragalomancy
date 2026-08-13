@@ -89,11 +89,21 @@ const TrialCompletion = {
             engine.showMessage(
                 `Trial ${engine.state.ante} failed! Score: ${engine.state.totalScore}/${engine.state.scoreThreshold}`
             );
+            if (typeof Logger !== 'undefined') {
+                Logger.info('Trial failed (card full, under threshold)', {
+                    ante: engine.state.ante,
+                    score: engine.state.totalScore,
+                    threshold: engine.state.scoreThreshold,
+                    blind: engine.state.activeBlind,
+                });
+            }
             engine.showGameOverScreen(false, { reason: 'ante_threshold_failed' });
             engine.dataManager.updateStats({
                 won: false,
                 score: engine.state.totalScore,
                 ante: engine.state.ante,
+                threshold: engine.state.scoreThreshold,
+                blind: engine.state.activeBlind,
                 goldEarned: engine.state.gold,
             });
         } else {
@@ -168,10 +178,7 @@ const TrialCompletion = {
             WorshipCard.tickHeldDevotionTrials(engine.state, engine);
         }
 
-        const nextAnteData = AnteData[engine.state.ante - 1];
-        if (nextAnteData) {
-            engine.state.scoreThreshold = nextAnteData.scoreThreshold;
-        }
+        BlindDirector.prepareNextAnte(engine);
         engine.showInterestThenOpenShop(opts);
     },
 };

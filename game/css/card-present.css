@@ -112,7 +112,21 @@
 
 .drag-ghost.card.boon-card.has-asset .card-type-indicator,
 
-.card-drag-appearance.card.boon-card.has-asset .card-type-indicator {
+.card-drag-appearance.card.boon-card.has-asset .card-type-indicator,
+
+.card[data-card-surface="rack"].worship-card.has-asset .card-type-indicator,
+
+#shopDefaultView .card.worship-card.has-asset .card-type-indicator,
+
+#packOpeningView .card.worship-card.has-asset .card-type-indicator,
+
+.pack-cards-grid .card.worship-card.has-asset .card-type-indicator,
+
+.shop-drag-lift.card.worship-card.has-asset .card-type-indicator,
+
+.drag-ghost.card.worship-card.has-asset .card-type-indicator,
+
+.card-drag-appearance.card.worship-card.has-asset .card-type-indicator {
 
     display: none !important;
 
@@ -161,6 +175,18 @@
     color: rgba(255, 255, 255, 0.95) !important;
 
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+
+}
+
+
+
+/* Worship art has a light inner panel — dark name, same as boons over art */
+
+.card[data-card-surface="owned"].worship-card.has-asset .card-type-indicator {
+
+    color: #2F1C10 !important;
+
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5) !important;
 
 }
 
@@ -624,6 +650,17 @@
 }
 
 
+
+/* A pack's art is contain-fit in a taller box, so its price rides up into the
+   empty band under the bundle instead of floating off the shelf. */
+#shopDefaultView .pack-card[data-pack-shelf] {
+    margin-bottom: 6px !important;
+}
+
+#shopDefaultView .pack-card[data-pack-shelf] .card-shop-cost {
+    top: auto;
+    bottom: var(--pack-cost-bottom, 14px);
+}
 
 .pack-drag-appearance,
 

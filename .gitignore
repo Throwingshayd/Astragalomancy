@@ -1,8 +1,10 @@
 # Node modules
 node_modules/
 
-# Local junction/symlink: game/ART → public/ART (created by scripts/ensure-art-junction.cjs)
+# Local junctions/symlinks into game/public (created by scripts/ensure-art-junction.cjs)
 game/ART
+game/fonts
+game/sounds
 
 # Build artifacts
 dist/

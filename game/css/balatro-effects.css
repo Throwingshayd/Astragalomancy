@@ -204,15 +204,16 @@
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
-/* Pulsing effects for live score – color only, no scale (scale caused ghosting) */
+/* Pulsing effects for live score – brightness only, no scale (scale caused ghosting)
+   and no hardcoded colour, so the pulse keeps whichever hue the context sets. */
 @keyframes pipsPulse {
-    0%, 100% { color: #5a3d8a; }
-    50% { color: #9370DB; }
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.35); }
 }
 
 @keyframes favourPulse {
-    0%, 100% { color: #8b2a2a; }
-    50% { color: #b03a3a; }
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.35); }
 }
 
 .pips-pulse {

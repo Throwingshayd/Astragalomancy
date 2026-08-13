@@ -42,6 +42,7 @@ class WorshipCard extends Card {
 
     // Apply the worship effect
     applyWorship(gameState) {
+        if (typeof BlindDirector !== 'undefined' && BlindDirector.blocksWorship(gameState)) return false;
         if (!this.canUse()) return false;
 
         switch (this.worshipType) {
@@ -247,6 +248,7 @@ class WorshipCard extends Card {
     }
 
     applyAscendedConsecration(gameState, targetCategory) {
+        if (typeof BlindDirector !== 'undefined' && BlindDirector.blocksWorship(gameState)) return false;
         if (!this.devotionAscended || !targetCategory || !this.god) return false;
         if (['Sevens', 'Eights', 'Nines'].includes(targetCategory)
             && !gameState.unlockedCategories?.[targetCategory]) {

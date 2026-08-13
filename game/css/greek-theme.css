@@ -31,6 +31,14 @@
     --gk-ink: #34250f;
     --gk-ink-soft: #6a5230;
     --gk-terracotta: #b5532f;
+    /* Score line — pips amethyst, favour ember (felt-bright takes on the parchment
+       #5a3d8a / #8b2a2a pair). Gold stays the neutral connector between them. */
+    --gk-pips-1: #b98ceb;
+    --gk-pips-2: #5a3d8a;
+    --gk-pips-glow: rgba(185, 140, 235, 0.42);
+    --gk-favour-1: #e2655f;
+    --gk-favour-2: #8b2a2a;
+    --gk-favour-glow: rgba(226, 101, 95, 0.42);
     /* Layout — main-game coordinate system (stones, pantheon, felt) */
     --felt-die-size: 95px;
     --felt-stone-w: 160px;
@@ -51,6 +59,12 @@
     --layout-gold-inner-left: 1080px;
     --side-stela-half-die: calc(0.5 * var(--felt-die-size, 95px));
     --side-bar-w: 228px;
+    /* Top of both card pillars. The gutters are empty above the felt, so the
+       stacks can ride higher than the play area. Tune here, not per-side. */
+    --side-bar-top-main: 160px;
+    /* Pantheon tablet numerals — the score is the thing you read across the felt. */
+    --pantheon-score-size: 26px;
+    --pantheon-score-size-scored: 28px;
     /* Game board (contain) — same math as .game-board-bg */
     --game-board-contain-w: calc(var(--layout-center-h) * 1024 / 682);
     --game-board-margin-x: calc((var(--layout-center-w) - var(--game-board-contain-w)) / 2);
@@ -280,7 +294,10 @@
     --chip-border: #c9b073;
     --chip-rot: 0deg !important;
     color: var(--gk-ink);
-    transform: none !important;
+    /* Cancels the fan layout's translate; the angle is free so the tablet can
+       swing on its cord when an offering lands. */
+    transform: rotate(var(--chip-swing, 0deg)) !important;
+    transform-origin: top center;
     z-index: 4;
     flex: 0 0 auto;
     row-gap: 4px;
@@ -339,11 +356,45 @@
 .main-game .pantheon-frieze .pantheon-chip .potential-score {
     color: var(--gk-bronze);
     font-family: var(--font-manuscript);
-    font-size: 18px;
+    font-size: var(--pantheon-score-size);
     font-weight: normal;
-    line-height: 1.22;
+    line-height: 1.1;
     letter-spacing: 0.01em;
     text-shadow: none;
+}
+
+@property --chip-swing {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+}
+
+@keyframes pantheon-chip-swing {
+    0% { --chip-swing: 0deg; }
+    16% { --chip-swing: 2.4deg; }
+    40% { --chip-swing: -1.6deg; }
+    64% { --chip-swing: 0.9deg; }
+    84% { --chip-swing: -0.4deg; }
+    100% { --chip-swing: 0deg; }
+}
+
+/* Only on an offering landing — the frieze is still at rest otherwise. */
+.main-game .pantheon-frieze .pantheon-chip.worship-drag-applied-flash,
+.main-game .pantheon-frieze .pantheon-chip:has(.potential-score.score-flash) {
+    animation: pantheon-chip-swing 1.1s cubic-bezier(0.36, 0.07, 0.28, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .main-game .pantheon-frieze .pantheon-chip.worship-drag-applied-flash,
+    .main-game .pantheon-frieze .pantheon-chip:has(.potential-score.score-flash) {
+        animation: none;
+    }
+}
+
+/* A tablet you have already offered to reads as a result, not a preview. */
+.main-game .pantheon-frieze .pantheon-chip.used .potential-score,
+.main-game .pantheon-frieze .pantheon-chip.pantheon-scored .potential-score {
+    font-size: var(--pantheon-score-size-scored);
 }
 
 .main-game .pantheon-frieze .pantheon-chip:hover:not(.used) {
@@ -640,23 +691,29 @@
 }
 
 .center-game-area .live-score-display.felt-live .pips {
-    color: var(--gk-gold-1);
+    color: var(--gk-pips-1);
     font-family: var(--font-ui), sans-serif;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.45),
+        0 2px 6px rgba(0, 0, 0, 0.5),
+        0 0 18px var(--gk-pips-glow);
 }
 
 .center-game-area .live-score-display.felt-live .favour {
-    color: var(--gk-gold-1);
+    color: var(--gk-favour-1);
     font-family: var(--font-ui), sans-serif;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.45),
+        0 2px 6px rgba(0, 0, 0, 0.5),
+        0 0 18px var(--gk-favour-glow);
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-pips-bonus {
-    color: var(--gk-gold-1);
+    color: var(--gk-pips-1);
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
-    color: var(--gk-gold-1);
+    color: var(--gk-favour-1);
 }
 
 /* In-run menu control. */
@@ -887,11 +944,11 @@
     transition: transform 0.14s ease-out, outline-color 0.14s ease-out;
 }
 
-.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-target {
+.main-game:is(.consumable-drag-active.drag-type-worship, .shop-drag-active) .pantheon-frieze .pantheon-chip.pantheon-worship-target {
     z-index: 10;
 }
 
-.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-target::before {
+.main-game:is(.consumable-drag-active.drag-type-worship, .shop-drag-active) .pantheon-frieze .pantheon-chip.pantheon-worship-target::before {
     box-shadow:
         0 0 0 2px rgba(255, 215, 120, 0.55),
         0 0 16px rgba(255, 200, 80, 0.4),
@@ -914,16 +971,16 @@
     }
 }
 
-.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-target .pantheon-cat,
-.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-target .potential-score {
+.main-game:is(.consumable-drag-active.drag-type-worship, .shop-drag-active) .pantheon-frieze .pantheon-chip.pantheon-worship-target .pantheon-cat,
+.main-game:is(.consumable-drag-active.drag-type-worship, .shop-drag-active) .pantheon-frieze .pantheon-chip.pantheon-worship-target .potential-score {
     color: #fff6dc;
     text-shadow: 0 0 6px rgba(255, 215, 120, 0.45);
 }
 
-.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot {
+.main-game:is(.consumable-drag-active.drag-type-worship, .shop-drag-active) .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot {
     z-index: 12;
 }
-.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot::before {
+.main-game:is(.consumable-drag-active.drag-type-worship, .shop-drag-active) .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot::before {
     box-shadow:
         0 0 0 3px rgba(255, 215, 120, 0.95),
         0 0 24px rgba(255, 200, 80, 0.75),
@@ -932,8 +989,8 @@
     transition: box-shadow 0.14s ease-out, transform 0.14s ease-out;
     animation: none;
 }
-.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot .pantheon-cat,
-.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot .potential-score {
+.main-game:is(.consumable-drag-active.drag-type-worship, .shop-drag-active) .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot .pantheon-cat,
+.main-game:is(.consumable-drag-active.drag-type-worship, .shop-drag-active) .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot .potential-score {
     color: #fff8e8;
     text-shadow: 0 0 8px rgba(255, 215, 120, 0.65);
 }
@@ -1276,10 +1333,38 @@
     line-height: 1.28;
 }
 
+/* Score line stability: the number band and the label band are both fixed height,
+   so a digit gained, a longer label ("+25 pip bonus"), or the "+N" chip can never
+   move the numbers. Digits are tabular so count-up doesn't jitter. */
+.main-game .center-game-area .live-score-display.felt-live {
+    --gnosis-num-h: 60px;
+    --gnosis-label-h: 20px;
+}
+
 .main-game .center-game-area .live-score-display.felt-live .pips,
 .main-game .center-game-area .live-score-display.felt-live .favour {
     font-size: 3.4rem !important;
     line-height: 1;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+}
+
+.main-game .center-game-area .live-score-display.felt-live .gnosis-row,
+.main-game .center-game-area .live-score-display.felt-live .live-metric-cell {
+    min-height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 4px);
+    height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 4px);
+}
+
+.main-game .center-game-area .live-score-display.felt-live .live-metric-cell {
+    justify-content: flex-start;
+    gap: 4px;
+}
+
+.main-game .center-game-area .live-score-display.felt-live .pips-line,
+.main-game .center-game-area .live-score-display.felt-live .favour-line {
+    min-height: var(--gnosis-num-h);
+    height: var(--gnosis-num-h);
+    align-items: center;
 }
 
 .main-game .center-game-area .live-score-display.felt-live .gnosis-times,
@@ -1287,10 +1372,38 @@
     font-size: 2.2rem !important;
 }
 
+/* ⇌ centres against the digits, not the labels. */
+.main-game .center-game-area .live-score-display.felt-live .gnosis-times {
+    min-height: var(--gnosis-num-h);
+    height: var(--gnosis-num-h);
+    align-items: center;
+}
+
 .main-game .center-game-area .live-score-display.felt-live .gnosis-pips-bonus,
 .main-game .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
     font-size: 0.95rem !important;
     letter-spacing: 0.14em;
+    line-height: var(--gnosis-label-h);
+    height: var(--gnosis-label-h);
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: lowercase;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* "+N" chip picks up its metric's hue instead of flat cream — sign included,
+   since there is no chip background left to hold the two glyphs together. */
+.main-game .center-game-area .live-score-display.felt-live .pips-cell .live-add .pip-contribution,
+.main-game .center-game-area .live-score-display.felt-live .pips-cell .live-add .plus-symbol {
+    color: var(--gk-pips-1) !important;
+}
+
+.main-game .center-game-area .live-score-display.felt-live .favour-cell .live-add .favour-contribution,
+.main-game .center-game-area .live-score-display.felt-live .favour-cell .live-add .plus-symbol {
+    color: var(--gk-favour-1) !important;
 }
 
 /* Dice + info bar + Cast the Bones — raised one die height */

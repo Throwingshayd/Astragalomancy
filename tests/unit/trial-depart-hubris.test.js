@@ -17,6 +17,13 @@ const TrialCompletion = (() => {
     return factory();
 })();
 
+globalThis.BlindDirector = (() => {
+    const src = readFileSync('game/js/game/BlindDirector.js', 'utf8');
+    // eslint-disable-next-line no-new-func
+    const factory = new Function(`${src}; return BlindDirector;`);
+    return factory();
+})();
+
 function baseState(overrides = {}) {
     return {
         scorecard: {},
@@ -79,14 +86,15 @@ describe('TrialCompletion — hubris Depart', () => {
             state,
             isScoring: false,
             sound: null,
+            prng: { random: () => 0.5 },
             showMessage() {},
             showInterestThenOpenShop(opts) { shopOpts = opts; },
         };
-        // AnteData used by finishAnteAndOpenShop
+        // AnteData curve BlindDirector reads when planning the next trial
         globalThis.AnteData = [
-            { scoreThreshold: 200 },
-            { scoreThreshold: 300 },
-            { scoreThreshold: 400 },
+            { name: 'The Fool', scoreThreshold: 200 },
+            { name: 'The Magician', scoreThreshold: 300 },
+            { name: 'The Empress', scoreThreshold: 400 },
         ];
 
         TrialCompletion.departEarly(engine);
@@ -102,6 +110,9 @@ describe('TrialCompletion — hubris Depart', () => {
         expect(engine.state.scorecard.Threes).toBeUndefined();
         expect(engine.state.ante).toBe(3);
         expect(engine.state.turn).toBe(1);
+        // BlindDirector owns the next trial: threshold off the curve, a boss rolled for it
+        expect(engine.state.scoreThreshold).toBeGreaterThanOrEqual(400);
+        expect(engine.state.activeBlind).toBeTruthy();
     });
 
     it('LiveScoreController cashout includes a hubris line when flagged', () => {

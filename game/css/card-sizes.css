@@ -9,6 +9,11 @@
 :root {
     --card-w: 140px;
     --card-h: 187px;
+    /* Sealed packs hold several cards, so they sit a size above a single ware. */
+    --pack-w: 186px;
+    --pack-h: 248px;
+    /* Price sits in the empty band the contain-fit art leaves under the bundle. */
+    --pack-cost-bottom: 14px;
     /* Legacy aliases (same values) */
     --card-owned-w: var(--card-w);
     --card-owned-h: var(--card-h);
@@ -20,7 +25,7 @@
 .consumable-slots.card-area-squish .card,
 .boon-slots.card-area-squish .card,
 .boon-prayer-rail.inventory-panel-boons .boon-slots.card-area-squish .card,
-#shopDefaultView .shop-section .card,
+#shopDefaultView .shop-section .card:not(.pack-card),
 #shopDefaultView .shop-section .artifact-card,
 #packOpeningView .shop-section .card,
 #packOpeningView .pack-cards-grid .card,
@@ -36,9 +41,13 @@
     box-sizing: border-box;
 }
 
+/* Packs are excluded from the card footprint above, so one plain rule holds them.
+   min-* keeps the shelf's flex row from shrinking them. */
 .pack-card {
-    width: var(--card-w);
-    height: var(--card-h);
+    width: var(--pack-w);
+    height: var(--pack-h);
+    min-width: var(--pack-w);
+    min-height: var(--pack-h);
 }
 
 .inventory-panel-consumables .consumable-slots.card-area-squish,

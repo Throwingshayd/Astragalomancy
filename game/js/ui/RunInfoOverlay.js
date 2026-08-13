@@ -102,13 +102,17 @@ class RunInfoOverlay {
             return;
         }
 
+        // Blinds are rolled per run, so the catalog — not AnteData — names the current one.
+        const blind = (typeof BlindDirector !== 'undefined')
+            ? BlindDirector.getDef(state.activeBlind)
+            : null;
         const current = document.createElement('div');
         current.className = 'run-info-ante-card run-info-ante-current';
         current.innerHTML = `
             <div class="run-info-ante-header">Current Trial ${ante}</div>
             <div class="run-info-ante-name">${data.name || 'Unknown'}</div>
-            <div class="run-info-ante-blind">${data.blindName || 'No Blind'}</div>
-            <div class="run-info-ante-effect">${data.blindEffect || 'No special effect'}</div>
+            <div class="run-info-ante-blind">${blind?.blindName || 'No Blind'}</div>
+            <div class="run-info-ante-effect">${blind?.blindEffect || 'No special effect'}</div>
             <div class="run-info-ante-threshold">Required: ${state.scoreThreshold ?? data.scoreThreshold ?? '?'}</div>
         `;
         wrap.appendChild(current);
@@ -124,7 +128,7 @@ class RunInfoOverlay {
             if (nextData) {
                 const row = document.createElement('div');
                 row.className = 'run-info-ante-row';
-                row.innerHTML = `<span>Trial ${i + 1}:</span> <span>${nextData.name} — ${nextData.blindName}</span>`;
+                row.innerHTML = `<span>Trial ${i + 1}:</span> <span>${nextData.name} — ${nextData.scoreThreshold}</span>`;
                 upcoming.appendChild(row);
             }
         }

@@ -117,6 +117,7 @@ class GameEngine {
             
             // Boss blinds
             activeBlind: null,
+            eyeFloorRank: -1,
             
             // UI state
             pendingCategory: null,
@@ -408,134 +409,9 @@ class GameEngine {
         }, 100);
     }
 
-    /**
-     * Start ante with Balatro-style transition screen
-     * Shows boss reveal, score threshold, and "Begin" button
-     */
+    /** Start ante — BlindDirector assigns a random beatable boss (ante 1 is always clear). */
     startAnte() {
-        const anteIndex = this.state.ante - 1;
-        let currentAnteData;
-        
-        if (this.state.endlessMode) {
-            const randomBlindIndex = Math.floor(this.prng.random() * AnteData.length);
-            currentAnteData = AnteData[randomBlindIndex];
-        } else {
-            currentAnteData = AnteData[anteIndex] || AnteData[AnteData.length - 1];
-        }
-        
-        // Show Balatro-style ante transition screen
-        if (this.domReady && this.state.ante > 1) {
-            // Show transition for ante 2+ (not first ante)
-            this.showAnteTransition(currentAnteData, () => {
-                this.finalizeAnteStart(currentAnteData);
-            });
-        } else {
-            // First ante or no DOM - start immediately
-            this.finalizeAnteStart(currentAnteData);
-        }
-    }
-    
-    /**
-     * Finalize ante start after transition screen
-     */
-    finalizeAnteStart(currentAnteData) {
-        if (this.stateManager) this.stateManager.setState(this.gameStates?.ROUND || 'ROUND');
-        // When BOSS_BLINDS_DISABLED, treat all antes as "none" - no special effects
-        const bossBlindsDisabled = typeof DEBUG_FLAGS !== 'undefined' && DEBUG_FLAGS.BOSS_BLINDS_DISABLED;
-        this.state.activeBlind = bossBlindsDisabled ? 'none' : currentAnteData.blindId;
-        
-        // Set score threshold from AnteData (Balatro-style progression)
-        this.state.scoreThreshold = currentAnteData.scoreThreshold;
-        
-        // Apply boss blind effects (skipped when BOSS_BLINDS_DISABLED)
-        if (!bossBlindsDisabled && this.state.activeBlind === 'score_penalty') {
-            this.state.scoreThreshold = Math.floor(this.state.scoreThreshold * 1.5);
-        }
-        
-        // Reset Message in a Bottle tracker at start of each ante
-        this.state.hadOtherBoonsThisAnte = false;
-        
-        this.applyArtifactEffects();
-        
-        // Reset transient bonus-yahtzee roll counter each ante
-        this.state.rolledBonusYahtzees = 0;
-
-        // FIX: Set rolls for turn 1 of new ante (was left at 0 from previous ante's last turn)
-        this.state.rollsLeft = GAME_BALANCE.STARTING_ROLLS;
-        this.state.boons.forEach(boon => {
-            if (boon.timing && boon.timing.turn_start) {
-                boon.onTimingEvent('turn_start', this.state, undefined, this);
-            }
-        });
-
-        if (this.domReady) {
-            this.updateAllUI(true); // Immediate: ensure roll button enabled before playtest/user acts
-        }
-    }
-    
-    /**
-     * Show Balatro-style ante transition screen
-     * Displays boss name, blind effect, score threshold with animations
-     * @param {Object} anteData - Current ante data
-     * @param {Function} callback - Called when player clicks "Begin"
-     */
-    showAnteTransition(anteData, callback) {
-        if (this.stateManager) this.stateManager.setState(this.gameStates?.BLIND_SELECT || 'BLIND_SELECT');
-        // Create transition overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'ante-transition-overlay';
-        overlay.style.opacity = '0';
-        
-        const modal = document.createElement('div');
-        modal.className = 'ante-transition-modal';
-        
-        modal.innerHTML = `
-            <div class="ante-header">
-                <div class="ante-number">Trial ${this.state.ante}</div>
-                <div class="ante-boss-name">${anteData.name}</div>
-            </div>
-            
-            <div class="ante-blind-section">
-                <div class="blind-label">Boss Blind</div>
-                <div class="blind-name">${anteData.blindName}</div>
-                <div class="blind-effect">${anteData.blindEffect}</div>
-            </div>
-            
-            <div class="ante-threshold-section">
-                <div class="threshold-label">Score to Beat</div>
-                <div class="threshold-value">${anteData.scoreThreshold}</div>
-            </div>
-            
-            <div class="ante-actions">
-                <button class="ante-begin-button" id="anteBeginButton">
-                    <span class="button-text">Begin Trial</span>
-                    <span class="button-arrow">→</span>
-                </button>
-            </div>
-        `;
-        
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
-        
-        // Fade in overlay
-        requestAnimationFrame(() => {
-            overlay.style.transition = 'opacity 0.5s ease-out';
-            overlay.style.opacity = '1';
-        });
-        
-        // Begin button handler
-        const beginButton = modal.querySelector('#anteBeginButton');
-        beginButton.addEventListener('click', () => {
-            if (this.sound) this.sound.play('button', { volume: 0.5 });
-            // Fade out
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                if (overlay.parentNode) {
-                    document.body.removeChild(overlay);
-                }
-                callback();
-            }, 500);
-        });
+        BlindDirector.startAnte(this);
     }
 
     /**
@@ -547,7 +423,8 @@ class GameEngine {
         if (this.state.rollsLeft <= 0 || this.state.gameOver) {
             return;
         }
-        
+        BlindDirector.applyHook(this);
+
         // Balatro-style pre-roll anticipation: dice jiggle before rolling
         if (this.dom.diceContainer) {
             const diceElements = this.dom.diceContainer.querySelectorAll('.die');
@@ -705,21 +582,10 @@ class GameEngine {
     toggleHold(index) {
         if (!this.state.hasRolled) return;
         
-        // Reckless Abandon: cannot hold dice
-        const hasRecklessAbandon = this.state.boons?.some(j => j.id === 'reckless_abandon');
-        if (hasRecklessAbandon) {
+        const denyHold = BlindDirector.denyHold(this.state, index);
+        if (denyHold) {
             if (this.sound) this.sound.play('cancel', { volume: 0.5 });
-            this.showMessage("Reckless Abandon: You cannot hold dice!");
-            return;
-        }
-        
-        const bossBlindsDisabled = typeof DEBUG_FLAGS !== 'undefined' && DEBUG_FLAGS.BOSS_BLINDS_DISABLED;
-        const maxHeld = (!bossBlindsDisabled && this.state.activeBlind === 'max_3_hold') ? 3 : this.state.maxHeld;
-        const currentHeldCount = this.state.held.filter(h => h).length;
-        
-        if (!this.state.held[index] && currentHeldCount >= maxHeld) {
-            if (this.sound) this.sound.play('cancel', { volume: 0.5 });
-            this.showMessage(`You can only hold ${maxHeld} dice.`);
+            this.showMessage(denyHold);
             return;
         }
         
@@ -853,6 +719,12 @@ class GameEngine {
             this.showMessage("You must roll the dice first!");
             return;
         }
+        const denyScore = BlindDirector.denyScore(this.state, category);
+        if (denyScore) {
+            if (this.sound) this.sound.play('cancel', { volume: 0.5 });
+            this.showMessage(denyScore);
+            return;
+        }
         if (this.sound) this.sound.play('highlight2', { pitch: 0.95, volume: 0.45 });
         this.isScoring = true;
         this.state.pendingCategory = category;
@@ -956,6 +828,7 @@ class GameEngine {
         // If all lower categories have been scored (non-undefined), grant +35 pips once
         this.checkAndAwardLowerBonus();
         
+        BlindDirector.recordScore(this.state, targetCategory || category);
         // Apply AFTER_SCORE boon effects (Balatro-inspired timing)
         this.state.boons.forEach(boon => {
             boon.onTimingEvent('after_score', this.state, { category, pips, favour, finalScore }, this);
@@ -1395,7 +1268,8 @@ class GameEngine {
         }
         const validation = ScoringEngine.validateRun(this.state, category);
         if (!validation.ok) {
-            if (validation.reason !== 'locked' && validation.reason !== 'devotion_full') {
+            if (validation.reason !== 'locked' && validation.reason !== 'devotion_full'
+                && validation.reason !== 'blind_eye') {
                 Logger.error('calculateScore validation failed', { category, reason: validation.reason });
             }
             return fail;
@@ -1520,7 +1394,7 @@ class GameEngine {
     }
 
     /**
-     * Gnosis live line: preview hover vs completed pantheon slot ("Offering Sixes" / "Offering made to Dionysus").
+     * Gnosis live line: preview hover vs completed pantheon slot ("Offering Sixes" / "Fours offered to Hera").
      * @param {string|null|undefined} category
      * @param {boolean} filledSlot - category already has a score on the card (or scoring animation: treat as made)
      */
@@ -1532,7 +1406,7 @@ class GameEngine {
         if (filledSlot) {
             const g = this.getGodForCategory(category);
             const godShown = g === "Pandora's Box" ? 'Pandora' : (g || '—');
-            return `Offering made to ${godShown}`;
+            return `${displayCat} offered to ${godShown}`;
         }
         return `Offering ${displayCat}`;
     }
@@ -1571,7 +1445,7 @@ class GameEngine {
         
         if (this.state.turn > this.state.maxTurns) {
             this.endAnte();
-        } else if ([4, 8].includes(this.state.turn) && !this.state.winningTestMode) {
+        } else if (BlindDirector.shopTurns.includes(this.state.turn) && !this.state.winningTestMode) {
             // Show gold + interest calculation in Gnosis BEFORE opening shop (skipped in winning test mode)
             this.showInterestThenOpenShop();
         } else if (this.domReady) {
@@ -2046,6 +1920,7 @@ class GameEngine {
 
         // held, packs — ensure arrays
         state.held = Array.isArray(state.held) ? state.held : Array(5).fill(false);
+        state.eyeFloorRank = Number.isFinite(state.eyeFloorRank) ? state.eyeFloorRank : -1;
         if (state.held.length !== 5) state.held = [...state.held, ...Array(Math.max(0, 5 - state.held.length)).fill(false)].slice(0, 5);
         state.packs = Array.isArray(state.packs) ? state.packs : [];
 

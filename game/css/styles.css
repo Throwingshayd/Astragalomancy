@@ -1260,6 +1260,46 @@ body::after {
     display: none !important;
 }
 
+/* Contribution chip rides in from the right, holds, then absorbs into its number.
+   Same settle shape as the cashout receipt, turned on its side. */
+@keyframes live-add-enter {
+    0% { opacity: 0; transform: translateX(18px); }
+    60% { opacity: 1; transform: translateX(-1px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes live-add-absorb {
+    0% { opacity: 1; transform: translateX(0) scale(1); }
+    100% { opacity: 0; transform: translateX(-14px) scale(0.9); }
+}
+
+.live-score-display .live-add.is-entering {
+    animation: live-add-enter 0.2s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.live-score-display .live-add.is-absorbing {
+    animation: live-add-absorb 0.17s cubic-bezier(0.4, 0, 0.9, 0.5) both;
+}
+
+/* Final lock: brighten in place, never displace the digits. */
+@keyframes live-row-lock {
+    0% { filter: brightness(1); }
+    45% { filter: brightness(1.3); }
+    100% { filter: brightness(1); }
+}
+
+.live-score-display [data-live="row"].is-locking {
+    animation: live-row-lock 0.46s ease-in-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .live-score-display .live-add.is-entering,
+    .live-score-display .live-add.is-absorbing,
+    .live-score-display [data-live="row"].is-locking {
+        animation: none;
+    }
+}
+
 .live-score-display .live-extra[hidden] {
     display: none !important;
 }
@@ -1277,14 +1317,14 @@ body::after {
 
 .live-score-display .gnosis-pips-bonus {
     font-size: 14px;
-    color: #5a3d8a;
+    color: var(--gk-pips-2, #5a3d8a);
     font-weight: 900;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .live-score-display .gnosis-mult-bonus {
     font-size: 14px;
-    color: #8b2a2a;
+    color: var(--gk-favour-2, #8b2a2a);
     font-weight: 900;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
@@ -1401,6 +1441,12 @@ body::after {
     overflow: hidden;
 }
 
+/* Class rules above out-rank the UA [hidden] sheet — restate it so the N/A state
+   swaps rows instead of stacking both. */
+.live-score-display .gnosis-row[hidden] {
+    display: none !important;
+}
+
 /* Fixed ⇌ between pips and favour — Morris when available; math/symbol fallback for U+21CC */
 .live-score-display .gnosis-times {
     flex-shrink: 0;
@@ -1435,16 +1481,20 @@ body::after {
 
 /* Balatro-style number styling - readable on parchment */
 .live-score-display .pips {
-    color: #5a3d8a;
+    color: var(--gk-pips-2, #5a3d8a);
     font-weight: 900;
     font-size: 41px;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .live-score-display .favour {
-    color: #8b2a2a;
+    color: var(--gk-favour-2, #8b2a2a);
     font-weight: 900;
     font-size: 41px;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
@@ -1828,8 +1878,9 @@ body::after {
     z-index: 1;
 }
 
-/* Boon art: normalized 284×380 PNGs — show full illustration, slight fill */
-.card.boon-card.has-asset .card-background {
+/* Boon & worship art: normalized 284×380 PNGs — show full illustration, slight fill */
+.card.boon-card.has-asset .card-background,
+.card.worship-card.has-asset .card-background {
     background-size: contain;
     background-position: center center;
 }
@@ -1936,7 +1987,7 @@ body::after {
     box-shadow: 0 2px 8px rgba(177, 43, 251, 0.35) !important;
 }
 
-/* Worships: blue card background */
+/* Worships: blue card background (art-bearing worships have no frame element) */
 .card.worship-card .card-frame,
 .card.planet .card-frame {
     background-image: none !important;
@@ -1944,6 +1995,12 @@ body::after {
     border: 2px solid rgba(255,255,255,0.4) !important;
     border-radius: 8px !important;
     box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3) !important;
+}
+
+/* Worships still awaiting art keep the blue identity */
+.card.worship-card.no-asset .card-fallback-bg {
+    background: #4A90E2;
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* ===== BALATRO-STYLE DYNAMIC STAT DISPLAY ===== */
@@ -3197,8 +3254,8 @@ body::after {
 #shopDefaultView .card,
 #shopDefaultView .pack-card {
     cursor: pointer;
-    width: 140px !important;
-    height: 187px !important;
+    width: var(--card-w) !important;
+    height: var(--card-h) !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -3206,6 +3263,11 @@ body::after {
     visibility: visible !important;
     opacity: 1 !important;
     z-index: 10 !important;
+}
+
+#shopDefaultView .pack-card {
+    width: var(--pack-w) !important;
+    height: var(--pack-h) !important;
 }
 
 /* Position hover text centrally for readability */
@@ -3378,7 +3440,7 @@ body::after {
     color: rgba(246, 230, 202, 0.95);
 }
 
-/* Modal fills viewport; bar sits below centre (Balatro: align "bm", bar with emboss) */
+/* Modal fills the 1200×800 stage; title is centred, bar stays on the floor */
 #startScreen .modal-content.start-screen-modal {
     background: transparent;
     border: none;
@@ -3397,25 +3459,46 @@ body::after {
 }
 
 .start-hero {
+    position: absolute;
+    top: 46%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 22px;
+    gap: 10px;
+    width: max-content;
+    max-width: 94%;
     pointer-events: none;
     animation: startHeroFadeIn 0.9s ease-out;
+    z-index: 1;
 }
 
 .start-hero-title {
     margin: 0;
     font-family: var(--font-manuscript);
-    font-size: 59px;
+    font-size: 96px;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    color: #f5e7ce;
-    text-shadow:
-        0 2px 0 rgba(0, 0, 0, 0.55),
-        0 0 20px rgba(184, 128, 67, 0.35);
+    letter-spacing: 0.04em;
+    line-height: 1.05;
+    color: #cda24c;
+    background-image: linear-gradient(
+        180deg,
+        #e8c98a 0%,
+        #d4af5a 28%,
+        #b8892c 62%,
+        #8a6420 88%,
+        #6e4c16 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter:
+        drop-shadow(0 -1px 0 #dcc07a)
+        drop-shadow(0 1px 0 #5c4014)
+        drop-shadow(0 2px 0 #3a280c)
+        drop-shadow(1px 3px 0 #1c1206)
+        drop-shadow(2px 5px 0 #0c0804);
 }
 
 .start-hero-sub {
@@ -3423,9 +3506,12 @@ body::after {
     font-family: var(--font-manuscript);
     font-size: 28px;
     font-style: italic;
-    letter-spacing: 0.01em;
-    color: rgba(249, 235, 209, 0.96);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    letter-spacing: 0.02em;
+    color: #f3e2b8;
+    text-shadow:
+        0 1px 0 #3a2810,
+        0 2px 0 #1a1008,
+        0 0 10px rgba(0, 0, 0, 0.45);
 }
 
 .start-version-pill {
@@ -3446,11 +3532,11 @@ body::after {
 @keyframes startHeroFadeIn {
     from {
         opacity: 0;
-        transform: translateY(8px);
+        transform: translate(-50%, calc(-50% + 10px));
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate(-50%, -50%);
     }
 }
 
@@ -5778,6 +5864,35 @@ body::after {
     animation: anteModalEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.ante-transition-overlay.is-showdown {
+    background: rgba(12, 4, 0, 0.96);
+}
+
+.ante-transition-modal.is-showdown {
+    background: linear-gradient(135deg, #2a1408 0%, #1a0c18 100%);
+    border-color: #e8a14a;
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.9),
+        0 0 70px rgba(232, 161, 74, 0.45),
+        inset 0 2px 0 rgba(255, 220, 170, 0.15);
+}
+
+.ante-transition-modal.is-showdown .ante-boss-name {
+    color: #e8a14a;
+    text-shadow:
+        0 0 22px rgba(232, 161, 74, 0.85),
+        0 4px 8px rgba(0, 0, 0, 0.9);
+}
+
+.ante-transition-modal.is-showdown .ante-blind-section {
+    border-color: rgba(232, 161, 74, 0.55);
+}
+
+.ante-transition-modal.is-showdown .blind-name {
+    color: #ffb347;
+    text-shadow: 0 0 18px rgba(255, 179, 71, 0.7);
+}
+
 @keyframes anteModalEntrance {
     0% {
         transform: scale(0.5) translateY(-100px);
@@ -5885,6 +6000,14 @@ body::after {
     color: #e0e0e0;
     font-style: italic;
     line-height: 1.4;
+}
+
+.blind-timing {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #b9a98a;
+    letter-spacing: 0.02em;
+    line-height: 1.35;
 }
 
 /* Threshold Section */
@@ -7586,7 +7709,7 @@ body::after {
 /* ── 2. LEFT CONSUMABLE BAR (vertical) ── */
 .left-consumable-bar.inventory-panel-consumables {
     position: absolute;
-    top: 260px;
+    top: var(--side-bar-top-main, 260px);
     left: var(--side-bar-left-main, 20px);
     right: auto;
     width: var(--side-bar-w, 228px);
@@ -7616,7 +7739,7 @@ body::after {
 /* ── 3. RIGHT BOON BAR (vertical) ── */
 .right-boon-bar.inventory-panel-boons {
     position: absolute;
-    top: 260px;
+    top: var(--side-bar-top-main, 260px);
     left: var(--side-bar-right-main, 1672px);
     right: auto;
     width: var(--side-bar-w, 228px);
@@ -7936,20 +8059,21 @@ body::after {
     z-index: 3;
     pointer-events: none;
     white-space: nowrap;
-    padding: 1px 6px;
-    border-radius: 6px;
-    background: rgba(47, 28, 16, 0.82);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+    background: none;
+    box-shadow: none;
     gap: 3px;
 }
 
+/* Bare numerals on the felt — the shadow does the legibility work, not a box. */
 .center-game-area .live-score-display.felt-live .live-add .plus-symbol,
 .center-game-area .live-score-display.felt-live .live-add .pip-contribution,
 .center-game-area .live-score-display.felt-live .live-add .favour-contribution {
     font-size: 16px;
     line-height: 1.1;
     color: #fffbe8;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    text-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.9),
+        0 0 10px rgba(0, 0, 0, 0.6);
 }
 
 /* Prevent scale animations from making the felt preview appear to drift. */

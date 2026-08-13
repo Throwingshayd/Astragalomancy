@@ -396,6 +396,7 @@ class ShopUI {
             const isBoon = ctx.card instanceof Boon;
             boonBar?.classList.toggle('shop-drop-target-hot', isBoon && this._shopPointIn(px, py, boonBar));
             consumableBar?.classList.toggle('shop-drop-target-hot', !isBoon && this._shopPointIn(px, py, consumableBar));
+            WorshipDrop.updateHot(ctx, px, py, st.el);
         }
     }
 
@@ -435,15 +436,11 @@ class ShopUI {
             const gold = document.getElementById('goldStone');
             const boonBar = document.getElementById('rightBoonBar');
             const consumableBar = document.getElementById('leftConsumableBar');
-            if (st.ctx.mode === 'packShelf') gold?.classList.add('shop-drop-glow');
-            if (st.ctx.mode === 'artifact') gold?.classList.add('shop-drop-glow');
-            if (st.ctx.mode === 'direct') {
+            if (st.ctx.mode === 'packShelf' || st.ctx.mode === 'artifact') gold?.classList.add('shop-drop-glow');
+            if (st.ctx.mode === 'direct' || st.ctx.mode === 'packReveal') {
                 if (st.ctx.card instanceof Boon) boonBar?.classList.add('shop-drop-glow');
                 else consumableBar?.classList.add('shop-drop-glow');
-            }
-            if (st.ctx.mode === 'packReveal') {
-                if (st.ctx.card instanceof Boon) boonBar?.classList.add('shop-drop-glow');
-                else consumableBar?.classList.add('shop-drop-glow');
+                WorshipDrop.markTargets(st.ctx.card, st.ctx.gameState);
             }
         }
         if (st.dragging) {
@@ -466,6 +463,7 @@ class ShopUI {
             if (!n) return;
             n.classList.remove('shop-drop-glow', 'shop-drop-target-hot');
         });
+        WorshipDrop.clearTargets();
 
         const { ctx, dragging } = st;
         this._shopDrag = null;
@@ -490,6 +488,7 @@ class ShopUI {
                 return !document.contains(st.el);
             }
             if (ctx.mode === 'direct' && ctx.card) {
+                if (WorshipDrop.tryShopDrop(this, ctx, px, py, st.el)) return !document.contains(st.el);
                 const isBoon = ctx.card instanceof Boon;
                 const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
                 if (okSlot) {
@@ -504,6 +503,7 @@ class ShopUI {
                 return false;
             }
             if (ctx.mode === 'packReveal' && ctx.card) {
+                if (WorshipDrop.tryShopDrop(this, ctx, px, py, st.el)) return !document.contains(st.el);
                 const isBoon = ctx.card instanceof Boon;
                 const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
                 if (okSlot) {

@@ -10,7 +10,7 @@
  * @const {Object}
  */
 const DEBUG_FLAGS = {
-    BOSS_BLINDS_DISABLED: true   // No Rolling Stones, half_upper_pips, boon_disable, etc.
+    BOSS_BLINDS_DISABLED: false  // Random beatable boss blinds (BlindDirector)
 };
 
 /**

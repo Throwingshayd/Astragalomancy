@@ -203,7 +203,17 @@ const InfoBarRenderer = {
         const threshold = Math.max(0, gameState.scoreThreshold ?? 0);
         const total = Math.max(0, gameState.totalScore ?? 0);
         const remaining = Math.max(0, threshold - total);
-        return `${this.toOrdinal(ante)} Trial: ${fmt(remaining)} remaining`;
+        const base = `${this.toOrdinal(ante)} Trial: ${fmt(remaining)} remaining`;
+        const blindId = gameState.activeBlind;
+        if (blindId && blindId !== 'none' && typeof BlindDirector !== 'undefined') {
+            const def = BlindDirector.getDef(blindId);
+            // Named all trial so it can be planned for, but it only bites in the last stretch.
+            if (def?.blindName) {
+                const waiting = BlindDirector.isLive(gameState) ? '' : ' waits';
+                return `${base} · ${def.blindName}${waiting}`;
+            }
+        }
+        return base;
     },
 
     updateTrialBanner(dom, gameState) {
@@ -240,7 +250,7 @@ const InfoBarRenderer = {
     },
 
     updateBlindUI(_dom, _gameState, _gameEngine) {
-        // Reserved hook: blind UI is currently rendered via scorecard and overlays.
+        // Reserved hook: the active blind rides the trial banner (formatTrialBanner).
     }
 };
 

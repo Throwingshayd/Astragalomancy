@@ -284,6 +284,10 @@ class UIManager {
             gameEngine?.showMessage?.('Cannot apply libation right now.');
             return;
         }
+        if (typeof BlindDirector !== 'undefined' && BlindDirector.blocksLibations(gameState)) {
+            gameEngine?.showMessage?.('Solitary Path: Libations cannot be used this trial.');
+            return;
+        }
         if (!gameState.hasRolled) {
             gameEngine?.showMessage?.('Roll the dice first, then target a die.');
             return;
@@ -304,6 +308,7 @@ class UIManager {
     applyLibationEnhancementToDie(libation, dieIndex, gameState, gameEngine, enhancementType, via = 'direct_targeting') {
         const die = gameState?.dice?.[dieIndex];
         if (!die || !(libation instanceof LibationCard) || !libation.canUse()) return false;
+        if (typeof BlindDirector !== 'undefined' && BlindDirector.blocksLibations(gameState)) return false;
         if (!gameState.hasRolled) return false;
         const targetFace = typeof die.getEffectiveFace === 'function' ? die.getEffectiveFace() : (die.face ?? die.currentFace ?? 1);
         libation.applyEnhancementToDie(gameState, dieIndex, enhancementType, targetFace, gameEngine);
@@ -337,6 +342,10 @@ class UIManager {
     applyAscendedDevotion(card, targetCategory, gameState, gameEngine) {
         window.balatroEffects?.hideAllTooltips();
         if (!(card instanceof WorshipCard) || !card.devotionAscended) return false;
+        if (typeof BlindDirector !== 'undefined' && BlindDirector.blocksWorship(gameState)) {
+            gameEngine?.showMessage?.('Sacred Silence: Worship cannot be used this trial.');
+            return false;
+        }
         const success = card.applyAscendedConsecration(gameState, targetCategory);
         if (!success) {
             gameEngine?.showMessage?.('Cannot consecrate that row.');
@@ -377,6 +386,18 @@ class UIManager {
                 gameEngine.cancelTargetingMode();
                 return;
             }
+        }
+        if (card instanceof LibationCard
+            && typeof BlindDirector !== 'undefined'
+            && BlindDirector.blocksLibations(gameState)) {
+            gameEngine.showMessage('Solitary Path: Libations cannot be used this trial.');
+            return;
+        }
+        if (card instanceof WorshipCard
+            && typeof BlindDirector !== 'undefined'
+            && BlindDirector.blocksWorship(gameState)) {
+            gameEngine.showMessage('Sacred Silence: Worship cannot be used this trial.');
+            return;
         }
         if (!card.canUse()) {
             gameEngine.showMessage("Cannot use this consumable right now.");

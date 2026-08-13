@@ -70,19 +70,28 @@ class ScoringAnimation {
         const boonContributions = this.getBoonContributions(category, basePips, categoryBaseFavour);
         const up = (o) => this.engine.ensureLiveScore()?.updateValues(liveScoreEl, { ...o, category: categoryLabel, pipsLabel: 'pips', favourLabel: 'favour', showNa: false });
 
-        let currentPips = 0;
+        // The offering's own pip floor (Three of a Kind = 15) is the number the
+        // dice land on, so the row reads the same from hover through scoring.
+        const categoryBasePips = this.getCategoryPipBase(category);
+        let currentPips = categoryBasePips;
         let currentFavour = categoryBaseFavour;
         let delay = 0;
+        // Each contribution slides in as a chip, holds, then lands on the running total.
+        const landMs = () => this.engine.scaleDelay(130);
+        const contribText = (n) => (window.NumberFormat ? window.NumberFormat.contrib(n) : String(n));
 
         // Start
-        up({ pips: this.engine.formatDisplay(0), pipsAdd: false, favour: this.engine.formatFavour(categoryBaseFavour), favourAdd: false });
+        up({ pips: this.engine.formatDisplay(categoryBasePips), pipsAdd: false, favour: this.engine.formatFavour(categoryBaseFavour), favourAdd: false });
         liveScoreEl.classList.add('visible');
 
         // Step 1: Dice adding pips — stacked: base+iron+pearl combined per die; gold shown as +1G on die
         diceContributions.forEach((contrib) => {
+            const beforePips = currentPips;
+            currentPips += contrib.pips;
+            const afterPips = currentPips;
             delay += this.engine.scaleDelay(180);
+            const at = delay;
             setTimeout(() => {
-                currentPips += contrib.pips;
                 this.jiggleDie(contrib.dieIndex);
                 this.showPipPopupOnDie(contrib.dieIndex, contrib.pips);
                 if (contrib.gold) {
@@ -93,30 +102,25 @@ class ScoringAnimation {
                 }
                 if (window.soundManager) window.soundManager.play('chips1', { pitch: 0.9 + this.engine.prng.random() * 0.15, volume: 0.45 });
 
-                up({ pips: this.engine.formatDisplay(currentPips), pipsAdd: false, pipsPulse: true, favour: this.engine.formatFavour(currentFavour), favourAdd: false });
-            }, delay);
-        });
-
-        // Step 1.5: Pips bonus (category bonus if any) — accumulate after dice
-        const categoryBonus = LOWER_SECTION_BONUSES[category] || 0;
-        const shouldShowBonus = categoryBonus > 0 && !['Small Straight', 'Large Straight', 'Yahtzee', 'Full House', 'Three of a Kind', 'Four of a Kind'].includes(category);
-        if (shouldShowBonus) {
-            delay += this.engine.scaleDelay(220);
+                up({ pips: this.engine.formatDisplay(beforePips), pipsAdd: true, pipsContrib: contribText(contrib.pips), favour: this.engine.formatFavour(currentFavour), favourAdd: false });
+            }, at);
             setTimeout(() => {
-                currentPips += categoryBonus;
-                if (window.soundManager) window.soundManager.play('paper1', { pitch: 0.95, volume: 0.5 });
-                up({ pips: this.engine.formatDisplay(currentPips), pipsAdd: false, pipsPulse: true, favour: this.engine.formatFavour(currentFavour), favourAdd: false });
-            }, delay);
-        }
+                up({ pips: this.engine.formatDisplay(afterPips), pipsAdd: false, pipsPulse: true, favour: this.engine.formatFavour(currentFavour), favourAdd: false });
+            }, at + landMs());
+        });
 
         // Step 2: Boons (pips/favour from boons) — accumulate
         delay += this.engine.scaleDelay(280);
         boonContributions.forEach((contrib) => {
             delay += this.engine.scaleDelay(180);
+            const at = delay;
             setTimeout(() => {
-                const prevFavour = currentFavour;
+                const beforePips = currentPips;
+                const beforeFavour = currentFavour;
                 if (contrib.pips > 0) currentPips += contrib.pips;
                 if (contrib.favour > 0) currentFavour += contrib.favour;
+                const afterPips = currentPips;
+                const afterFavour = currentFavour;
                 this.jiggleBoon(contrib.boonId);
                 this.showBoonPopup(contrib.boonId, contrib);
                 // Pegasus Flight: show ×0.5 favour popup only above dice that contributed (staggered)
@@ -149,28 +153,37 @@ class ScoringAnimation {
                     }
                 }
 
-                if (contrib.pips > 0 && contrib.favour > 0) {
-                    up({ pips: this.engine.formatDisplay(currentPips), pipsAdd: true, pipsContrib: (window.NumberFormat ? window.NumberFormat.contrib(contrib.pips) : String(contrib.pips)), pipsPulse: true, favour: this.engine.formatFavour(prevFavour), favourAdd: true, favourContrib: this.engine.formatFavourContrib(contrib.favour) });
-                    setTimeout(() => {
-                        up({ pips: this.engine.formatDisplay(currentPips), pipsAdd: false, favour: this.engine.formatFavour(currentFavour), favourAdd: false, favourPulse: true });
-                    }, this.engine.scaleDelay(140));
-                } else if (contrib.pips > 0) {
-                    up({ pips: this.engine.formatDisplay(currentPips), pipsAdd: false, pipsPulse: true, favour: this.engine.formatFavour(currentFavour), favourAdd: false });
-                } else if (contrib.favour > 0) {
-                    up({ pips: this.engine.formatDisplay(currentPips), pipsAdd: false, favour: this.engine.formatFavour(prevFavour), favourAdd: true, favourContrib: this.engine.formatFavourContrib(contrib.favour) });
-                    setTimeout(() => {
-                        up({ pips: this.engine.formatDisplay(currentPips), pipsAdd: false, favour: this.engine.formatFavour(currentFavour), favourAdd: false, favourPulse: true });
-                    }, this.engine.scaleDelay(140));
-                }
-            }, delay);
+                up({
+                    pips: this.engine.formatDisplay(beforePips),
+                    pipsAdd: contrib.pips > 0,
+                    pipsContrib: contrib.pips > 0 ? contribText(contrib.pips) : '',
+                    favour: this.engine.formatFavour(beforeFavour),
+                    favourAdd: contrib.favour > 0,
+                    favourContrib: contrib.favour > 0 ? this.engine.formatFavourContrib(contrib.favour) : '',
+                });
+                setTimeout(() => {
+                    up({
+                        pips: this.engine.formatDisplay(afterPips),
+                        pipsAdd: false,
+                        pipsPulse: contrib.pips > 0,
+                        favour: this.engine.formatFavour(afterFavour),
+                        favourAdd: false,
+                        favourPulse: contrib.favour > 0,
+                    });
+                }, landMs());
+            }, at);
         });
 
         // Step 3: lock final pips/favour values, then resolve score into Pantheon
         delay += this.engine.scaleDelay(350);
         setTimeout(() => {
             up({ pips: this.engine.formatDisplay(pips), pipsAdd: false, favour: this.engine.formatFavour(favour), favourAdd: false });
-            const juiceRow = liveScoreEl.querySelector('[data-live="row"]');
-            if (window.juiceManager && juiceRow) window.juiceManager.juiceUp(juiceRow, 0.2);
+            // Settle in place — glow, never displace the digits.
+            const lockRow = liveScoreEl.querySelector('[data-live="row"]');
+            if (lockRow) {
+                lockRow.classList.add('is-locking');
+                setTimeout(() => lockRow.classList.remove('is-locking'), this.engine.scaleDelay(460));
+            }
             setTimeout(() => {
                 // Step 4: Update game state (Parmenides: store in target, mark source used)
                 const storeCategory = targetCategory || category;
@@ -222,9 +235,25 @@ class ScoringAnimation {
                     } else {
                         afterResolve();
                     }
-                }, this.engine.scaleDelay(300));
-            }, this.engine.scaleDelay(900));
+                }, this.engine.scaleDelay(140));
+                // Hands off while the settle glow is still up, so the tally and the
+                // tablet read as one motion rather than two waits.
+            }, this.engine.scaleDelay(320));
         }, delay);
+    }
+
+    /**
+     * The offering's own pip floor before any dice land — Three of a Kind's 15,
+     * plus whatever worship levels have added to it.
+     * @param {string} category
+     * @returns {number}
+     */
+    getCategoryPipBase(category) {
+        if (typeof GnosisDisplay !== 'undefined') {
+            const { counts } = GnosisDisplay.getFacesAndCounts(this.engine.state);
+            return GnosisDisplay.getCategoryPipBonus(category, this.engine.state, counts);
+        }
+        return (typeof LOWER_SECTION_BONUSES !== 'undefined' && LOWER_SECTION_BONUSES[category]) || 0;
     }
 
     calculateBasePips(category) {

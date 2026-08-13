@@ -36,6 +36,9 @@ const ScoringEngine = {
         if (typeof DevotionUtils !== 'undefined' && !DevotionUtils.canScoreCategory(state, category)) {
             return { ok: false, reason: 'devotion_full' };
         }
+        if (typeof BlindDirector !== 'undefined' && BlindDirector.denyScore(state, category)) {
+            return { ok: false, reason: 'blind_eye' };
+        }
         return { ok: true };
     },
 
@@ -48,7 +51,10 @@ const ScoringEngine = {
         return {
             pipsBonuses: state.pipsBonuses || {},
             boons: state.boons || [],
-            activeBlind: state.activeBlind || null,
+            // Only the boss segment's blind reaches the evaluator; earlier segments score clean.
+            activeBlind: (typeof BlindDirector !== 'undefined'
+                ? BlindDirector.liveBlind(state)
+                : state.activeBlind) || null,
             unlockedCategories: state.unlockedCategories || {}
         };
     },

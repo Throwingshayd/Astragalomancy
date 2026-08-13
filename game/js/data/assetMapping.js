@@ -116,7 +116,7 @@ const AssetMapping = {
     // Frame Assets
     frames: {
         'boon': null, // CSS-based frame for boons
-        'worship': 'worship frame.png',
+        'worship': null, // worship art has the shrine frame drawn in ('worship frame.png' is the blank source)
         'libation': 'libation frame.png'
     },
 

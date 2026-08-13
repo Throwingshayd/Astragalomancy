@@ -39,6 +39,8 @@
     "trim-artifacts-chest": "node scripts/trim-artifacts-chest.cjs",
     "trim-boon-art": "node scripts/trim-boon-art.cjs",
     "trim-boon-art:dry": "node scripts/trim-boon-art.cjs --dry-run",
+    "trim-worship-art": "node scripts/trim-worship-art.cjs",
+    "trim-worship-art:dry": "node scripts/trim-worship-art.cjs --dry-run",
     "prebuild": "node scripts/build-dice-spritesheet.cjs && node scripts/generate-sw-precache.cjs",
     "type-check": "tsc --noEmit"
   },
