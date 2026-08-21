@@ -80,14 +80,14 @@ const ScoringEngine = {
      * @param {string} category
      * @param {Object} gameState
      * @param {Object} [options] - { tempPips, tempFavour, applyGlobalBonuses }
-     * @returns {{ pips: number, favour: number, favourMult: number, finalScore: number, isValid: boolean }}
+     * @returns {{ pips: number, favour: number, finalScore: number, isValid: boolean }}
      */
     runPipeline(category, gameState, options = {}) {
         const state = gameState;
         const { tempPips = 0, tempFavour = 0, applyGlobalBonuses = true } = options;
 
         if (!state || !state.dice || state.dice.length === 0) {
-            return { pips: 0, favour: 1, favourMult: 1, finalScore: 0, isValid: false };
+            return { pips: 0, favour: 1, finalScore: 0, isValid: false };
         }
 
         const diceSubstitutions = state.diceSubstitutions || {};
@@ -164,8 +164,9 @@ const ScoringEngine = {
             });
         }
 
-        let favourMult = 1;
-        let eventData = { category, pips, favour, favourMult, isValid };
+        // Single Balatro-style pipeline: pips (chips) × favour (mult).
+        // Boons add pips, add favour (+mult), or multiply favour (×mult) in phase order.
+        let eventData = { category, pips, favour, isValid };
         const boons = state.boons || [];
 
         PHASE_ORDER.forEach((phase) => {
@@ -180,22 +181,32 @@ const ScoringEngine = {
 
         pips = Math.max(0, eventData.pips ?? pips);
         favour = Math.max(0.1, eventData.favour ?? favour);
-        favourMult = Math.max(1, eventData.favourMult ?? 1);
 
         if (applyGlobalBonuses && state.globalBonuses && state.globalBonuses.fivesToAll && state.dice) {
             const fivesCount = state.dice.filter((d) => resolveDieFace(d, 0) === 5).length;
             pips += fivesCount * 5;
         }
 
-        const totalFavour = favour * favourMult;
+        // Naneinf guard: a runaway boon stack must never surface NaN/Infinity in the reveal
+        // or silently collapse the final score to 0. Clamp to a finite safe range — NaN →
+        // neutral, +Infinity/overflow → MAX — while keeping favour's 0.1 floor.
+        const MAX = (typeof SafeMath !== 'undefined') ? SafeMath.MAX_SAFE_INT : Number.MAX_SAFE_INTEGER;
+        const clampFinite = (v, floor, nanFallback) => {
+            const n = Number(v);
+            if (Number.isNaN(n)) return nanFallback;
+            if (n >= MAX) return MAX;
+            return Math.max(floor, n);
+        };
+        pips = clampFinite(pips, 0, 0);
+        favour = clampFinite(favour, 0.1, 1);
+
         const finalScore = typeof SafeMath !== 'undefined'
-            ? SafeMath.safeMultiply(pips, totalFavour)
-            : Math.max(0, Math.min(Math.floor(pips * totalFavour), Number.MAX_SAFE_INTEGER));
+            ? SafeMath.safeMultiply(pips, favour)
+            : Math.max(0, Math.min(Math.floor(pips * favour), MAX));
 
         return {
             pips,
             favour,
-            favourMult,
             finalScore,
             isValid
         };

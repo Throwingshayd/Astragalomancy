@@ -11,8 +11,7 @@ const BOON_EFFECTS = {
     },
     
     KRONOS_HOURGLASS: {
-        BONUS_ROLLS: 2,
-        SCORE_PENALTY: 0.8  // 20% reduction
+        BONUS_ROLLS: 1  // Deterministic +1 roll each turn (was random 1-5, felt swingy)
     },
     
     PANDORAS_JAR: {
@@ -165,7 +164,8 @@ const BOON_EFFECTS = {
     },
     
     GOLD_STANDARD: {
-        PIPS_PER_GOLD_ENHANCEMENT: 3
+        RICH_THRESHOLD: 20,  // Gold needed to stay "on the gold standard"
+        FAVOUR_MULT: 1.5     // ×Favour while rich
     },
     
     // === RUSTIC TIER BOONS ===
@@ -175,7 +175,7 @@ const BOON_EFFECTS = {
     },
     
     MIDAS_TOUCH: {
-        PIPS_PER_10_GOLD: 5
+        FAVOUR_PER_5_GOLD: 0.1  // Hoard payoff: +0.1 Favour per 5 gold held when scoring
     },
     
     ICARUS_WINGS: {
@@ -233,12 +233,12 @@ const BOON_EFFECTS = {
     },
     
     MATHEMATICIANS_COMPASS: {
-        EVEN_SUM_BONUS: 10
+        STRAIGHT_FAVOUR: 2  // Small/Large Straights (consecutive sequences) gain +2 Favour
     },
     
     PRIME_TIME: {
-        PIPS_PER_PRIME: 1,
-        PRIMES: [2, 3, 5, 7]  // 7 only if unlocked
+        FAVOUR_PER_PRIME: 0.3,  // Each die showing a prime grants +0.3 Favour
+        PRIMES: [2, 3, 5]  // 7 added when Sevens is unlocked
     },
     
     THE_LOCKSMITH: {
@@ -254,13 +254,11 @@ const BOON_EFFECTS = {
     },
     
     RECKLESS_ABANDON: {
-        PIPS_BONUS: 50
+        FAVOUR_MULT: 2  // Score with no dice held → ×2 Favour (a choice, not a forced lock)
     },
     
     TYPHON: {
-        THRESHOLD_PERCENTAGE: 0.9,  // 90% of threshold
-        TRIGGER_VALUE: 1,  // All 1s on first roll
-        PROBABILITY: 1/7776  // (1/6)^5
+        FAVOUR_PER_ONE: 0.5  // Each die showing a 1 when scoring grants +0.5 Favour
     },
     
     EARLY_BIRD: {
