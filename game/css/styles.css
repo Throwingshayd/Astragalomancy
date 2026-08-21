@@ -1886,6 +1886,12 @@ body::after {
     background-position: center center;
 }
 
+/* Worship art is a full card face; the shared 0.9 opacity lets the felt show through. */
+.card.worship-card.has-asset .card-background {
+    opacity: 1;
+    background-color: #14222c;
+}
+
 /* Fallback for cards without assets */
 .card-fallback-bg {
     position: absolute;
