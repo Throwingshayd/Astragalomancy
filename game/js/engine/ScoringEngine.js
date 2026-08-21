@@ -187,9 +187,22 @@ const ScoringEngine = {
             pips += fivesCount * 5;
         }
 
+        // Naneinf guard: a runaway boon stack must never surface NaN/Infinity in the reveal
+        // or silently collapse the final score to 0. Clamp to a finite safe range — NaN →
+        // neutral, +Infinity/overflow → MAX — while keeping favour's 0.1 floor.
+        const MAX = (typeof SafeMath !== 'undefined') ? SafeMath.MAX_SAFE_INT : Number.MAX_SAFE_INTEGER;
+        const clampFinite = (v, floor, nanFallback) => {
+            const n = Number(v);
+            if (Number.isNaN(n)) return nanFallback;
+            if (n >= MAX) return MAX;
+            return Math.max(floor, n);
+        };
+        pips = clampFinite(pips, 0, 0);
+        favour = clampFinite(favour, 0.1, 1);
+
         const finalScore = typeof SafeMath !== 'undefined'
             ? SafeMath.safeMultiply(pips, favour)
-            : Math.max(0, Math.min(Math.floor(pips * favour), Number.MAX_SAFE_INTEGER));
+            : Math.max(0, Math.min(Math.floor(pips * favour), MAX));
 
         return {
             pips,
