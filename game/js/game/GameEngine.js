@@ -1282,7 +1282,7 @@ class GameEngine {
             tempFavour: isActualScoring ? (this.state.tempFavour || 0) : 0,
         });
         let pips = pipeResult.pips;
-        let favour = pipeResult.favour * (pipeResult.favourMult || 1);
+        let favour = pipeResult.favour;
         const isValid = pipeResult.isValid;
         const counts = typeof GnosisDisplay !== 'undefined'
             ? GnosisDisplay.getFacesAndCounts(this.state).counts

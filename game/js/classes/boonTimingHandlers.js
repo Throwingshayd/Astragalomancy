@@ -573,8 +573,8 @@ const BoonTimingHandlers = {
                 
                 if (carillonEnhancedCount === 5) {
                     if (carillonEnhancementTypes.size === 1) {
-                        // SECRET BONUS: All same enhancement! (MULTIPLICATIVE!)
-                        result.favourMult *= 2.5;  // ×2.5 MULTIPLICATIVE (Balatro-style)
+                        // SECRET BONUS: All same enhancement! ×mult on favour (Balatro-style xMult)
+                        result.favour *= 2.5;
                         engine?.showMessage?.("🎵 Carillon of the Muses: PERFECT HARMONY! ×2.5 Favour!", 5000);
                         Logger.info("Carillon secret bonus triggered: All same enhancement - MULTIPLICATIVE!");
                     } else {

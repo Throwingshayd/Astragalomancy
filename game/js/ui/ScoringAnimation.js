@@ -355,7 +355,7 @@ class ScoringAnimation {
             if (!boon.timing.before_score) return;
             
             // Test what this boon adds
-            const testData = { category, pips: basePips, favour: baseFavour, favourMult: 1 };
+            const testData = { category, pips: basePips, favour: baseFavour };
             const resultData = boon.onTimingEvent('before_score', this.engine.state, testData, this.engine);
             
             const pipsAdded = (resultData.pips || 0) - basePips;

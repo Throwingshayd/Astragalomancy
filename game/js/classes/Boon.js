@@ -198,12 +198,6 @@ class Boon extends Card {
                 // EDGE CASE: Ensure favour never negative
                 processedResult.favour = Math.max(0, processedResult.favour);
             }
-            if (processedResult.favourMult !== undefined && processedResult.favourMult > 1) {
-                // Apply multiplier to multiplicative favour as well
-                processedResult.favourMult = processedResult.favourMult * multiplier;
-                // EDGE CASE: Ensure favourMult never below 1
-                processedResult.favourMult = Math.max(1, processedResult.favourMult);
-            }
             if (processedResult.gold !== undefined) {
                 processedResult.gold = Math.floor(processedResult.gold * multiplier);
             }
@@ -396,9 +390,6 @@ class Boon extends Card {
     }
 
     applyBeforeScoreEffect(gameState, result, game = null) {
-        if (result.favourMult === undefined) {
-            result.favourMult = 1;
-        }
         if (typeof BoonTimingHandlers !== 'undefined' && typeof BoonTimingHandlers.runBeforeScore === 'function') {
             BoonTimingHandlers.runBeforeScore(this, gameState, result, game);
         } else {
