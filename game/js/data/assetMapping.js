@@ -160,11 +160,11 @@ const AssetMapping = {
         'gold': null, // Now handled by CSS: .enh-gold
         'mother_of_pearl': null, // Now handled by CSS: .enh-mother_of_pearl
         'mirror': null, // Now handled by CSS: .enh-mirror
-        'wild': null, // Now handled by CSS: .enh-wild
-        'cursed': null, // Now handled by CSS: .enh-cursed
-        'sevens': null, // Now handled by CSS: .face-7
-        'eights': null, // Now handled by CSS: .face-8
-        'nines': null // Now handled by CSS: .face-9
+        'wild': null, // Tooltip only — no die-face tint
+        'cursed': null,
+        'sevens': null, // Spritesheet frame 7
+        'eights': null, // Spritesheet frame 8
+        'nines': null // Spritesheet frame 9
     },
 
     // UI Assets (reserved for future getUIAsset use; paths must exist under public/ART)

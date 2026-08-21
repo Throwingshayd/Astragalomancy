@@ -1,8 +1,8 @@
 [package]
 name = "app"
 version = "1.6.0"
-description = "Dice of Dionysus — desktop shell"
-authors = ["Dice of Dionysus Team"]
+description = "Astragalomancy — desktop shell"
+authors = ["Astragalomancy"]
 license = ""
 repository = ""
 edition = "2021"

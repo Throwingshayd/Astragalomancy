@@ -53,14 +53,33 @@ describe('tooltip content', () => {
             held: true,
             rolled: true,
             face: '5',
+            modified: { from: 2, to: 1 },
+            wildMod: -1,
             enhancements: [{ name: 'Golden', desc: 'Pays 3 gold', color: '#FFD700' }],
             tempMod: 2,
         }));
 
         expect(html).toContain('tip-die-status is-held');
         expect(html).toContain('Face 5');
+        expect(html).toContain('Modified 2→1');
+        expect(html).toContain('Wild -1');
         expect(html).toContain('Golden');
         expect(html).toContain('Temp modifier +2');
+    });
+
+    it('keeps modified, wild, and 7–9 info off the die face and in the tooltip', () => {
+        const renderer = readFileSync('game/js/ui/renderers/DiceRenderer.js', 'utf8');
+        const styles = readFileSync('game/css/styles.css', 'utf8');
+        const registry = readFileSync('game/js/config/EnhancementRegistry.js', 'utf8');
+        expect(renderer).not.toContain('rgba(138, 43, 226');
+        expect(renderer).not.toContain("className = 'modification-badge'");
+        expect(renderer).not.toContain("className = 'wild-badge'");
+        expect(renderer).not.toContain('face-${currentFace}');
+        expect(renderer).not.toContain("setAttribute('data-modified'");
+        expect(styles).not.toContain('.die-enhancement-overlay.face-7');
+        expect(styles).not.toContain('.die-enhancement-overlay.face-8');
+        expect(styles).not.toContain('.die-enhancement-overlay.face-9');
+        expect(registry).toMatch(/wild:[\s\S]*?textureClass:\s*null/);
     });
 
     it('falls back to plain text when the host attribute is not JSON', () => {

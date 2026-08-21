@@ -24,7 +24,9 @@ const ScoringEngine = {
         if (!category || typeof category !== 'string') return { ok: false, reason: 'category' };
         if (!state) return { ok: false, reason: 'state' };
         if (!Array.isArray(state.dice)) return { ok: false, reason: 'dice' };
-        const expected = typeof GAME_BALANCE !== 'undefined' ? GAME_BALANCE.STARTING_DICE_COUNT : 5;
+        const expected = typeof ArtifactDice !== 'undefined'
+            ? ArtifactDice.expectedCount(state)
+            : (typeof GAME_BALANCE !== 'undefined' ? GAME_BALANCE.STARTING_DICE_COUNT : 5);
         if (state.dice.length !== expected) return { ok: false, reason: 'dice_count' };
         for (let i = 0; i < state.dice.length; i++) {
             const die = state.dice[i];
@@ -120,7 +122,10 @@ const ScoringEngine = {
         if (hasValidDiceScore) {
             if (god && state.worshipLevels && state.worshipLevels[god]) {
                 const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 0.25;
-                favour += state.worshipLevels[god] * perLevel;
+                // Altar doubles this and The Hecatomb triples it; both scale the worship
+                // contribution only, never the base 1 or anything a boon adds later.
+                const altarMult = state.worshipFavourMultiplier ?? 1;
+                favour += state.worshipLevels[god] * perLevel * altarMult;
             }
         }
 

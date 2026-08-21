@@ -1,0 +1,14 @@
+---
+description: Player-facing copy and shop pathing must match engine behavior.
+alwaysApply: true
+---
+
+# Continuity
+
+Enforcement is `tests/unit/continuity-regulator.test.js` (and `worship-blessing-copy.test.js`). If copy or shop buttons change, those tests must still pass.
+
+- Tooltip `effect` strings describe the handler, not the old Balatro wording. No Chips, no lying × when the code adds.
+- Shop: `#rollButton` is **Cast the Bones** in play and **Continue** in shop (leaves shop). `#shopContinueBtn` is **Reroll** (4g).
+- Currency: **Gold** (prices `4g`). Score is **Pips** and **Favour** (British). Blessings are the worship cards.
+- Artifacts cost `CARD_ECONOMY.ARTIFACT_BASE_COST` (10). Sell uses `SELL_VALUE_PERCENTAGE` (25%, min 1); `sellValue: 0` stays 0 (`??`, not `||`).
+- Do not invent a parallel reviewer subagent. Run `npm test`.

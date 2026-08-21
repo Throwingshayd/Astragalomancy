@@ -27,16 +27,20 @@ describe('music pool — dual-bed layer, one rotation everywhere', () => {
         }
     });
 
-    it('layer mp3 files are present on disk', () => {
-        const files = [
-            'game/public/ART/Music/layer/greek_tales.mp3',
-            'game/public/ART/Music/layer/celtic_mystical.mp3',
-            'game/public/ART/Music/layer/veil_of_ash.mp3',
-            'game/public/ART/Music/layer/davids_vigilance.mp3',
-            'game/public/ART/Music/layer/ancientone.mp3',
-        ];
-        for (const f of files) {
-            expect(readFileSync(f).byteLength).toBeGreaterThan(1000);
+    /** Reads the paths out of MUSIC_TRACKS so re-encoding the soundtrack can't silently
+     *  leave the map pointing at files that no longer exist. */
+    it('every track in MUSIC_TRACKS is present on disk', () => {
+        const paths = [...poolSrc.matchAll(/'(ART\/Music\/[^']+)'/g)].map((m) => m[1]);
+        expect(paths.length).toBeGreaterThan(0);
+
+        for (const rel of paths) {
+            expect(readFileSync(`game/public/${rel}`).byteLength).toBeGreaterThan(1000);
         }
+    });
+
+    it('covers both beds', () => {
+        const ids = [...poolSrc.matchAll(/^\s{4}(\w+):\s*'ART\/Music\//gm)].map((m) => m[1]);
+        expect(ids).toContain('phi_discovery');
+        expect(ids).toContain('veil_of_ash');
     });
 });

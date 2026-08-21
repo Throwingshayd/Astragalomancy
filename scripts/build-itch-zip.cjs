@@ -56,9 +56,6 @@ function main() {
     console.log('[build:itch] Optimizing PNG art…');
     run('node scripts/optimize-art.cjs');
 
-    console.log('[build:itch] Optimizing MP3 beds (128 kbps)…');
-    run('node scripts/optimize-music-mp3.cjs');
-
     console.log('[build:itch] Running production build…');
     run('npm run build');
 

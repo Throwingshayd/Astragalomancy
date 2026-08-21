@@ -251,8 +251,8 @@ const InfoBarRenderer = {
         this.updateClepsydra(gameState);
         this.updateRollsPips(gameState);
 
-        // In shop mode the single action button becomes "Reroll" — ShopUI.applyShopActionButton
-        // owns its enabled/disabled state, so don't overwrite it here.
+        // In shop mode #rollButton is Continue — ShopUI.applyShopActionButton owns labels;
+        // marble #shopContinueBtn is Reroll and owns its own disabled state.
         const mainGame = document.querySelector('.main-game');
         const shopActive = mainGame?.classList.contains('shop-active');
         if (!shopActive && dom.rollButton) {

@@ -178,6 +178,9 @@ const TrialCompletion = {
             WorshipCard.tickHeldDevotionTrials(engine.state, engine);
         }
 
+        // The artifact offer belongs to this shop and no other; ShopUI clears the flag on close.
+        engine.state.shopIsTrialReward = true;
+
         BlindDirector.prepareNextAnte(engine);
         engine.showInterestThenOpenShop(opts);
     },

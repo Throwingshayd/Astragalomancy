@@ -195,7 +195,8 @@ const BlindDirector = {
         engine.state.hadOtherBoonsThisAnte = false;
         engine.applyArtifactEffects();
         engine.state.rolledBonusYahtzees = 0;
-        engine.state.rollsLeft = GAME_BALANCE.STARTING_ROLLS;
+        // applyArtifactEffects ran just above, so the Tyche bonus is already current.
+        engine.state.rollsLeft = ArtifactEffects.rollsPerTurn(engine.state);
         engine.state.boons.forEach((boon) => {
             if (boon.timing && boon.timing.turn_start) {
                 boon.onTimingEvent('turn_start', engine.state, undefined, engine);

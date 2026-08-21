@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dice of Dionysus</title>
+    <title>Astragalomancy</title>
     <!-- Minimal fallback if external CSS blocked (e.g. file://) - avoid overriding normal screen switching -->
     <style>
         body{background:#1a3d38;color:#f0e6d2;margin:0;min-height:100vh}
@@ -218,9 +218,9 @@
                         <span id="rollsLeft" class="rolls-pips-sr">3</span>
                     </div>
 
-                    <button type="button" class="shop-continue-btn" id="shopContinueBtn" title="Continue to next round" aria-label="Continue to next round">
-                        <span class="shop-continue-label">Continue</span>
-                        <span class="shop-continue-arrow" aria-hidden="true">→</span>
+                    <button type="button" class="shop-continue-btn" id="shopContinueBtn" title="Reroll shop wares" aria-label="Reroll shop (4g)">
+                        <span class="shop-continue-label">Reroll</span>
+                        <span class="shop-continue-arrow" aria-hidden="true">4g</span>
                     </button>
                     <!-- Gold — above artifacts chest, aligned with dice row -->
                     <div class="felt-stone felt-stone-gold" data-felt="gold" id="goldStone">
@@ -259,15 +259,15 @@
                             </div>
                         </div>
                         <div id="packOpeningView" class="hidden">
-                            <p class="pack-open-drag-hint">Drag one card to your <strong>Boon</strong> (right) or <strong>Libation</strong> (left) column to claim.</p>
+                            <p class="pack-open-drag-hint">Drag one card to your <strong>Boon</strong> (right) or <strong>Blessing / Libation</strong> (left) column to claim.</p>
                             <div class="shop-main-area">
                                 <div class="shop-section" id="packRevealedCards"><h4>Pack Contents</h4></div>
-                                <div class="shop-section" id="packPlayerConsumables"><h4>Your Libations</h4></div>
+                                <div class="shop-section" id="packPlayerConsumables"><h4>Your Blessings &amp; Libations</h4></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Cast the Bones in play / Reroll in shop. Cost badge is a sibling, not on the button. -->
+                    <!-- Cast the Bones in play / Continue in shop. Reroll cost lives on #shopContinueBtn. -->
                     <div class="rolling-controls" id="rollingControls">
                         <button id="rollButton" class="roll-button">Cast the Bones</button>
                         <span id="actionCostBadge" class="action-cost-badge hidden" aria-hidden="true">4g</span>
@@ -364,6 +364,8 @@
     <script defer src="js/game/TrialCompletion.js"></script>
     <script defer src="js/game/BlindDirector.js"></script>
     <script defer src="js/game/ConsumableSlots.js"></script>
+    <script defer src="js/game/ArtifactDice.js"></script>
+    <script defer src="js/game/ArtifactEffects.js"></script>
     <script defer src="js/game/GameEngine.js"></script>
     <script defer src="js/ui/renderers/InfoBarRenderer.js"></script>
     <script defer src="js/ui/renderers/DiceRenderer.js"></script>

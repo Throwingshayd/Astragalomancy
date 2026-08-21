@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Dice of Dionysus",
+  "productName": "Astragalomancy",
   "version": "1.6.0",
-  "identifier": "com.diceofdionysus.game",
+  "identifier": "com.astragalomancy.game",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:3000",
@@ -10,15 +10,16 @@
     "beforeBuildCommand": "npm run build"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Dice of Dionysus",
+        "title": "Astragalomancy",
         "width": 1280,
         "height": 720,
         "minWidth": 960,
         "minHeight": 540,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": true
       }
     ],
     "security": {

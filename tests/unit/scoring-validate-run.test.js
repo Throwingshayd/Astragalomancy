@@ -5,6 +5,7 @@ describe('ScoringEngine.validateRun wiring', () => {
     it('ScoringEngine exposes validateRun before runPipeline', () => {
         const js = readFileSync('game/js/engine/ScoringEngine.js', 'utf8');
         expect(js).toContain('validateRun(state, category)');
+        expect(js).toContain('ArtifactDice.expectedCount(state)');
         expect(js.indexOf('validateRun')).toBeLessThan(js.indexOf('runPipeline(category'));
     });
 

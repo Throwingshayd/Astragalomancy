@@ -6,7 +6,7 @@
  */
 
 /* exported ShopStockGenerator */
-/* global CardData, RARITY_WEIGHTS, CARD_ECONOMY */
+/* global CardData, RARITY_WEIGHTS, CARD_ECONOMY, ArtifactEffects */
 
 const ShopStockGenerator = {
     /**
@@ -154,7 +154,16 @@ const ShopStockGenerator = {
         return items.length > 0 ? items[0] : null;
     },
 
+    /**
+     * One artifact per trial, offered in the end-of-trial shop only.
+     *
+     * A trial opens three shops: two mid-trial breaks on BlindDirector.shopTurns, then the
+     * reward shop after the trial is cleared. Offering in all three burned the whole roster
+     * inside three trials and left the shelf empty for the ~30 shops after that, so
+     * TrialCompletion flags the reward shop and only that one stocks an artifact.
+     */
     _generateArtifacts(gameState, prng) {
+        if (!gameState?.shopIsTrialReward) return [];
         const purchasedIds = new Set((gameState.artifacts || []).map(a => a.id));
         const pool = [];
         const artifacts = CardData.artifacts || {};
@@ -172,8 +181,7 @@ const ShopStockGenerator = {
     },
 
     _generateDirectSales(gameState, prng, pools, ownedBoonIds, ownedConsumableIds, excludeIds) {
-        const templeMarketBonus = (gameState.artifacts || []).some(a => a.id === 'artifact_temple_market') ? 1 : 0;
-        const numItems = 2 + Math.floor(prng.random() * 2) + templeMarketBonus;
+        const numItems = 2 + Math.floor(prng.random() * 2) + (gameState.shopWareBonus ?? 0);
         const selected = new Set();
         const result = [];
 
@@ -217,10 +225,11 @@ const ShopStockGenerator = {
         const selected = new Set();
         const result = [];
 
+        const packNoun = { boon: 'Boons', worship: 'Blessings', libation: 'Libations' };
         const packDefs = {
-            boon: { type: 'boon', name: 'Boon Pack', baseCost: CARD_ECONOMY?.BOON_PACK_COST ?? 4, description: 'Reveals 3 Boons - choose one to claim.' },
-            worship: { type: 'worship', name: 'Worship Pack', baseCost: CARD_ECONOMY?.WORSHIP_PACK_COST ?? 3, description: 'Reveals 3 Worship Cards - choose one to claim.' },
-            libation: { type: 'libation', name: 'Libation Pack', baseCost: CARD_ECONOMY?.LIBATION_PACK_COST ?? 5, description: 'Reveals 3 Libations - choose one to claim.' }
+            boon: { type: 'boon', name: 'Boon Pack', baseCost: CARD_ECONOMY?.BOON_PACK_COST ?? 4 },
+            worship: { type: 'worship', name: 'Worship Pack', baseCost: CARD_ECONOMY?.WORSHIP_PACK_COST ?? 4 },
+            libation: { type: 'libation', name: 'Libation Pack', baseCost: CARD_ECONOMY?.LIBATION_PACK_COST ?? 4 }
         };
 
         for (let i = 0; i < numPacks; i++) {
@@ -229,8 +238,12 @@ const ShopStockGenerator = {
             const packType = remaining[Math.floor(prng.random() * remaining.length)];
             selected.add(packType);
             const def = packDefs[packType];
+            const reveal = typeof ArtifactEffects !== 'undefined'
+                ? ArtifactEffects.packRevealCount(gameState, packType)
+                : 3;
             result.push({
                 ...def,
+                description: `Reveals ${reveal} ${packNoun[packType]} — choose one to claim.`,
                 cost: this.getShopPrice(def.baseCost, gameState)
             });
         }
@@ -238,7 +251,8 @@ const ShopStockGenerator = {
     },
 
     /**
-     * Generate pack contents (choose-one from 3 cards).
+     * Generate pack contents (choose-one). Hall of Heroes / Panegyris / Symposium add a
+     * fourth card; The Auspices and Ganymede's Cup pin the first slot to your most-used.
      * @param {Object} packData - { type: 'boon'|'worship'|'libation' }
      * @param {Object} gameState
      * @param {Object} prng
@@ -248,7 +262,9 @@ const ShopStockGenerator = {
     generatePackContents(packData, gameState, prng, shopDisplayedIds = new Set()) {
         const { boonIds: ownedBoonIds, consumableIds: ownedConsumableIds } = this.getOwnedCardIds(gameState);
         const ownedIds = packData.type === 'boon' ? ownedBoonIds : ownedConsumableIds;
-        const numCards = 3;
+        const numCards = typeof ArtifactEffects !== 'undefined'
+            ? ArtifactEffects.packRevealCount(gameState, packData.type)
+            : 3;
         const selected = new Set();
         const contents = [];
 
@@ -256,25 +272,36 @@ const ShopStockGenerator = {
         const worship = CardData.worship || [];
         const libations = CardData.libations || [];
 
-        for (let i = 0; i < numCards; i++) {
-            let cardData = null;
-            let pool = [];
-
+        const poolFor = (excludeIds) => {
             if (packData.type === 'boon') {
-                pool = this.filterCardsByUnlockedCategories(
-                    boonPool.filter(c => !selected.has(c.id) && !ownedIds.has(c.id) && !shopDisplayedIds.has(c.id)),
+                return this.filterCardsByUnlockedCategories(
+                    boonPool.filter(c => !excludeIds.has(c.id) && !ownedIds.has(c.id) && !shopDisplayedIds.has(c.id)),
                     gameState);
-                cardData = pool.length > 0 ? this.selectCardByRarity(pool, prng, gameState) : null;
-            } else if (packData.type === 'worship') {
-                pool = this.filterCardsByUnlockedCategories(
-                    worship.filter(c => !selected.has(c.id) && !ownedIds.has(c.id) && !shopDisplayedIds.has(c.id)),
-                    gameState);
-                cardData = pool.length > 0 ? pool[Math.floor(prng.random() * pool.length)] : null;
-            } else if (packData.type === 'libation') {
-                pool = libations.filter(c => !selected.has(c.id) && !ownedIds.has(c.id) && !shopDisplayedIds.has(c.id));
-                cardData = pool.length > 0 ? pool[Math.floor(prng.random() * pool.length)] : null;
             }
+            if (packData.type === 'worship') {
+                return this.filterCardsByUnlockedCategories(
+                    worship.filter(c => !excludeIds.has(c.id) && !ownedIds.has(c.id) && !shopDisplayedIds.has(c.id)),
+                    gameState);
+            }
+            return libations.filter(c => !excludeIds.has(c.id) && !ownedIds.has(c.id) && !shopDisplayedIds.has(c.id));
+        };
 
+        const pick = (pool) => {
+            if (!pool.length) return null;
+            if (packData.type === 'boon') return this.selectCardByRarity(pool, prng, gameState);
+            return pool[Math.floor(prng.random() * pool.length)];
+        };
+
+        if (typeof ArtifactEffects !== 'undefined') {
+            const guaranteed = ArtifactEffects.guaranteedPackCard(gameState, packData.type, poolFor(selected));
+            if (guaranteed) {
+                selected.add(guaranteed.id);
+                contents.push(guaranteed);
+            }
+        }
+
+        for (let i = contents.length; i < numCards; i++) {
+            const cardData = pick(poolFor(selected));
             if (cardData) {
                 selected.add(cardData.id);
                 contents.push(cardData);

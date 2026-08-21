@@ -13,7 +13,7 @@ class Card {
      * @param {string} data.name - Display name
      * @param {string} [data.rarity='common'] - Card rarity (rustic/vibrant/epic/worship/libation)
      * @param {number} [data.cost=0] - Purchase cost in gold
-     * @param {number} [data.sellValue] - Sell value (defaults to 75% of cost)
+     * @param {number} [data.sellValue] - Sell value (defaults to 25% of cost, min 1; 0 stays 0)
      * @param {string} [data.effect=''] - Effect description
      * @param {string} [data.type='card'] - Card type (boon/worship/libation/artifact)
      * @param {string|null} [data.god=null] - Associated god name
@@ -28,7 +28,7 @@ class Card {
         this.rarity = data.rarity || 'common';
         this.cost = data.cost || 0;
         this.baseCost = data.baseCost ?? data.cost ?? 0; // For shop: base before Merchant Arrival
-        this.sellValue = data.sellValue || Math.floor(this.cost * 0.75);
+        this.sellValue = data.sellValue ?? Card.defaultSellValue(this.cost);
         this.effect = data.effect || '';
         this.type = data.type || 'card';
         
@@ -43,6 +43,13 @@ class Card {
         this.timesTriggered = 0;
         this.totalValue = 0;
         this.acquired = null; // timestamp when acquired
+    }
+
+    /** 25% of cost, at least 1 gold, unless CARD_ECONOMY says otherwise. */
+    static defaultSellValue(cost) {
+        const pct = (typeof CARD_ECONOMY !== 'undefined' && CARD_ECONOMY.SELL_VALUE_PERCENTAGE) || 0.25;
+        const min = (typeof CARD_ECONOMY !== 'undefined' && CARD_ECONOMY.DEFAULT_SELL_VALUE) || 1;
+        return Math.max(min, Math.floor((Number(cost) || 0) * pct));
     }
 
     /**

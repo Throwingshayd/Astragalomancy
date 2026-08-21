@@ -5,7 +5,10 @@
  */
 
 /* exported ShopUI */
-/* global Boon, WorshipCard, LibationCard, Artifact, GAME_BALANCE, Logger, ConsumableSlots, ChestDrop */
+/* global Boon, WorshipCard, LibationCard, Artifact, Logger, ConsumableSlots, ChestDrop, ArtifactEffects */
+
+/** Artifacts whose purchase should reveal the extra ware immediately, not next visit. */
+const WARE_BONUS_ARTIFACTS = ['artifact_temple_market', 'artifact_grand_agora'];
 
 class ShopUI {
     /**
@@ -105,30 +108,31 @@ class ShopUI {
         if (this.stateManager) this.stateManager.setState(this.gameStates?.ROUND || 'ROUND');
         this.effects?.hideAllTooltips();
         const gameEngine = game || window.game;
+        // One artifact per trial: the offer does not carry over to the next shop. Cleared
+        // before the save below so a reload cannot restock it.
+        if (gameEngine?.state) gameEngine.state.shopIsTrialReward = false;
         if (gameEngine?.canSave?.()) gameEngine.saveGame({ silent: true });
     }
 
-    /**
-     * Swap the single action button (#rollButton) between play ("Cast the Bones") and shop ("Reroll"),
-     * and toggle the tiny cost badge sibling so the price is visible but not on the button art.
-     * @param {Object|null} gameState - needed to compute free-reroll label; null on close
-     * @param {boolean} shopOpen - true = shop mode, false = play mode
-     */
+    /** Play: Cast the Bones. Shop: #rollButton Continues, marble plaque Rerolls. */
     applyShopActionButton(gameState, shopOpen) {
         const rollBtn = document.getElementById('rollButton');
         const badge = document.getElementById('actionCostBadge');
-        if (!rollBtn) return;
-        if (shopOpen) {
-            rollBtn.textContent = 'Cast the Bones';
-            const hasFreeReroll = !!(gameState?.artifacts?.some(a => a.id === 'sundial_plus') && !gameState?.usedFreeReroll);
-            const cost = typeof GAME_BALANCE !== 'undefined' ? GAME_BALANCE.SHOP_REROLL_COST : 4;
-            const canAfford = hasFreeReroll || (gameState?.gold ?? 0) >= cost;
-            rollBtn.disabled = !canAfford;
-            if (badge) badge.classList.add('hidden');
-        } else {
-            rollBtn.textContent = 'Cast the Bones';
-            if (badge) badge.classList.add('hidden');
+        const rerollBtn = document.getElementById('shopContinueBtn');
+        if (badge) badge.classList.add('hidden');
+        if (rollBtn) {
+            rollBtn.textContent = shopOpen ? 'Continue' : 'Cast the Bones';
+            if (shopOpen) rollBtn.disabled = false;
         }
+        if (!shopOpen || !rerollBtn) return;
+        const cost = ArtifactEffects.rerollCost(gameState);
+        const free = cost <= 0;
+        rerollBtn.disabled = !(free || (gameState?.gold ?? 0) >= cost);
+        const label = rerollBtn.querySelector('.shop-continue-label');
+        const costEl = rerollBtn.querySelector('.shop-continue-arrow');
+        if (label) label.textContent = 'Reroll';
+        if (costEl) costEl.textContent = free ? 'Free' : `${cost}g`;
+        rerollBtn.title = rerollBtn.ariaLabel = free ? 'Reroll shop (free)' : `Reroll shop (${cost}g)`;
     }
 
     renderStock(gameState, gameEngine) {
@@ -159,6 +163,9 @@ class ShopUI {
                 artifactsContainer.appendChild(el);
             }
         });
+        // Artifacts stock the end-of-trial shop only, so the two mid-trial breaks have
+        // nothing to put here. Drop the shelf rather than label an empty gap.
+        artifactsContainer.classList.toggle('hidden', stock.artifacts.length === 0);
 
         stock.directSales.forEach(({ cardData }) => {
             const el = this.createCardElement(cardData, 'direct', gameState, gameEngine);
@@ -180,15 +187,14 @@ class ShopUI {
 
     /** @param {Object|null} [game] - Explicit engine reference; falls back to the global engine singleton when omitted */
     attachShopEventListeners(game = null) {
-        // Continue lives below Trial stone (#shopContinueBtn); rebind each openShop.
-        const continueBtn = document.getElementById('shopContinueBtn');
-        if (continueBtn) {
-            const newBtn = continueBtn.cloneNode(true);
-            continueBtn.parentNode.replaceChild(newBtn, continueBtn);
+        // Marble plaque Rerolls; #rollButton Continues. Rebind each openShop (clone drops stale listeners).
+        const rerollBtn = document.getElementById('shopContinueBtn');
+        if (rerollBtn) {
+            const newBtn = rerollBtn.cloneNode(true);
+            rerollBtn.parentNode.replaceChild(newBtn, rerollBtn);
             newBtn.addEventListener('click', () => {
                 const engine = game || window.game;
-                if (engine) engine.closeShop();
-                else this.closeShop(game);
+                if (engine) engine.rerollShop();
             });
         }
     }
@@ -620,7 +626,8 @@ class ShopUI {
         element.remove();
         gameEngine.applyArtifactEffects();
         gameEngine.updateAllUI();
-        if (artifactData.id === 'artifact_temple_market') {
+        // The extra ware is what you just paid for, so show it now rather than next visit.
+        if (WARE_BONUS_ARTIFACTS.includes(artifactData.id)) {
             this.addOneDirectSale(gameState, gameEngine);
         }
     }
@@ -706,21 +713,10 @@ class ShopUI {
 
     rerollShop(gameState, gameEngine) {
         const directSalesContainer = document.getElementById('shopDirectSales');
-        const hasChronosHourglass = gameState.artifacts?.some(a => a.id === 'sundial_plus');
-        if (hasChronosHourglass && !gameState.usedFreeReroll) {
-            gameState.usedFreeReroll = true;
-            if (this.sound) this.sound.play('whoosh', { pitch: 0.95, volume: 0.5 });
-            gameEngine.showMessage("Used your free reroll from Chronos' Hourglass!");
-            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
-                PlaytestRecorder.log('shop_reroll', { paid: false, reason: 'chronos_hourglass', gold: gameState.gold });
-            }
-            this.refillDirectSales(gameState, gameEngine, directSalesContainer);
-            this.logRerollStock(false, directSalesContainer);
-            this.applyShopActionButton(gameState, true);
-            return;
-        }
+        // Pythia's Indulgence drives this to 0, which is the whole point of the upgrade.
+        const cost = ArtifactEffects.rerollCost(gameState);
 
-        if (gameState.gold < GAME_BALANCE.SHOP_REROLL_COST) {
+        if (cost > 0 && gameState.gold < cost) {
             if (this.sound) this.sound.play('cancel', { volume: 0.55 });
             gameEngine.showMessage("Not enough gold to reroll!");
             return;
@@ -734,16 +730,13 @@ class ShopUI {
         });
 
         setTimeout(() => {
-            gameEngine.updateGoldAnimated(-GAME_BALANCE.SHOP_REROLL_COST, "reroll");
+            if (cost > 0) gameEngine.updateGoldAnimated(-cost, "reroll");
             if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
-                PlaytestRecorder.log('shop_reroll', {
-                    paid: true,
-                    cost: GAME_BALANCE.SHOP_REROLL_COST,
-                    goldAfter: gameState.gold,
-                });
+                PlaytestRecorder.log('shop_reroll', { paid: cost > 0, cost, goldAfter: gameState.gold });
             }
             this.refillDirectSales(gameState, gameEngine, directSalesContainer);
-            this.logRerollStock(true, directSalesContainer);
+            this.logRerollStock(cost > 0, directSalesContainer);
+            this.applyShopActionButton(gameState, true);
         }, 400);
     }
 

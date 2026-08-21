@@ -95,7 +95,8 @@ class GameEngine {
             boons: [],
             artifacts: [],
             consumables: [],
-            packs: [], // Track opened packs for collection
+            packs: [],
+            libationPours: {},
             
             // Slots (capacities) — worship and libations have separate rails
             boonSlots: GAME_BALANCE.STARTING_BOON_SLOTS,
@@ -128,10 +129,6 @@ class GameEngine {
             libationTargetingMode: null,
             /** Eucharist god-targeting: { libation } when active; null otherwise */
             eucharistTargetingMode: null,
-            
-            // Streaks for artifacts
-            upperSanctumStreak: 0,
-            lowerSanctumStreak: 0,
             
             // Shop state
             usedFreeReroll: false,
@@ -259,14 +256,13 @@ class GameEngine {
     }
 
     setupDOMEventListeners() {
-        // Single action button: Cast the Bones in play mode, Reroll in shop mode (see ShopUI.applyShopActionButton).
-        // The stage-check lets one button serve both without swapping listeners mid-session.
+        // Play: Cast the Bones. Shop: this same button Continues (marble plaque Rerolls).
         if (this.dom.rollButton) {
             this.dom.rollButton.addEventListener('click', () => {
                 if (this.sound) this.sound.play('button', { volume: 0.5 });
                 const shopStage = document.getElementById('shopStage');
                 const shopOpen = shopStage && !shopStage.classList.contains('hidden');
-                if (shopOpen) this.rerollShop();
+                if (shopOpen) this.closeShop();
                 else this.rollDice();
             });
         }
@@ -318,13 +314,12 @@ class GameEngine {
             });
         }
         
-        // Shop Continue — below Trial stone; ShopUI.attachShopEventListeners also rebinds on each openShop,
-        // so this is a safety net for the initial bind.
-        const continueBtn = document.getElementById('shopContinueBtn');
-        if (continueBtn) {
-            continueBtn.addEventListener('click', () => {
-                Logger.debug('Shop continue clicked from GameEngine listener');
-                this.closeShop();
+        // Shop Reroll — marble plaque; ShopUI.attachShopEventListeners rebinds on each openShop.
+        const rerollBtn = document.getElementById('shopContinueBtn');
+        if (rerollBtn) {
+            rerollBtn.addEventListener('click', () => {
+                Logger.debug('Shop reroll clicked from GameEngine listener');
+                this.rerollShop();
             });
         }
 
@@ -386,7 +381,7 @@ class GameEngine {
                 turn: this.state.turn,
             });
         }
-        mode.libation.use();
+        mode.libation.use(this.state);
         const idx = this.state.consumables.findIndex(c => c.id === mode.libation.id);
         if (idx !== -1) this.state.consumables.splice(idx, 1);
         this.state.eucharistTargetingMode = null;
@@ -746,16 +741,6 @@ class GameEngine {
         const targetCategory = this.getParmenidesTargetCategory(category) || category;
         const isSwap = targetCategory !== category;
         
-        // Track streaks
-        const isUpper = ["Ones", "Twos", "Threes", "Fours", "Fives", "Sixes"].includes(category);
-        if (isUpper) {
-            this.state.upperSanctumStreak++;
-            this.state.lowerSanctumStreak = 0;
-        } else {
-            this.state.lowerSanctumStreak++;
-            this.state.upperSanctumStreak = 0;
-        }
-        
         let { pips, favour, isValid } = this.calculateScore(category, true);
         let finalScore = 0;
 
@@ -839,17 +824,11 @@ class GameEngine {
         // Track scores for cashout - gold awarded at round end before shop (not per-score)
         if (finalScore > 0) {
             this.state.scoresThisRound = (this.state.scoresThisRound || 0) + 1;
-            if (typeof WorshipCard !== 'undefined') {
-                WorshipCard.applyHeldDevotionGold(this.state, this, category, targetCategory);
-            }
         }
         
         // Reset temporary modifiers
         this.state.tempPips = 0;
         this.state.tempFavour = 0;
-        
-        // Apply post-score artifact effects
-        this.applyArtifactEffects('score');
         
         // Check win conditions
         this.checkWinConditions();
@@ -1425,8 +1404,8 @@ class GameEngine {
         
         this.state.turn++;
         
-        // FIXED: Default 3 rolls (can be modified by turn_start effects)
-        this.state.rollsLeft = GAME_BALANCE.STARTING_ROLLS;
+        // Base rolls plus the Tyche line; turn_start boon effects may still modify it.
+        this.state.rollsLeft = ArtifactEffects.rollsPerTurn(this.state);
         
         // Apply TURN_START effects AFTER setting default rolls (so Kronos can override)
         this.state.boons.forEach(boon => {
@@ -1438,8 +1417,6 @@ class GameEngine {
         this.state.held.fill(false);
         this.state.dice.forEach(die => {
             die.reset();
-            // Keep permanent modifiers (baseFace and face value remain unchanged)
-            // Only reset temporary modifiers
             die.resetTempModifier();
         });
         
@@ -1525,107 +1502,15 @@ class GameEngine {
         }
     }
 
-    // Artifact effects
-    applyArtifactEffects(eventType = 'general') {
-        if (eventType === 'general') {
-            // FIXED: Only handle capacity bonuses - NO ROLL MODIFICATIONS
-            let boonSlots = GAME_BALANCE.STARTING_BOON_SLOTS;
-            const worshipSlots = GAME_BALANCE.STARTING_WORSHIP_SLOTS;
-            let libationSlots = GAME_BALANCE.STARTING_LIBATION_SLOTS;
-            this.state.shopPriceMultiplier = 1; // Reset; artifact_clearance_sale sets to 0.75
-            this.state.artifacts.forEach(artifact => {
-                switch (artifact.id) {
-                    case 'faded_map_plus':
-                        boonSlots += 1;
-                        break;
-                    case 'libation_pouch':
-                        libationSlots += 1;
-                        break;
-                    case 'libation_pouch_plus':
-                        libationSlots += 2;  // +2 slots for upgraded version
-                        break;
-                    case 'bronze_crown':
-                        this.state.baseFavour += 1;
-                        break;
-                    case 'golden_crown':
-                        this.state.baseFavour += 2;
-                        break;
-                    case 'artifact_trojan_horse':
-                        // The Trojan Horse: After Turn 10, all boons give ×2 effect
-                        if (this.state.turn >= 10) {
-                            this.state.boonMultiplier = 2;
-                            Logger.info(`Trojan Horse activated! All boons ×2 (Turn ${this.state.turn})`);
-                        } else {
-                            this.state.boonMultiplier = 1;
-                        }
-                        break;
-                    case 'artifact_antimatter':
-                        // Antikythera: +1 Boon slot (Divine Artifact)
-                        boonSlots += 1;
-                        break;
-                    case 'artifact_clearance_sale':
-                        // Merchant Arrival: All shop prices -25% (Divine Artifact)
-                        this.state.shopPriceMultiplier = 0.75;
-                        break;
-                    case 'artifact_crystal_ball':
-                        // Crystal Ball: +1 Libation slot (Divine Artifact)
-                        libationSlots += 1;
-                        break;
-                }
-            });
-            
-            // Check for Trojan Horse BOON (not artifact) - fixes critical bug
-            const hasTrojanHorseBoon = this.state.boons?.some(j => j.id === 'trojan_horse');
-            if (hasTrojanHorseBoon && this.state.turn >= 11) {
-                this.state.boonMultiplier = 2;
-                Logger.info(`Trojan Horse BOON activated! All boons ×2 (Turn ${this.state.turn})`);
-            } else if (!hasTrojanHorseBoon) {
-                // If no Trojan Horse boon, check artifacts
-                const hasTrojanHorse = this.state.artifacts.some(a => a.id === 'artifact_trojan_horse');
-                if (!hasTrojanHorse) {
-                    this.state.boonMultiplier = 1;
-                }
-            }
-            
-            // FIXED: Never touch roll mechanics
-            this.state.boonSlots = boonSlots;
-            this.state.worshipSlots = worshipSlots;
-            this.state.libationSlots = libationSlots;
-            this.state.consumableSlots = worshipSlots + libationSlots;
-        }
-        
-        if (eventType === 'score') {
-            // Ritual effects
-            const hasRitualKnife = this.state.artifacts.some(a => a.id === 'ritual_knife');
-            const hasSacrificialDagger = this.state.artifacts.some(a => a.id === 'ritual_knife_plus');
-            
-            if (hasSacrificialDagger || (hasRitualKnife && this.state.lowerSanctumStreak >= 2)) {
-                if (ConsumableSlots.hasRoom(this.state, 'libation')) {
-                    const libation = new LibationCard(CardData.libations[Math.floor(this.prng.random() * CardData.libations.length)]);
-                    this.state.consumables.push(libation);
-                    this.showMessage(`Ritual fulfilled! Gained ${libation.name}.`);
-                    if (hasRitualKnife && !hasSacrificialDagger) this.state.lowerSanctumStreak = 0;
-                } else {
-                    this.showMessage("Ritual fulfilled, but your libation slots are full!");
-                }
-            }
-            
-            // Devotion effects
-            const hasDevotionBeads = this.state.artifacts.some(a => a.id === 'devotion_beads');
-            const hasTheurgistsRosary = this.state.artifacts.some(a => a.id === 'devotion_beads_plus');
-            
-            if ((hasDevotionBeads || hasTheurgistsRosary) && this.state.upperSanctumStreak >= 2) {
-                let worshipPool = CardData.worship;
-                if (hasTheurgistsRosary) {
-                    worshipPool = CardData.worship.filter(w => w.rarity === 'uncommon' || w.rarity === 'rare');
-                    if (worshipPool.length === 0) worshipPool = CardData.worship;
-                }
-                const worshipData = worshipPool[Math.floor(this.prng.random() * worshipPool.length)];
-                this.state.worshipLevels[worshipData.god]++;
-                this.showMessage(`Devotion rewarded! ${worshipData.god} worship increased!`);
-                this.state.upperSanctumStreak = 0;
-            }
-        }
+    /** Recompute artifact-derived stats. Safe to call repeatedly — see ArtifactEffects. */
+    applyArtifactEffects() {
+        ArtifactEffects.apply(this.state);
+
+        // Reset when the late-trial condition lapses so ×2 cannot leak into the next trial.
+        const hasTrojanHorseBoon = this.state.boons?.some(j => j.id === 'trojan_horse');
+        const trojanActive = hasTrojanHorseBoon && this.state.turn >= 11;
+        this.state.boonMultiplier = trojanActive ? 2 : 1;
+        if (trojanActive) Logger.info(`Trojan Horse BOON activated! All boons ×2 (Turn ${this.state.turn})`);
     }
 
     // UI Updates (this will be called by UIManager)
@@ -1702,7 +1587,7 @@ class GameEngine {
         const interestRate = hasGoldenTouch ? 3 : GAME_BALANCE.INTEREST_RATE;
         return Math.min(
             Math.floor(goldAmount / interestRate),
-            GAME_BALANCE.MAX_INTEREST
+            ArtifactEffects.maxInterest(this.state)
         );
     }
 
@@ -1764,7 +1649,10 @@ class GameEngine {
         }
         
         // Check if dice array is valid
-        if (!Array.isArray(this.state.dice) || this.state.dice.length !== 5) {
+        const expectedDice = typeof ArtifactDice !== 'undefined'
+            ? ArtifactDice.expectedCount(this.state)
+            : (typeof GAME_BALANCE !== 'undefined' ? GAME_BALANCE.STARTING_DICE_COUNT : 5);
+        if (!Array.isArray(this.state.dice) || this.state.dice.length !== expectedDice) {
             Logger.error('Cannot save: Invalid dice array');
             return false;
         }
@@ -1796,6 +1684,9 @@ class GameEngine {
                 : [],
             worshipLevels: state.worshipLevels && typeof state.worshipLevels === 'object'
                 ? { ...state.worshipLevels }
+                : {},
+            libationPours: state.libationPours && typeof state.libationPours === 'object'
+                ? { ...state.libationPours }
                 : {},
             scorecard: state.scorecard && typeof state.scorecard === 'object' ? { ...state.scorecard } : {},
             pantheonDevotion: state.pantheonDevotion && typeof state.pantheonDevotion === 'object'
@@ -1899,6 +1790,8 @@ class GameEngine {
         }
         state.worshipLevels = { ...defaultWorship, ...incomingWorship };
 
+        if (!state.libationPours || typeof state.libationPours !== 'object') state.libationPours = {};
+
         if (state.lastWorshipGod === 'Persephone') state.lastWorshipGod = 'Aphrodite';
 
         // Scorecard, enhancementMap, unlockedCategories — ensure objects
@@ -1923,10 +1816,9 @@ class GameEngine {
         // Bonus Yahtzee: derive yahtzeesRolledThisRun from bonusYahtzees for old saves
         state.yahtzeesRolledThisRun = state.yahtzeesRolledThisRun ?? (state.bonusYahtzees || 0) + 1;
 
-        // held, packs — ensure arrays
-        state.held = Array.isArray(state.held) ? state.held : Array(5).fill(false);
+        // held, packs — ensure arrays (held length is synced to dice after rehydrate)
+        state.held = Array.isArray(state.held) ? state.held : [];
         state.eyeFloorRank = Number.isFinite(state.eyeFloorRank) ? state.eyeFloorRank : -1;
-        if (state.held.length !== 5) state.held = [...state.held, ...Array(Math.max(0, 5 - state.held.length)).fill(false)].slice(0, 5);
         state.packs = Array.isArray(state.packs) ? state.packs : [];
 
         // Effect maps and abilities — ensure objects
@@ -1947,6 +1839,7 @@ class GameEngine {
                 state.dice.push(new Die(state.dice.length + 1));
             }
         }
+        if (typeof ArtifactDice !== 'undefined') ArtifactDice.syncHeld(state);
 
         // Boons: plain objects → Boon instances
         state.boons = Array.isArray(state.boons) ? state.boons : [];

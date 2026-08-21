@@ -9,7 +9,11 @@ game/sounds
 # Build artifacts
 dist/
 dist-app/
+dist-steam/
 src-tauri/target/
+
+# Microsoft's WebView2 fixed-version runtime (~180MB, fetched via npm run setup:webview2)
+src-tauri/webview2-runtime/
 .parcel-cache/
 .cache/
 

@@ -1,4 +1,20 @@
 /**
+ * The desktop shell opens fullscreen, so players need a way back out; there it owns a
+ * real OS window. On web the document Fullscreen API is all that's available.
+ */
+async function toggleFullscreen() {
+    const tauriWindow = window.__TAURI__?.window;
+    if (tauriWindow?.getCurrentWindow) {
+        const win = tauriWindow.getCurrentWindow();
+        await win.setFullscreen(!(await win.isFullscreen()));
+        return;
+    }
+
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+}
+
+/**
  * App keyboard shortcuts (classic script; receives App instance).
  */
 function bindAppKeyboardShortcuts(app) {
@@ -8,6 +24,11 @@ function bindAppKeyboardShortcuts(app) {
         }
 
         switch (e.key.toLowerCase()) {
+            case 'f11':
+                e.preventDefault();
+                toggleFullscreen().catch((err) => Logger.warn('Fullscreen toggle failed', err));
+                break;
+
             case 'p':
                 if (app.currentScreen === 'game') {
                     e.preventDefault();

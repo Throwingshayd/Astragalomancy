@@ -70,9 +70,10 @@ const CARD_ECONOMY = {
     LIBATION_BASE_COST: 2,
     LIBATION_PREMIUM_COST: 3,
     
-    // Artifact prices - Balatro vouchers are expensive!
-    ARTIFACT_BASE_COST: 12,  // Increased from 7
-    ARTIFACT_UPGRADED_COST: 20,  // New tier!
+    // Artifacts are a flat 10g at both tiers. An upgrade is gated by owning its base and
+    // by the one-offer-per-trial cap, not by price.
+    ARTIFACT_BASE_COST: 10,
+    ARTIFACT_UPGRADED_COST: 10,
     
     // Pack prices
     BOON_PACK_COST: 4,

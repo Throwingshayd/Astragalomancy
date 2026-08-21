@@ -853,6 +853,17 @@
     z-index: 20;
 }
 
+.main-game .center-game-area .dice-container.dice-count-6,
+.main-game .center-game-area .diceContainer.dice-count-6 {
+    gap: 6px;
+}
+
+.main-game .center-game-area .dice-container.dice-count-6 .die,
+.main-game .center-game-area .diceContainer.dice-count-6 .die {
+    width: 82px;
+    height: 82px;
+}
+
 .main-game .center-game-area .die {
     position: relative;
     z-index: 21;

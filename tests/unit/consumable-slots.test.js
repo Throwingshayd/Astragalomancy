@@ -78,12 +78,13 @@ describe('the split is wired into the shop and the engine', () => {
         expect(shop).not.toContain('gameState.consumables.length >= gameState.consumableSlots');
     });
 
-    it('artifact slot bonuses and the ritual knife reward land on the libation rail', () => {
-        const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
-        expect(engine).toContain('worshipSlots: GAME_BALANCE.STARTING_WORSHIP_SLOTS');
-        expect(engine).toContain('libationSlots: GAME_BALANCE.STARTING_LIBATION_SLOTS');
-        expect(engine).toContain("ConsumableSlots.hasRoom(this.state, 'libation')");
-        expect(engine).not.toMatch(/case 'libation_pouch':\s*\n\s*consumableSlots \+= 1;/);
+    it('artifact effects no longer steal slots from the other rail', () => {
+        const effects = readFileSync('game/js/game/ArtifactEffects.js', 'utf8');
+        // Pack artifacts change pack size, not rail width. Slot totals stay the
+        // GAME_BALANCE baseline, and consumableSlots remains their sum.
+        expect(effects).not.toMatch(/d\.libationSlots \+= /);
+        expect(effects).not.toMatch(/d\.worshipSlots \+= /);
+        expect(effects).toContain('state.consumableSlots = d.worshipSlots + d.libationSlots;');
     });
 
     it('each rail renders only its own kind and counts itself', () => {

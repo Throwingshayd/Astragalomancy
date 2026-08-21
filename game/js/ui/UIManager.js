@@ -205,7 +205,7 @@ class UIManager {
         this.updatePlayAreaSlots(gameState, gameEngine);
         this.updateBlindUI(gameState, gameEngine);
         this.updateDepartButton(gameState, gameEngine);
-        // Keep the single action button (#rollButton) synced with shop state: label + cost badge + affordability.
+        // Keep the single action button (#rollButton) synced with shop state: Continue vs Cast the Bones.
         if (this.shopUI && document.querySelector('.main-game')?.classList.contains('shop-active')) {
             this.shopUI.applyShopActionButton(gameState, true);
         }
@@ -311,7 +311,7 @@ class UIManager {
         if (!gameState.hasRolled) return false;
         const targetFace = typeof die.getEffectiveFace === 'function' ? die.getEffectiveFace() : (die.face ?? die.currentFace ?? 1);
         libation.applyEnhancementToDie(gameState, dieIndex, enhancementType, targetFace, gameEngine);
-        libation.use();
+        libation.use(gameState);
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('libation_die_applied', {
                 libationId: libation.id,

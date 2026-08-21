@@ -214,6 +214,23 @@ class Die {
         return true;
     }
 
+    /**
+     * Set every physical face's modifiedValue (Sixth Astragalus starts as all 1s).
+     * Leaves enhancements and base `value` alone so Lethe/Helios still hit the showing face.
+     * @param {number} pipValue
+     * @returns {boolean}
+     */
+    setAllModifiedFaces(pipValue) {
+        const pips = parseInt(pipValue, 10);
+        if (Number.isNaN(pips)) return false;
+        const maxFace = typeof GAME_BALANCE !== 'undefined' ? GAME_BALANCE.MAX_DIE_FACE : 6;
+        for (let face = 1; face <= maxFace; face += 1) {
+            this._ensureFaceExists(face);
+            if (this.faces[face]) this.faces[face].modifiedValue = pips;
+        }
+        return true;
+    }
+
     // Clear all enhancements from all faces
     clearAllEnhancements() {
         Object.values(this.faces).forEach(face => {

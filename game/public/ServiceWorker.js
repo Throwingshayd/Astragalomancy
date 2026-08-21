@@ -199,7 +199,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('Dice of Dionysus', options)
+    self.registration.showNotification('Astragalomancy', options)
   );
 });
 

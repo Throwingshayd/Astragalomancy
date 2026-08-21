@@ -212,25 +212,7 @@ class WorshipCard extends Card {
     applyCardSpecificEffects(_gameState) {
     }
 
-    /** Whether this held card's pantheon row was just scored. */
-    matchesScoredCategory(scoredCategory, gameState) {
-        const cardCat = this.category;
-        if (!cardCat || !scoredCategory) return false;
-        const evalCat = typeof DevotionUtils !== 'undefined'
-            ? DevotionUtils.getEvalCategory(gameState, scoredCategory)
-            : scoredCategory;
-        const matches = cardCat === scoredCategory || cardCat === evalCat;
-        if (!matches) return false;
-        if (['Sevens', 'Eights', 'Nines'].includes(cardCat)) {
-            return !!gameState.unlockedCategories?.[cardCat];
-        }
-        if (cardCat === "Pandora's Box") {
-            return !!gameState.unlockedCategories?.["Pandora's Box"];
-        }
-        return true;
-    }
-
-    // Held devotion: +gold when you score this card's row (incentive to hold until that score).
+    // Held devotion: 3 trials → Ascended (no gold while held).
     static tickHeldDevotionTrials(gameState, gameEngine) {
         if (!gameState?.consumables?.length) return;
         const need = typeof DEVOTION_TRIALS_TO_ASCEND !== 'undefined' ? DEVOTION_TRIALS_TO_ASCEND : 3;
@@ -261,32 +243,6 @@ class WorshipCard extends Card {
         }
         this.use();
         return true;
-    }
-
-    static applyHeldDevotionGold(gameState, gameEngine, scoredCategory, targetCategory = null) {
-        if (!gameState?.consumables?.length || !scoredCategory) return;
-        const goldEach = typeof WORSHIP_HELD_GOLD_PER_SCORE !== 'undefined' ? WORSHIP_HELD_GOLD_PER_SCORE : 1;
-        if (goldEach <= 0) return;
-        const categories = new Set([scoredCategory]);
-        if (targetCategory) categories.add(targetCategory);
-
-        for (const c of gameState.consumables) {
-            if (!(c instanceof WorshipCard) || !c.canUse()) continue;
-            let matched = false;
-            for (const cat of categories) {
-                if (c.matchesScoredCategory(cat, gameState)) {
-                    matched = true;
-                    break;
-                }
-            }
-            if (!matched) continue;
-            if (gameEngine?.updateGoldAnimated) {
-                gameEngine.updateGoldAnimated(goldEach, 'held worship');
-            } else {
-                gameState.gold = (gameState.gold || 0) + goldEach;
-            }
-            window.game?.showMessage?.(`${c.name}: +${goldEach} gold (${c.category} scored).`, 2200);
-        }
     }
 
     _pipsPerLevelForCategory() {

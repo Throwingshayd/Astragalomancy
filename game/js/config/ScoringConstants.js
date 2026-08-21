@@ -34,9 +34,6 @@ const LOWER_SECTION_BONUSES = {
  */
 const WORSHIP_FAVOUR_PER_LEVEL = 0.25;
 
-/** Gold when a held worship card's matching category is scored (offering = pantheon level-up). */
-const WORSHIP_HELD_GOLD_PER_SCORE = 1;
-
 /** Default times each pantheon row may be scored per trial. */
 const DEVOTION_BASE_CAPACITY = 1;
 
@@ -108,7 +105,6 @@ if (typeof module !== 'undefined' && module.exports) {
         LOWER_SECTION_BONUSES,
         CATEGORY_PIPS_PER_LEVEL,
         WORSHIP_FAVOUR_PER_LEVEL,
-        WORSHIP_HELD_GOLD_PER_SCORE,
         DEVOTION_BASE_CAPACITY,
         DEVOTION_TRIALS_TO_ASCEND,
         SCORING_THRESHOLDS,

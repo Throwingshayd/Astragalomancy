@@ -11,6 +11,17 @@ class LibationCard extends Card {
         this.timing = data.timing || 'anytime'; // 'anytime', 'before_roll', 'after_roll', 'before_score'
     }
 
+    /**
+     * @param {Object} [gameState] - passed so Ganymede's Cup can count this pour
+     */
+    use(gameState) {
+        const ok = super.use();
+        if (ok && typeof ArtifactEffects !== 'undefined') {
+            ArtifactEffects.noteLibationPour(gameState, this.id);
+        }
+        return ok;
+    }
+
     // Apply the specific rule of this libation card
     applyRule(gameState, gameEngine = null) {
         if (!this.canUse()) return false;
@@ -34,7 +45,7 @@ class LibationCard extends Card {
         }
 
         if (consumed) {
-            this.use();
+            this.use(gameState);
             return true;
         }
         return false; // Die-targeting: consume when user selects a die
@@ -434,7 +445,9 @@ class LibationCard extends Card {
 
         let message = '';
         const dieNumber = dieIndex + 1;
-        const targetFace = parseInt(targetFaceValue, 10);
+        const requestedFace = parseInt(targetFaceValue, 10);
+        const isFaceRewriter = enhancementType === 'permanent_reduce' || enhancementType === 'permanent_increase';
+        const targetFace = isFaceRewriter ? die.currentFace : requestedFace;
         
         // Validate target face using die's validation method
         if (!die.isValidFace(targetFace)) {

@@ -2908,24 +2908,6 @@ body::after {
     z-index: 2;
 }
 
-/* Enhanced dice visual indicators */
-.die[data-enhanced="true"] {
-    position: relative;
-}
-
-.die[data-enhanced="true"]::after {
-    content: '';
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    width: 15px;
-    height: 15px;
-    background: var(--accent-green);
-    border-radius: 50%;
-    border: 2px solid var(--statue-cream);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
 /* Enhancement overlays for dice */
 .die-enhancement-overlay {
     position: absolute;
@@ -2939,8 +2921,6 @@ body::after {
     pointer-events: none;
     z-index: 5;
     border-radius: 10px;
-    /* Subtle enhancement tint similar to hold color but more subtle */
-    filter: hue-rotate(180deg) saturate(1.1) brightness(0.95);
 }
 
 /* Enhancement overlay images - using CSS-based effects instead of missing assets */
@@ -2962,35 +2942,10 @@ body::after {
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
 }
 
-.die-enhancement-overlay.enh-wild {
-    background: linear-gradient(135deg, rgba(255, 105, 180, 0.3) 0%, rgba(255, 182, 193, 0.2) 100%);
-    border: 2px solid rgba(255, 105, 180, 0.6);
-    box-shadow: 0 0 10px rgba(255, 105, 180, 0.4);
-}
-
 .die-enhancement-overlay.enh-mirror {
     background: linear-gradient(135deg, rgba(192, 192, 192, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
     border: 2px solid rgba(192, 192, 192, 0.6);
     box-shadow: 0 0 10px rgba(192, 192, 192, 0.4);
-}
-
-/* Face value overlays for modified faces - using CSS-based effects */
-.die-enhancement-overlay.face-7 {
-    background: linear-gradient(135deg, rgba(138, 43, 226, 0.3) 0%, rgba(186, 85, 211, 0.2) 100%);
-    border: 2px solid rgba(138, 43, 226, 0.6);
-    box-shadow: 0 0 10px rgba(138, 43, 226, 0.4);
-}
-
-.die-enhancement-overlay.face-8 {
-    background: linear-gradient(135deg, rgba(75, 0, 130, 0.3) 0%, rgba(138, 43, 226, 0.2) 100%);
-    border: 2px solid rgba(75, 0, 130, 0.6);
-    box-shadow: 0 0 10px rgba(75, 0, 130, 0.4);
-}
-
-.die-enhancement-overlay.face-9 {
-    background: linear-gradient(135deg, rgba(25, 25, 112, 0.3) 0%, rgba(75, 0, 130, 0.2) 100%);
-    border: 2px solid rgba(25, 25, 112, 0.6);
-    box-shadow: 0 0 10px rgba(25, 25, 112, 0.4);
 }
 
 /* Enhancement badges for dice (keeping for compatibility) */
@@ -3071,44 +3026,6 @@ body::after {
         0 0 25px rgba(192, 192, 192, 0.5),
         0 4px 8px rgba(0, 0, 0, 0.3) !important;
     border: 2px solid rgba(230, 230, 250, 0.9) !important;
-}
-
-/* Wild - Rainbow pulse */
-.die.enh-wild,
-.die[data-enhanced="true"].enh-wild {
-    box-shadow: 
-        0 0 20px rgba(255, 105, 180, 0.7),
-        0 0 30px rgba(138, 43, 226, 0.5),
-        0 4px 8px rgba(0, 0, 0, 0.3) !important;
-    border: 2px solid rgba(255, 105, 180, 0.9) !important;
-    animation: rainbowPulse 3s ease-in-out infinite;
-}
-
-@keyframes rainbowPulse {
-    0% {
-        box-shadow: 
-            0 0 20px rgba(255, 105, 180, 0.7),
-            0 0 30px rgba(138, 43, 226, 0.5),
-            0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-    33% {
-        box-shadow: 
-            0 0 20px rgba(30, 144, 255, 0.7),
-            0 0 30px rgba(255, 215, 0, 0.5),
-            0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-    66% {
-        box-shadow: 
-            0 0 20px rgba(50, 205, 50, 0.7),
-            0 0 30px rgba(255, 105, 180, 0.5),
-            0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-    100% {
-        box-shadow: 
-            0 0 20px rgba(255, 105, 180, 0.7),
-            0 0 30px rgba(138, 43, 226, 0.5),
-            0 4px 8px rgba(0, 0, 0, 0.3);
-    }
 }
 
 /* Mother of Pearl - Iridescent shimmer */
@@ -8434,6 +8351,12 @@ body::after {
 
 .main-game.shop-active .shop-continue-btn {
     display: flex;
+}
+
+.shop-continue-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .shop-continue-btn:hover {

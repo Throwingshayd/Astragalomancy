@@ -29,15 +29,8 @@ const MUSIC_MASTER_BODY_HZ = 400;
 const MUSIC_MASTER_BODY_DB = 0.8;
 const MUSIC_MASTER_BODY_Q = 1;
 
-const LEGACY_MUSIC_TRACKS = {
-    music1: 'ART/Music/lute 1 effects.ogg',
-    music2: 'ART/Music/lute 2 w effects.ogg',
-    music3: 'ART/Music/lute 3 w effects.ogg',
-    music4: 'ART/Music/lute 4 w effects.ogg',
-    music5: 'ART/Music/lute 5 w effects.ogg'
-};
-
-const FALLBACK_BASE_POOL = ['music1', 'music2', 'music3', 'music4', 'music5'];
+/** musicPool.js failed to load — run silent rather than block on a soundtrack. */
+const FALLBACK_BASE_POOL = [];
 const FALLBACK_LAYER_POOL = [];
 
 class SoundManager {
@@ -76,7 +69,7 @@ class SoundManager {
     }
 
     _tracks() {
-        return (typeof MUSIC_TRACKS !== 'undefined' && MUSIC_TRACKS) || LEGACY_MUSIC_TRACKS;
+        return (typeof MUSIC_TRACKS !== 'undefined' && MUSIC_TRACKS) || {};
     }
 
     _basePool() {
@@ -345,7 +338,8 @@ class SoundManager {
 
     async _loadTrackBuffer(trackId) {
         const tracks = this._tracks();
-        const path = tracks[trackId] || tracks.music1 || LEGACY_MUSIC_TRACKS.music1;
+        const path = tracks[trackId];
+        if (!path) throw new Error(`Unknown music track: ${trackId}`);
         const candidatePaths = this._getMusicPaths(path);
         const buf = await this._fetchFirstAudioBuffer(candidatePaths);
         return this.audioContext.decodeAudioData(buf);
@@ -397,8 +391,7 @@ class SoundManager {
         if (!this.audioContext || !trackId) return;
         if (!this._musicPlaying) return;
 
-        const tracks = this._tracks();
-        const path = tracks[trackId] || tracks.music1;
+        const path = this._tracks()[trackId];
         try {
             const audioBuffer = await this._loadTrackBuffer(trackId);
             if (!this._musicPlaying) return;

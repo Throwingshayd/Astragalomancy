@@ -125,50 +125,20 @@ const DiceRenderer = {
         return dieEl;
     },
 
-    _syncBadges(dieEl, die, index, gameState, currentFace, hasModifiedValue, hasEnhancementsOnCurrentFace) {
-        let modBadge = dieEl.querySelector('.modification-badge');
-        if (hasModifiedValue) {
-            if (!modBadge) {
-                modBadge = document.createElement('div');
-                modBadge.className = 'modification-badge';
-                modBadge.style.cssText = 'position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:rgba(138,43,226,0.9);color:white;padding:2px 6px;border-radius:8px;font-size:12px;font-weight:bold;white-space:nowrap;z-index:10;border:1px solid white;';
-                dieEl.appendChild(modBadge);
-            }
-            modBadge.textContent = `${die.faces[currentFace].value}→${die.faces[currentFace].modifiedValue}`;
-        } else if (modBadge) {
-            modBadge.remove();
-        }
-
-        let wildBadge = dieEl.querySelector('.wild-badge');
-        const showWild = gameState.hasRolled && currentFace > 0 && die.hasEnhancementForCurrentFace('wild') && die.wildValue !== undefined;
-        const wildModifier = showWild ? die.wildValue - currentFace : 0;
-        if (showWild && wildModifier !== 0) {
-            if (!wildBadge) {
-                wildBadge = document.createElement('div');
-                wildBadge.className = 'wild-badge';
-                wildBadge.style.cssText = 'position:absolute;top:-8px;right:-8px;background:rgba(147,51,234,0.95);color:white;padding:3px 7px;border-radius:50%;font-size:12px;font-weight:bold;z-index:10;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);';
-                dieEl.appendChild(wildBadge);
-            }
-            wildBadge.textContent = wildModifier > 0 ? `+${wildModifier}` : `${wildModifier}`;
-        } else if (wildBadge) {
-            wildBadge.remove();
-        }
+    _syncBadges(dieEl, die, index, gameState, currentFace, hasEnhancementsOnCurrentFace) {
+        dieEl.querySelector('.modification-badge')?.remove();
+        dieEl.querySelector('.wild-badge')?.remove();
+        dieEl.querySelectorAll('.die-enhancement-overlay').forEach((n) => n.remove());
 
         const dieIdBadge = dieEl.querySelector('.die-id-badge');
         if (dieIdBadge) dieIdBadge.textContent = die.dieId || (index + 1);
 
-        dieEl.querySelectorAll('.die-enhancement-overlay').forEach((n) => n.remove());
         const showEnhOnDie = gameState.hasRolled && hasEnhancementsOnCurrentFace && currentFace > 0 && die.faces[currentFace];
         if (showEnhOnDie) {
             const firstEnh = Array.from(die.faces[currentFace].enhancements)[0];
             if (firstEnh) this._syncEnhancementTexture(dieEl, firstEnh);
         } else {
             this._syncEnhancementTexture(dieEl, null);
-        }
-        if (currentFace > 0 && currentFace >= 7) {
-            const faceOverlay = document.createElement('div');
-            faceOverlay.className = `die-enhancement-overlay face-${currentFace}`;
-            dieEl.appendChild(faceOverlay);
         }
 
         let modifierBadge = dieEl.querySelector('.die-modifier-badge');
@@ -198,13 +168,6 @@ const DiceRenderer = {
         dieEl.style.border = '';
         dieEl.removeAttribute('data-enhanced');
         dieEl.removeAttribute('data-modified');
-        if (hasModifiedValue) {
-            dieEl.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.8)';
-            dieEl.style.border = '3px solid rgba(138, 43, 226, 1)';
-            dieEl.setAttribute('data-modified', 'true');
-        } else if (gameState.hasRolled && hasEnhancementsOnCurrentFace) {
-            dieEl.setAttribute('data-enhanced', 'true');
-        }
 
         const displayFace = gameState.hasRolled ? die.getDisplayFace() : '?';
         const faceKey = (displayFace >= 1 && displayFace <= 9) || displayFace === '?' ? String(displayFace) : null;
@@ -223,7 +186,7 @@ const DiceRenderer = {
         const tooltipData = this.buildDieTooltipData(die, index, gameState, currentFace, hasModifiedValue);
         dieEl.setAttribute('data-tooltip', JSON.stringify(tooltipData));
         window.balatroEffects?.refreshHostTooltip?.(dieEl);
-        this._syncBadges(dieEl, die, index, gameState, currentFace, hasModifiedValue, hasEnhancementsOnCurrentFace);
+        this._syncBadges(dieEl, die, index, gameState, currentFace, hasEnhancementsOnCurrentFace);
     },
 
     updateDiceUI(dom, gameState, gameEngine) {
@@ -237,6 +200,7 @@ const DiceRenderer = {
         container.classList.toggle('libation-targeting', !!targetingMode);
 
         const count = gameState.dice.length;
+        container.classList.toggle('dice-count-6', count >= 6);
         for (let index = 0; index < count; index += 1) {
             const dieEl = this._ensureDieShell(container, index);
             this._applyDieState(dieEl, gameState.dice[index], index, gameState);

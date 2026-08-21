@@ -67,7 +67,7 @@ const BoonTimingHandlers = {
                 break;
 
             case 'the_gambler':
-                // +10 Pips (Chips) for every re-roll remaining
+                // +10 Pips for every re-roll remaining
                 const gamblerRollsLeft = gameState.rollsLeft ?? 0;
                 const gamblerBonus = gamblerRollsLeft * 10;
                 if (gamblerBonus > 0) {
@@ -112,7 +112,7 @@ const BoonTimingHandlers = {
                 if (worshipUsed > 0) {
                     result.favour += worshipUsed;
                     boon.dynamicStats.favour = worshipUsed;
-                    engine?.showMessage?.(`Mt Olympus: +${worshipUsed} Favour from worship cards!`);
+                    engine?.showMessage?.(`Mt Olympus: +${worshipUsed} Favour from worship levels!`);
                 }
                 break;
             
@@ -457,10 +457,10 @@ const BoonTimingHandlers = {
                 break;
             
             case 'misery':
-                // If you have 0 gold, gain ×2 Favour
+                // If you have 0 gold, gain +2 Favour
                 if (gameState.gold === 0) {
                     result.favour += 2;
-                    engine?.showMessage?.("Misery: ×2 Favour (broke!)");
+                    engine?.showMessage?.("Misery: +2 Favour (broke!)");
                 }
                 break;
             
@@ -471,7 +471,7 @@ const BoonTimingHandlers = {
                     
                     if (result.category === zealotCategory) {
                         result.favour += 1;
-                        engine?.showMessage?.(`The Zealot: +×1 Favour (${gameState.lastWorshipGod})!`);
+                        engine?.showMessage?.(`The Zealot: +1 Favour (${gameState.lastWorshipGod})!`);
                     }
                 }
                 break;
