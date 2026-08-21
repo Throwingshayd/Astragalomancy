@@ -116,7 +116,7 @@ const CardData = {
             rarity: "epic", 
             cost: 9, 
             sellValue: 2, 
-            effect: "Each turn, gain a random number of rolls (1-5). Time is unpredictable.",
+            effect: "Gain +1 roll at the start of each turn.",
             god: "Kronos",
             timing: { turn_start: true }
         },
@@ -276,8 +276,8 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "+10 Pips if your dice sum is divisible by 10.",
-            description: "Precision in perfect tens.",
+            effect: "Small and Large Straights gain +2 Favour.",
+            description: "The geometer rewards a perfect sequence.",
             timing: { before_score: true }
         },
         { 
@@ -286,8 +286,8 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Prime dice (2,3,5,7) give bonus: 1 prime=+1, 2=+2, 3=+3, 4=+5, 5=+7 pips.",
-            description: "Primes scored on primes - the more primes, the higher the prime bonus!",
+            effect: "Each die showing a prime (2, 3, 5) grants +0.3 Favour.",
+            description: "Indivisible numbers carry divine weight.",
             timing: { before_score: true }
         },
         { 
@@ -326,9 +326,9 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "+50 Pips but you cannot hold dice.",
-            description: "Pure chaos, no strategy - YOLO mode.",
-            timing: { before_score: true, after_roll: true }
+            effect: "Score with no dice held to gain ×2 Favour.",
+            description: "Pure chaos, no strategy - commit everything.",
+            timing: { before_score: true }
         },
         { 
             id: "typhon", 
@@ -336,10 +336,10 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Rolling all 1s on the first roll gives +90% of score threshold.",
-            description: "The father of monsters - catastrophic luck!",
+            effect: "Each die showing a 1 when you score grants +0.5 Favour.",
+            description: "The father of monsters, born from the lowest depths.",
             god: "Typhon",
-            timing: { after_roll: true, before_score: true }
+            timing: { before_score: true }
         },
         { 
             id: "early_bird", 

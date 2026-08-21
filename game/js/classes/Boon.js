@@ -300,13 +300,6 @@ class Boon extends Card {
                 });
                 break;
             
-            case 'reckless_abandon':
-                // Force all dice to be unheld - no strategy allowed!
-                gameState.dice.forEach(die => {
-                    die.held = false;
-                });
-                break;
-            
             case 'symmetry':
                 // Detect palindromic dice patterns and add permanent favour
                 const symmetryValues = gameState.dice.map(d => d.face);
@@ -322,19 +315,6 @@ class Boon extends Card {
                     
                     engine?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +0.5 Favour!`, 4000);
                     Logger.info(`Symmetry triggered! Pattern: [${symmetryValues.join('-')}], Total favour: ${this.symmetryFavour}`);
-                }
-                break;
-            
-            case 'typhon':
-                // Check if this is the first roll of the turn and all dice show 1
-                const isFirstRoll = (gameState.rollsLeft === (GAME_BALANCE.STARTING_ROLLS - 1));
-                const allOnes = gameState.dice.every(die => die.face === 1);
-                
-                if (isFirstRoll && allOnes) {
-                    const typhonBonus = Math.floor(gameState.scoreThreshold * 0.9);
-                    gameState.typhonBonus = typhonBonus;
-                    engine?.showMessage?.(`🌋 TYPHON AWAKENS! All 1s = +${typhonBonus} Pips!`, 6000);
-                    Logger.info(`Typhon triggered! Incredibly rare event - 1 in 7,776 chance!`);
                 }
                 break;
             
@@ -525,12 +505,14 @@ class Boon extends Card {
                 break;
             
             // === NEW BOONS - Turn Start ===
-            case 'kronos_hourglass':
-                // At start of turn, set a random number of rerolls for this turn (1-5)
-                const rollsThisTurn = this._randomIntInclusive(1, 5, game);
-                gameState.rollsLeft = rollsThisTurn;
-                engine?.showMessage?.(`Kronos' Hourglass: ${rollsThisTurn} rerolls this turn!`);
+            case 'kronos_hourglass': {
+                // Master of time: a reliable extra roll every turn (was random 1-5, which
+                // could strand you on a single roll — swingy and not fun).
+                const kronosBonus = (typeof BOON_EFFECTS !== 'undefined' && BOON_EFFECTS.KRONOS_HOURGLASS?.BONUS_ROLLS) || 1;
+                gameState.rollsLeft += kronosBonus;
+                engine?.showMessage?.(`Kronos' Hourglass: +${kronosBonus} roll this turn!`);
                 break;
+            }
             
             case 'pandoras_jar': {
                 // Every 3rd turn: +2 permanent Favour (stacking) and destroy a random other Boon

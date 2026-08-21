@@ -241,35 +241,28 @@ const BoonTimingHandlers = {
                 break;
             
             // === NEW BOONS - Wave 2 ===
-            case 'mathematicians_compass':
-                // +10 Pips if dice sum is divisible by 10
-                const diceSum = gameState.dice.reduce((sum, die) => sum + die.face, 0);
-                if (diceSum % 10 === 0) {
-                    result.pips += 10;
-                    engine?.showMessage?.(`Mathematician's Compass: +10 Pips (sum: ${diceSum})!`);
+            case 'mathematicians_compass': {
+                if (result.category === 'Small Straight' || result.category === 'Large Straight') {
+                    const f = (BOON_EFFECTS.MATHEMATICIANS_COMPASS?.STRAIGHT_FAVOUR) ?? 2;
+                    result.favour += f;
+                    boon.dynamicStats.favour = f;
+                    engine?.showMessage?.(`Mathematician's Compass: straight, +${f} Favour!`);
                 }
                 break;
+            }
             
-            case 'prime_time':
-                // Prime dice (2,3,5,7) give bonus based on count: [1,2,3,5,7]
-                const primes = [2, 3, 5];
-                // Add 7 only if Sevens unlocked
-                if (gameState.unlockedCategories?.Sevens) {
-                    primes.push(7);
-                }
-                
+            case 'prime_time': {
+                const primes = [...((BOON_EFFECTS.PRIME_TIME?.PRIMES) ?? [2, 3, 5])];
+                if (gameState.unlockedCategories?.Sevens) primes.push(7);
                 const primeCount = gameState.dice.filter(die => primes.includes(die.face)).length;
-                
-                // Bonus sequence: 1 prime=+1, 2=+2, 3=+3, 4=+5, 5=+7
-                const primeBonusSequence = [0, 1, 2, 3, 5, 7]; // Index 0 unused, index 1-5 are bonuses
-                
                 if (primeCount > 0) {
-                    const primeBonus = primeBonusSequence[primeCount] || 0;
-                    result.pips += primeBonus;
-                    boon.dynamicStats.pips = primeBonus;
-                    engine?.showMessage?.(`Prime Time: +${primeBonus} Pips from ${primeCount} primes!`);
+                    const f = Math.round(primeCount * ((BOON_EFFECTS.PRIME_TIME?.FAVOUR_PER_PRIME) ?? 0.3) * 100) / 100;
+                    result.favour += f;
+                    boon.dynamicStats.favour = f;
+                    engine?.showMessage?.(`Prime Time: +${f} Favour from ${primeCount} primes!`);
                 }
                 break;
+            }
             
             case 'the_locksmith':
                 // Held dice gain +1 pips for each roll they were held
@@ -302,20 +295,27 @@ const BoonTimingHandlers = {
                 }
                 break;
             
-            case 'reckless_abandon':
-                // +50 Pips flat bonus
-                result.pips += 50;
-                engine?.showMessage?.("Reckless Abandon: +50 Pips!");
-                break;
-            
-            case 'typhon':
-                // Apply stored typhon bonus if triggered
-                if (gameState.typhonBonus > 0) {
-                    result.pips += gameState.typhonBonus;
-                    engine?.showMessage?.(`🌋 Typhon's Power: +${gameState.typhonBonus} Pips!`, 5000);
-                    gameState.typhonBonus = 0; // Reset after use
+            case 'reckless_abandon': {
+                const anyHeld = (gameState.held || []).some(Boolean) || (gameState.dice || []).some(d => d.held);
+                if (!anyHeld) {
+                    const m = (BOON_EFFECTS.RECKLESS_ABANDON?.FAVOUR_MULT) ?? 2;
+                    result.favour *= m;
+                    boon.dynamicStats.favour = `×${m}`;
+                    engine?.showMessage?.(`Reckless Abandon: no dice held — ×${m} Favour!`);
                 }
                 break;
+            }
+            
+            case 'typhon': {
+                const ones = gameState.dice.filter(die => die.face === 1).length;
+                if (ones > 0) {
+                    const f = Math.round(ones * ((BOON_EFFECTS.TYPHON?.FAVOUR_PER_ONE) ?? 0.5) * 100) / 100;
+                    result.favour += f;
+                    boon.dynamicStats.favour = f;
+                    engine?.showMessage?.(`🌋 Typhon: ${ones}× 1 — +${f} Favour!`);
+                }
+                break;
+            }
             
             case 'early_bird':
                 // Turns 1-3: +20 Pips, turns 6-13: -5 Pips

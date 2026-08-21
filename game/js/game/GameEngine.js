@@ -613,8 +613,6 @@ class GameEngine {
      */
     unholdAllDice() {
         if (!this.state.hasRolled) return;
-        const hasRecklessAbandon = this.state.boons?.some(j => j.id === 'reckless_abandon');
-        if (hasRecklessAbandon) return;
         if (this.state.held.every(h => !h)) return;
         this.state.held.fill(false);
         if (this.sound) this.sound.play('whoosh', { pitch: 0.9, volume: 0.4 });
@@ -931,15 +929,13 @@ class GameEngine {
                 });
                 break;
             case 'prime_time': {
-                const primes = [2, 3, 5];
+                const primes = [...((typeof BOON_EFFECTS !== 'undefined' && BOON_EFFECTS.PRIME_TIME?.PRIMES) || [2, 3, 5])];
                 if (state.unlockedCategories?.Sevens) primes.push(7);
-                const primeDice = state.dice
+                const perPrime = (typeof BOON_EFFECTS !== 'undefined' && BOON_EFFECTS.PRIME_TIME?.FAVOUR_PER_PRIME) || 0.3;
+                state.dice
                     .map((d, i) => ({ i, face: this.getDieFaceValue(d, 0) }))
-                    .filter(({ face }) => primes.includes(face));
-                const primeBonusSeq = [0, 1, 2, 3, 5, 7];
-                const totalBonus = primeDice.length > 0 ? (primeBonusSeq[primeDice.length] || 0) : 0;
-                const perDie = primeDice.length > 0 ? Math.round((totalBonus / primeDice.length) * 10) / 10 : 0;
-                primeDice.forEach(({ i }) => result.push({ dieIndex: i, label: `+${perDie} pips` }));
+                    .filter(({ face }) => primes.includes(face))
+                    .forEach(({ i }) => result.push({ dieIndex: i, label: `+${perPrime} favour` }));
                 break;
             }
             case 'the_locksmith':
