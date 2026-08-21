@@ -40,7 +40,8 @@ const CardData = {
             rarity: "rustic", 
             cost: 4, 
             sellValue: 2, 
-            effect: "Gain +1 pip for every 5 Gold you have when scoring.",
+            effect: "Gain +0.1 Favour for every 5 Gold you have when scoring.",
+            description: "Everything you touch — and hoard — turns to power.",
             timing: { before_score: true }
         },
         { 
@@ -585,8 +586,8 @@ const CardData = {
             rarity: "vibrant", 
             cost: 8, 
             sellValue: 2, 
-            effect: "All gold enhancements also give +3 Pips.",
-            description: "The gold standard - premium enhancements for premium value.",
+            effect: "While you have 20+ Gold, gain ×1.5 Favour.",
+            description: "Back every offering with a full treasury.",
             timing: { before_score: true }
         },
         { 

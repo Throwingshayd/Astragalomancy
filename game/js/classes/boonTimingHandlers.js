@@ -38,16 +38,17 @@ const BoonTimingHandlers = {
                 engine?.showMessage?.("Achilles' Heel: +15 Pips!");
                 break;
             
-            case 'midas_touch':
-                // +1 pip per 5 Gold
-                const midasGold = Math.floor(gameState.gold / 5);
-                const midasBonus = midasGold * 1;
-                if (midasBonus > 0) {
-                    result.pips += midasBonus;
-                    boon.dynamicStats.pips = midasBonus;
-                    engine?.showMessage?.(`Midas Touch: +${midasBonus} Pips from ${midasGold * 5} gold!`);
+            case 'midas_touch': {
+                // Hoard payoff: your gold empowers the offering (Favour, so it scales).
+                const per5 = (BOON_EFFECTS.MIDAS_TOUCH?.FAVOUR_PER_5_GOLD) ?? 0.1;
+                const midasFavour = Math.round(Math.floor((gameState.gold || 0) / 5) * per5 * 100) / 100;
+                if (midasFavour > 0) {
+                    result.favour += midasFavour;
+                    boon.dynamicStats.favour = midasFavour;
+                    engine?.showMessage?.(`Midas Touch: +${midasFavour} Favour from ${gameState.gold} gold!`);
                 }
                 break;
+            }
             
             case 'lethe_waters':
                 // +25 Pips flat bonus (ignoring 1-2s is cosmetic/handled elsewhere)
@@ -538,23 +539,19 @@ const BoonTimingHandlers = {
                 }
                 break;
             
-            case 'gold_standard':
-                // All gold enhancements give +3 Pips
-                let goldEnhancementCount = 0;
-                
-                gameState.dice.forEach(die => {
-                    const currentFace = die.face;
-                    if (die.faces[currentFace] && die.faces[currentFace].enhancements.has('gold')) {
-                        goldEnhancementCount++;
-                    }
-                });
-                
-                if (goldEnhancementCount > 0) {
-                    const goldBonus = goldEnhancementCount * 3;
-                    result.pips += goldBonus;
-                    engine?.showMessage?.(`Gold Standard: +${goldBonus} Pips from ${goldEnhancementCount} gold!`);
+            case 'gold_standard': {
+                // Threshold payoff: stay rich and every offering is amplified (×Favour).
+                const richAt = (BOON_EFFECTS.GOLD_STANDARD?.RICH_THRESHOLD) ?? 20;
+                const goldMult = (BOON_EFFECTS.GOLD_STANDARD?.FAVOUR_MULT) ?? 1.5;
+                if ((gameState.gold || 0) >= richAt) {
+                    result.favour *= goldMult;
+                    boon.dynamicStats.favour = `×${goldMult}`;
+                    engine?.showMessage?.(`Gold Standard: ${gameState.gold} gold — ×${goldMult} Favour!`);
+                } else {
+                    boon.dynamicStats.favour = 0;
                 }
                 break;
+            }
             
             case 'carillon_of_the_muses':
                 // If all 5 dice have enhancements, gain ×3 Favour (×5 if all same)

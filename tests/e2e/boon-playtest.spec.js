@@ -118,7 +118,7 @@ test.describe('Boon Playtests', () => {
   });
 
   // --- MECHANIC + VISUAL: Gold-scaling pips ---
-  test("Midas Touch - +1 pip per 5 Gold (visual in live counter)", async ({ page }) => {
+  test("Midas Touch - +0.1 Favour per 5 Gold", async ({ page }) => {
     await startGame(page, 'midas_touch');
     await rollAndScore(page, 'Chance');
     await page.waitForTimeout(500);
@@ -510,7 +510,7 @@ test.describe('Boon Playtests', () => {
     await rollAndScore(page, 'Chance');
     await expect(page.locator('#turnDisplay')).toContainText(/II|2/);
   });
-  test("Gold Standard - gold enhancements +3 pips", async ({ page }) => {
+  test("Gold Standard - ×1.5 Favour while rich (20+ gold)", async ({ page }) => {
     await startGame(page, 'gold_standard', { enhance: 'gold' });
     await expect(page.locator('.boon-slots [data-card-id="gold_standard"]')).toBeVisible();
     await rollAndScore(page, 'Chance');

@@ -164,7 +164,8 @@ const BOON_EFFECTS = {
     },
     
     GOLD_STANDARD: {
-        PIPS_PER_GOLD_ENHANCEMENT: 3
+        RICH_THRESHOLD: 20,  // Gold needed to stay "on the gold standard"
+        FAVOUR_MULT: 1.5     // ×Favour while rich
     },
     
     // === RUSTIC TIER BOONS ===
@@ -174,7 +175,7 @@ const BOON_EFFECTS = {
     },
     
     MIDAS_TOUCH: {
-        PIPS_PER_10_GOLD: 5
+        FAVOUR_PER_5_GOLD: 0.1  // Hoard payoff: +0.1 Favour per 5 gold held when scoring
     },
     
     ICARUS_WINGS: {
