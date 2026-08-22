@@ -148,6 +148,7 @@
                 <div class="center-game-area">
                     <div class="game-board-bg" aria-hidden="true"></div>
                     <div class="dice-roll-zone" id="diceRollZone" aria-hidden="true"></div>
+                    <div class="felt-play-mirror" id="playMirror" aria-hidden="true"></div>
 
                     <!-- Drag zones: worship ↑ · drink libation → oval above Cast the Bones · enhancer → dice only · sell → gold -->
                     <div class="consumable-zone consumable-zone-worship" id="consumableZoneWorship" aria-hidden="true"></div>
@@ -224,8 +225,9 @@
                         <span class="shop-continue-label">Reroll</span>
                         <span class="shop-continue-arrow" aria-hidden="true">4g</span>
                     </button>
-                    <!-- Gold — above artifacts chest, aligned with dice row -->
-                    <div class="felt-stone felt-stone-gold" data-felt="gold" id="goldStone">
+                    <!-- Gold — painted plaque above the artifacts chest (sell drop target) -->
+                    <div class="felt-stone felt-stone-gold" data-felt="gold" id="goldStone" role="status" aria-label="Gold">
+                        <img class="gold-stone-skin" src="/ART/gold-info-plaque.png" alt="" draggable="false">
                         <span class="felt-stone-label">Gold</span>
                         <span class="felt-stone-value" id="goldDisplay">0</span>
                     </div>

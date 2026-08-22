@@ -71,6 +71,7 @@ self.__SW_PRECACHE_ASSETS = [
   "/ART/gamblers charm.png",
   "/ART/game-board.png",
   "/ART/gold standard.png",
+  "/ART/gold-info-plaque.png",
   "/ART/golden touch.png",
   "/ART/hestias hearth.png",
   "/ART/hydras heads.png",

@@ -31,13 +31,12 @@
     --gk-ink: #34250f;
     --gk-ink-soft: #6a5230;
     --gk-terracotta: #b5532f;
-    /* Score line — pips amethyst, favour devotion-rose (love for a god, not stop-sign).
-       Gold stays the neutral connector between them. */
+    /* Score line — pale glow for dark felt; deep purple / blood on glass. */
     --gk-pips-1: #b98ceb;
-    --gk-pips-2: #5a3d8a;
+    --gk-pips-2: #4a2678;
     --gk-pips-glow: rgba(185, 140, 235, 0.42);
     --gk-favour-1: #e56b7a;
-    --gk-favour-2: #8b2f45;
+    --gk-favour-2: #8f1524;
     --gk-favour-glow: rgba(229, 107, 122, 0.45);
     /* Layout — main-game coordinate system (stones, pantheon, felt) */
     --felt-die-size: 95px;
@@ -45,6 +44,27 @@
     --felt-stone-h: 72px;
     /* Felt HUD — marble wax tablets (same family as pantheon frieze) */
     --felt-panel-marble: linear-gradient(180deg, #fffdf6 0%, #f4ebd6 55%, #e6d8bc 100%);
+    --felt-parchment:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 38%),
+        linear-gradient(180deg, #fff8e6 0%, #f0e0b8 55%, #e2cc96 100%);
+    --felt-parchment-frame:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        inset 0 0 0 1px rgba(154, 119, 48, 0.32),
+        0 8px 22px rgba(0, 0, 0, 0.42);
+    --felt-glass:
+        linear-gradient(155deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.08) 38%, rgba(255, 248, 230, 0.12) 100%),
+        linear-gradient(180deg, rgba(255, 248, 230, 0.46) 0%, rgba(244, 228, 190, 0.28) 52%, rgba(226, 204, 150, 0.22) 100%);
+    --felt-glass-frame:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 0 0 1px rgba(154, 119, 48, 0.34),
+        inset 0 -36px 48px rgba(255, 255, 255, 0.1),
+        0 12px 32px rgba(0, 0, 0, 0.4);
+    --felt-glass-panel:
+        linear-gradient(155deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.1) 36%, rgba(255, 248, 230, 0.14) 100%),
+        linear-gradient(180deg, rgba(255, 248, 230, 0.78) 0%, rgba(244, 228, 190, 0.64) 55%, rgba(226, 204, 150, 0.56) 100%);
+    --felt-glass-ink-lift: 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(52, 37, 15, 0.16);
+    --felt-glass-pips-shadow: 0 1px 1px rgba(52, 37, 15, 0.22);
+    --felt-glass-favour-shadow: 0 1px 1px rgba(52, 37, 15, 0.22);
     --felt-panel-border: var(--gk-gold-2);
     --felt-panel-ink: var(--gk-ink);
     --felt-panel-label: var(--gk-bronze);
@@ -412,10 +432,17 @@
     text-shadow: 0 0 16px rgba(255, 240, 180, 0.75), 0 1px 2px rgba(40, 80, 120, 0.35);
 }
 
-/* Keep god names under the tablet after scoring (score replaces category label only) */
+/* Keep god names under the tablet after scoring (score replaces category label only).
+   Category stays in-flow but hidden so the marble does not shrink. */
 .main-game .pantheon-frieze .pantheon-chip.used .pantheon-deity,
 .main-game .pantheon-frieze .pantheon-chip.pantheon-scored .pantheon-deity {
     display: block !important;
+}
+
+.main-game .pantheon-frieze .pantheon-chip.used .pantheon-cat,
+.main-game .pantheon-frieze .pantheon-chip.pantheon-scored .pantheon-cat {
+    display: flex !important;
+    visibility: hidden;
 }
 
 .main-game .pantheon-frieze .pantheon-chip .potential-score {
@@ -475,10 +502,18 @@
 
 .main-game .pantheon-frieze .pantheon-chip.used {
     filter: none;
+    opacity: 1;
 }
 
-.main-game .pantheon-frieze .pantheon-chip.used::before {
-    filter: saturate(0.62) brightness(0.96);
+.main-game .pantheon-frieze .pantheon-chip.used::before,
+.main-game .pantheon-frieze .pantheon-chip.pantheon-scored::before {
+    filter: none;
+    opacity: 1;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: linear-gradient(180deg, #fffdf6 0%, #f4ebd6 55%, #eee0c4 100%);
+    border: 1px solid var(--gk-gold-2);
+    box-shadow: inset 0 1px 0 #fffef8, inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 /* ── 5. SIDE PANELS — marble pillar stelae (Consumables left, Boons right) ─ */
@@ -765,38 +800,35 @@
     filter: brightness(1.08) drop-shadow(0 0 18px rgba(244, 214, 128, 0.45));
 }
 
-/* Live score reads clearly on dark felt. */
+/* Live score reads as ink on glass parchment. */
 .center-game-area .live-score-display.felt-live .gnosis-category-name {
     font-family: var(--font-pantheon-hand);
     font-weight: 600;
-    color: var(--gk-gold-1);
+    color: var(--gk-ink);
     letter-spacing: 0.08em;
+    text-shadow: var(--felt-glass-ink-lift);
 }
 
 .center-game-area .live-score-display.felt-live .pips {
-    color: var(--gk-pips-1);
+    color: var(--gk-pips-2);
     font-family: var(--font-ui), sans-serif;
-    text-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.45),
-        0 2px 6px rgba(0, 0, 0, 0.5),
-        0 0 18px var(--gk-pips-glow);
+    text-shadow: var(--felt-glass-pips-shadow);
 }
 
 .center-game-area .live-score-display.felt-live .favour {
-    color: var(--gk-favour-1);
+    color: var(--gk-favour-2);
     font-family: var(--font-ui), sans-serif;
-    text-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.45),
-        0 2px 6px rgba(0, 0, 0, 0.5),
-        0 0 18px var(--gk-favour-glow);
+    text-shadow: var(--felt-glass-favour-shadow);
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-pips-bonus {
-    color: var(--gk-pips-1);
+    color: var(--gk-pips-2);
+    text-shadow: var(--felt-glass-pips-shadow);
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
-    color: var(--gk-favour-1);
+    color: var(--gk-favour-2);
+    text-shadow: var(--felt-glass-favour-shadow);
 }
 
 /* In-run Menu — same marble-gilt family as pause / settings */
@@ -1169,7 +1201,7 @@
    Status as a readable metric strip; Total / Required / Offering as hero type.
    ============================================================================ */
 
-/* Drop marble tablet chrome — info is type, not buttons */
+/* Drop marble tablet chrome — info is type, not buttons. Gold uses painted plaque art. */
 .main-game .center-game-area .felt-stone:not(.felt-score-felt):not(.felt-stone-gold),
 .main-game .center-game-area .felt-score-felt:not(.felt-stone-depart) {
     border: none !important;
@@ -1188,65 +1220,118 @@
     display: none !important;
 }
 
-/* Gold — marble plaque above the artifacts chest (sell drop target) */
+/* Gold — painted plaque above the artifacts chest (sell drop target) */
 .main-game .center-game-area .felt-stone-gold {
     position: absolute;
     top: calc(472px - var(--felt-die-size, 95px) + (var(--felt-die-size, 95px) - var(--felt-stone-h, 72px)) / 2 - 2 * var(--felt-die-size, 95px));
-    left: calc(1018px + 258px / 2);
+    left: 1260px;
     transform: translateX(-50%);
     z-index: 18;
     pointer-events: auto;
     overflow: visible !important;
-    display: flex !important;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: auto !important;
-    min-width: 120px !important;
+    display: block !important;
+    width: 248px !important;
+    min-width: 0 !important;
     max-width: none !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    padding: 16px 20px 14px !important;
-    border-radius: 12px !important;
-    border: 2px solid var(--felt-panel-border, var(--gk-gold-2)) !important;
-    background:
-        radial-gradient(ellipse 120% 85% at 50% 0%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 58%),
-        var(--felt-panel-marble, #f4ebd6) !important;
-    box-shadow:
-        inset 0 1px 0 #fffef8,
-        inset 0 -14px 22px rgba(107, 75, 48, 0.11),
-        0 2px 0 rgba(90, 62, 36, 0.4),
-        0 5px 14px rgba(0, 0, 0, 0.34) !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+.main-game .center-game-area .felt-stone-gold::before {
+    content: none !important;
+    display: none !important;
+}
+
+.main-game:not(.consumable-drag-active) .center-game-area .felt-stone-gold::after {
+    content: none !important;
+    display: none !important;
+}
+
+.main-game .center-game-area .gold-stone-skin {
+    display: block;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 .main-game .center-game-area .felt-stone-gold .felt-stone-label {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    top: 30%;
+    transform: translateX(-50%);
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: nowrap;
+    border: 0;
     font-family: var(--font-epic-title);
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--felt-panel-label, #6b4b30);
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+    color: #fff4c4;
+    text-shadow:
+        0 1px 0 #2a1208,
+        0 2px 6px rgba(0, 0, 0, 0.55);
+    pointer-events: none;
 }
 
 .main-game .center-game-area .felt-stone-gold .felt-stone-value {
+    position: absolute;
+    z-index: 2;
+    left: 16%;
+    right: 16%;
+    top: 46%;
+    bottom: 16%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-family: var(--font-manuscript);
-    font-size: 36px !important;
+    font-size: 32px !important;
+    font-variant-numeric: tabular-nums;
     line-height: 1;
-    color: var(--felt-panel-ink, #34250f);
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
+    color: #fff4c4;
+    text-shadow:
+        0 1px 0 #2a1208,
+        0 2px 6px rgba(0, 0, 0, 0.55);
+}
+
+.main-game.consumable-drag-active .center-game-area .felt-stone-gold {
+    box-shadow: none !important;
+}
+
+.main-game.consumable-drag-active .center-game-area .felt-stone-gold .gold-stone-skin {
+    filter: drop-shadow(0 0 14px rgba(255, 215, 0, 0.5));
 }
 
 .main-game.consumable-drag-active .center-game-area .felt-stone-gold.drop-target-sell {
     transform: translateX(-50%) scale(1.08);
 }
 
+.main-game.consumable-drag-active .center-game-area .felt-stone-gold.drop-target-sell .gold-stone-skin {
+    filter:
+        drop-shadow(0 0 20px rgba(255, 215, 0, 0.9))
+        drop-shadow(0 0 32px rgba(255, 180, 90, 0.55));
+}
+
 /* Artifacts chest — raised one die height under gold */
 /* One die below the dice row, so the chest clears the gold stone stacked above it. */
 .main-game .center-game-area .artifacts-chest {
     top: 468px;
+    left: 1098px;
 }
 
 /* ── Info bar: marble frieze chrome (old pantheon look) ── */
@@ -1394,11 +1479,49 @@
 }
 
 /* ── Live offering — pips×favour up top; message sits separately below ── */
+.main-game .center-game-area .felt-play-mirror {
+    position: absolute;
+    left: 50%;
+    top: 108px;
+    width: min(740px, calc(100% - 200px));
+    height: calc(632px - var(--felt-die-size, 95px) + 148px - 108px);
+    transform: translateX(-50%);
+    z-index: 8;
+    pointer-events: none;
+    box-sizing: border-box;
+    border-radius: 22px;
+    border: 2px solid var(--gk-gold-2);
+    background: var(--felt-glass);
+    backdrop-filter: blur(8px) saturate(1.12);
+    -webkit-backdrop-filter: blur(8px) saturate(1.12);
+    box-shadow: var(--felt-glass-frame);
+}
+
+.main-game .center-game-area .felt-play-mirror::before {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow: inset 0 0 0 1px rgba(154, 119, 48, 0.18);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 46%);
+    pointer-events: none;
+}
+
+.main-game.shop-active .center-game-area .felt-play-mirror {
+    display: none !important;
+}
+
 .main-game .center-game-area .live-score-display.felt-live {
     top: 122px !important;
-    width: min(720px, calc(100% - 280px));
+    width: max-content;
     min-width: 320px;
     max-width: min(720px, calc(100% - 280px));
+    padding: 16px 36px 14px;
+    box-sizing: border-box;
+    border: none;
+    background: none;
+    box-shadow: none;
 }
 
 .main-game .center-game-area .offering-message,
@@ -1408,9 +1531,10 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 22;
-    width: min(760px, calc(100% - 200px));
+    width: max-content;
+    max-width: min(760px, calc(100% - 200px));
     margin: 0;
-    padding: 0 12px;
+    padding: 8px 22px 7px;
     box-sizing: border-box;
     text-align: center;
     pointer-events: none;
@@ -1419,8 +1543,11 @@
     font-size: 1.55rem;
     letter-spacing: 0.08em;
     line-height: 1.28;
-    color: var(--gk-gold-1);
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+    color: var(--gk-ink);
+    text-shadow: var(--felt-glass-ink-lift);
+    border: none;
+    background: none;
+    box-shadow: none;
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
@@ -1504,23 +1631,21 @@
     text-overflow: ellipsis;
     text-transform: uppercase;
     font-weight: normal;
-    text-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.55),
-        0 0 12px rgba(0, 0, 0, 0.25);
+    text-shadow: var(--felt-glass-ink-lift);
 }
 
 /* "+N" chip picks up its metric's hue instead of flat cream — sign included,
    since there is no chip background left to hold the two glyphs together. */
 .main-game .center-game-area .live-score-display.felt-live .pips-cell .live-add .pip-contribution,
 .main-game .center-game-area .live-score-display.felt-live .pips-cell .live-add .plus-symbol {
-    color: var(--gk-pips-1) !important;
-    text-shadow: inherit;
+    color: var(--gk-pips-2) !important;
+    text-shadow: var(--felt-glass-pips-shadow);
 }
 
 .main-game .center-game-area .live-score-display.felt-live .favour-cell .live-add .favour-contribution,
 .main-game .center-game-area .live-score-display.felt-live .favour-cell .live-add .plus-symbol {
-    color: var(--gk-favour-1) !important;
-    text-shadow: inherit;
+    color: var(--gk-favour-2) !important;
+    text-shadow: var(--felt-glass-favour-shadow);
 }
 
 .main-game .center-game-area .live-score-display.felt-live .pips-cell .live-add .pip-contribution,
@@ -1540,7 +1665,7 @@
 
 .main-game .center-game-area .rolling-controls,
 .main-game .center-game-area .rollingControls {
-    top: calc(632px - var(--felt-die-size, 95px)) !important;
+    top: calc(620px - var(--felt-die-size, 95px)) !important;
 }
 
 /* Shop: Continue sits one die above the info-bar / gold band */
@@ -1557,7 +1682,7 @@
     --clep-glow: rgba(244, 214, 128, 0.55);
     --clep-tick: rgba(244, 214, 128, 0.85);
     position: absolute;
-    left: calc(52px + 1.5 * var(--felt-die-size, 95px));
+    left: calc(52px + 0.9 * var(--felt-die-size, 95px));
     top: calc(468px - var(--felt-die-size, 95px));
     width: 168px;
     height: auto;
@@ -1807,7 +1932,7 @@
     position: absolute;
     left: 50%;
     /* Between dice row and Cast the Bones */
-    top: calc(633px - var(--felt-die-size, 95px));
+    top: calc(608px - var(--felt-die-size, 95px));
     transform: translateX(-50%);
     z-index: 25;
     display: flex;
@@ -1865,22 +1990,19 @@
 }
 
 /* ============================================================================
-   7) PAUSE + SETTINGS — marble stele overlays (not Balatro green/red)
+   7) PAUSE + SETTINGS — glass parchment overlays
 ============================================================================ */
 
 .settings-modal,
 .pause-menu-modal {
     background-image: none !important;
-    background:
-        linear-gradient(165deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 36%),
-        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 58%, var(--gk-marble-3) 100%) !important;
+    background: var(--felt-glass-panel) !important;
+    backdrop-filter: blur(10px) saturate(1.12);
+    -webkit-backdrop-filter: blur(10px) saturate(1.12);
     border: 2px solid var(--gk-gold-2) !important;
     border-radius: 16px !important;
     color: var(--gk-ink);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.72),
-        inset 0 0 0 1px rgba(154, 119, 48, 0.28),
-        0 18px 48px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: var(--felt-glass-frame) !important;
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -2068,10 +2190,9 @@
 }
 
 .pause-run-info {
-    background:
-        linear-gradient(180deg, rgba(255, 253, 246, 0.55) 0%, rgba(217, 200, 166, 0.35) 100%) !important;
+    background: var(--felt-glass) !important;
     border: 1px solid rgba(154, 119, 48, 0.32) !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .run-info-tab {
@@ -2117,7 +2238,7 @@
 }
 
 /* ============================================================================
-   8) ANTHOLOGY + START BUTTONS — marble stele, grape not stop-sign
+   8) ANTHOLOGY + START BUTTONS — glass parchment, grape not stop-sign
 ============================================================================ */
 
 #collectionScreen {
@@ -2128,16 +2249,13 @@
 
 #collectionScreen .modal-content {
     background-image: none !important;
-    background:
-        linear-gradient(165deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 36%),
-        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 58%, var(--gk-marble-3) 100%) !important;
+    background: var(--felt-glass-panel) !important;
+    backdrop-filter: blur(10px) saturate(1.12);
+    -webkit-backdrop-filter: blur(10px) saturate(1.12);
     border: 2px solid var(--gk-gold-2) !important;
     border-radius: 16px !important;
     color: var(--gk-ink);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.72),
-        inset 0 0 0 1px rgba(154, 119, 48, 0.28),
-        0 18px 48px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: var(--felt-glass-frame) !important;
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -2260,25 +2378,36 @@
 ============================================================================ */
 
 .center-game-area .live-score-display.felt-live .gnosis-pips-bonus {
-    color: var(--gk-pips-1);
+    color: var(--gk-pips-2);
+    text-shadow: var(--felt-glass-pips-shadow);
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
-    color: var(--gk-favour-1);
+    color: var(--gk-favour-2);
+    text-shadow: var(--felt-glass-favour-shadow);
 }
 
 .center-game-area .live-score-display.felt-live .pips {
-    text-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.45),
-        0 2px 8px rgba(0, 0, 0, 0.5),
-        0 0 22px var(--gk-pips-glow);
+    text-shadow: var(--felt-glass-pips-shadow);
 }
 
 .center-game-area .live-score-display.felt-live .favour {
-    text-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.45),
-        0 2px 8px rgba(0, 0, 0, 0.5),
-        0 0 22px var(--gk-favour-glow);
+    text-shadow: var(--felt-glass-favour-shadow);
+}
+
+.center-game-area .live-score-display.felt-live .gnosis-times,
+.center-game-area .live-score-display.felt-live .multiply-symbol {
+    text-shadow: var(--felt-glass-ink-lift);
+}
+
+.center-game-area .live-score-display.felt-live .gnosis-cashout-line {
+    color: var(--gk-ink);
+    text-shadow: var(--felt-glass-ink-lift);
+}
+
+.center-game-area .live-score-display.felt-live .gnosis-cashout-line.is-payout {
+    color: var(--gk-bronze);
+    text-shadow: var(--felt-glass-ink-lift);
 }
 
 .die-pip-popup {

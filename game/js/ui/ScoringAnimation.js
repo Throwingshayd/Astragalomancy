@@ -71,7 +71,7 @@ class ScoringAnimation {
         const preBoonPips = diceContributions.reduce((sum, c) => sum + (c.pips || 0), 0)
             + (applyOfferingBonus ? offeringBonusPips : 0);
         const boonContributions = this.getBoonContributions(category, preBoonPips, categoryBaseFavour);
-        const up = (o) => this.engine.ensureLiveScore()?.updateValues(liveScoreEl, { ...o, category: categoryLabel, pipsLabel: 'pips', favourLabel: 'favour', showNa: false });
+        const up = (o) => this.engine.ensureLiveScore()?.updateValues(liveScoreEl, { ...o, category: categoryLabel, pipsLabel: 'pips', favourLabel: 'favour' });
 
         let currentPips = 0;
         let currentFavour = categoryBaseFavour;

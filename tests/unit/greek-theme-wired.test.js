@@ -54,7 +54,7 @@ describe('Greek theme wiring', () => {
         expect(block.indexOf('clepsydra-readout')).toBeLessThan(block.indexOf('clepsydra-relic'));
         expect(block.indexOf('turnDisplay')).toBeLessThan(block.indexOf('clepsydra-relic'));
         expect(css).toMatch(
-            /\.main-game \.center-game-area \.clepsydra \{[\s\S]*?left:\s*calc\(52px \+ 1\.5 \* var\(--felt-die-size, 95px\)\)/,
+            /\.main-game \.center-game-area \.clepsydra \{[\s\S]*?left:\s*calc\(52px \+ 0\.9 \* var\(--felt-die-size, 95px\)\)/,
         );
         expect(css).toMatch(
             /\.main-game \.center-game-area \.clepsydra \{[\s\S]*?top:\s*calc\(468px - var\(--felt-die-size, 95px\)\)/,
@@ -64,32 +64,79 @@ describe('Greek theme wiring', () => {
         );
     });
 
-    it('shop Continue sits one die higher and gold has a marble plaque', () => {
+    it('shop Continue sits one die higher and gold has a painted plaque', () => {
+        const html = readFileSync('game/index.html', 'utf8');
         const css = readFileSync('game/css/greek-theme.css', 'utf8');
+        expect(html).toContain('gold-info-plaque.png');
+        expect(html).toContain('id="goldDisplay"');
         expect(css).toMatch(
             /\.main-game\.shop-active \.center-game-area \.shop-continue-btn \{[\s\S]*?top:\s*calc\(590px - 2 \* var\(--felt-die-size, 95px\)\)/,
         );
+        expect(css).toContain('.gold-stone-skin');
         expect(css).toMatch(
-            /\.main-game \.center-game-area \.felt-stone-gold \{[\s\S]*?felt-panel-marble/,
+            /\.main-game \.center-game-area \.felt-stone-gold \{[\s\S]*?background:\s*none/,
+        );
+        expect(css).toMatch(
+            /\.main-game \.center-game-area \.felt-stone-gold \{[\s\S]*?left:\s*1260px/,
+        );
+        expect(css).toMatch(
+            /\.felt-stone-gold \.felt-stone-label \{[\s\S]*?text-transform: uppercase/,
         );
     });
 
-    it('score line reads pips amethyst and favour devotion-rose, never gold', () => {
+    it('play column sits on a glass parchment mirror; die hover stays framed', () => {
+        const html = readFileSync('game/index.html', 'utf8');
         const css = readFileSync('game/css/greek-theme.css', 'utf8');
-        expect(css).toMatch(/--gk-pips-1:\s*#b98ceb/);
-        expect(css).toMatch(/--gk-favour-1:\s*#e56b7a/);
+        const tips = readFileSync('game/css/tooltips.css', 'utf8');
+        expect(html).toContain('id="playMirror"');
+        expect(css).toContain('--felt-glass:');
+        expect(css).toContain('--felt-glass-panel:');
         expect(css).toMatch(
-            /\.center-game-area \.live-score-display\.felt-live \.pips \{[\s\S]*?color: var\(--gk-pips-1\)/,
+            /\.main-game \.center-game-area \.felt-play-mirror \{[\s\S]*?width: min\(740px/,
         );
         expect(css).toMatch(
-            /\.center-game-area \.live-score-display\.felt-live \.favour \{[\s\S]*?color: var\(--gk-favour-1\)/,
+            /\.main-game \.center-game-area \.felt-play-mirror \{[\s\S]*?height: calc\(632px - var\(--felt-die-size, 95px\) \+ 148px - 108px\)/,
+        );
+        expect(css).toMatch(
+            /\.main-game \.center-game-area \.felt-play-mirror \{[\s\S]*?backdrop-filter: blur/,
+        );
+        expect(css).toMatch(
+            /\.main-game\.shop-active \.center-game-area \.felt-play-mirror \{[\s\S]*?display: none/,
+        );
+        expect(css).toMatch(
+            /\.pause-menu-modal \{[\s\S]*?background: var\(--felt-glass-panel\)/,
+        );
+        expect(css).toMatch(
+            /#collectionScreen \.modal-content \{[\s\S]*?background: var\(--felt-glass-panel\)/,
+        );
+        expect(css).toContain('--felt-glass-pips-shadow:');
+        expect(css).toMatch(
+            /\.pantheon-chip\.used \.pantheon-cat,[\s\S]*?visibility: hidden/,
+        );
+        expect(css).toMatch(
+            /\.pantheon-chip\.used::before,[\s\S]*?filter: none;[\s\S]*?#fffdf6/,
+        );
+        expect(tips).toMatch(
+            /#tooltip-root \.tooltip-die-popup \{[\s\S]*?felt-parchment/,
+        );
+    });
+
+    it('score line reads deep purple pips and blood favour, never gold', () => {
+        const css = readFileSync('game/css/greek-theme.css', 'utf8');
+        expect(css).toMatch(/--gk-pips-2:\s*#4a2678/);
+        expect(css).toMatch(/--gk-favour-2:\s*#8f1524/);
+        expect(css).toMatch(
+            /\.center-game-area \.live-score-display\.felt-live \.pips \{[\s\S]*?color: var\(--gk-pips-2\)/,
+        );
+        expect(css).toMatch(
+            /\.center-game-area \.live-score-display\.felt-live \.favour \{[\s\S]*?color: var\(--gk-favour-2\)/,
         );
         // Labels sit under their number and carry the same hue as it.
         expect(css).toMatch(
-            /\.center-game-area \.live-score-display\.felt-live \.gnosis-pips-bonus \{\s*color: var\(--gk-pips-1\)/,
+            /\.center-game-area \.live-score-display\.felt-live \.gnosis-pips-bonus \{\s*color: var\(--gk-pips-2\)/,
         );
         expect(css).toMatch(
-            /\.center-game-area \.live-score-display\.felt-live \.gnosis-mult-bonus \{\s*color: var\(--gk-favour-1\)/,
+            /\.center-game-area \.live-score-display\.felt-live \.gnosis-mult-bonus \{\s*color: var\(--gk-favour-2\)/,
         );
     });
 
@@ -112,7 +159,7 @@ describe('Greek theme wiring', () => {
         expect(css).toMatch(
             /\.live-score-display\.felt-live \.gnosis-mult-bonus \{[\s\S]*?height: var\(--gnosis-label-h\)[\s\S]*?white-space: nowrap/,
         );
-        // Bonus sits in-flow beside the number; N/A still swaps rows.
+        // Bonus sits in-flow beside the number; unused rows stay hidden.
         expect(styles).toMatch(
             /\.live-score-display \.gnosis-row\[hidden\] \{\s*display: none !important;/,
         );

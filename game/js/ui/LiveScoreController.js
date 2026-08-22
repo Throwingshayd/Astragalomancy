@@ -210,11 +210,6 @@ class LiveScoreController {
         if (categoryEl) categoryEl.textContent = o.category ?? '';
         const row = q('row');
         const rowNa = q('row-na');
-        if (o.showNa) {
-            if (row) row.setAttribute('hidden', '');
-            if (rowNa) rowNa.removeAttribute('hidden');
-            return;
-        }
         if (row) row.removeAttribute('hidden');
         if (rowNa) rowNa.setAttribute('hidden', '');
 
@@ -267,7 +262,6 @@ class LiveScoreController {
                 favour: category ? e.formatFavour(levelBonus.favour) : '0',
                 favourLabel: 'favour',
                 favourAdd: false,
-                showNa: false,
             });
             el.classList.remove('balatro-preview');
             el.classList.add('visible');
@@ -276,15 +270,22 @@ class LiveScoreController {
             return;
         }
 
-        // Full devotion: N/A preview without calling calculateScore (avoids devotion_full ERROR).
+        // Full devotion / invalid hand: keep 0 × 0, do not swap to N/A.
+        // Filled slots skip calculateScore (avoids devotion_full ERROR).
         if (slotFilled) {
             this.updateValues(el, {
                 category: offeringTitle,
+                pips: '0',
                 pipsLabel: gnosis ? gnosis.formatPipsLabel(category, e.state) : 'pips',
-                showNa: true,
+                pipsAdd: false,
+                favour: '0',
+                favourLabel: 'favour',
+                favourAdd: false,
             });
             el.classList.remove('balatro-preview');
             el.classList.add('visible');
+            e.lastPreviewPips = 0;
+            e.lastPreviewFavour = 0;
             return;
         }
 
@@ -294,11 +295,17 @@ class LiveScoreController {
             const counts = gnosis ? gnosis.getFacesAndCounts(e.state).counts : {};
             this.updateValues(el, {
                 category: offeringTitle,
+                pips: '0',
                 pipsLabel: gnosis ? gnosis.formatPipsLabel(category, e.state, counts) : 'pips',
-                showNa: true,
+                pipsAdd: false,
+                favour: '0',
+                favourLabel: 'favour',
+                favourAdd: false,
             });
             el.classList.remove('balatro-preview');
             el.classList.add('visible');
+            e.lastPreviewPips = 0;
+            e.lastPreviewFavour = 0;
             return;
         }
 
@@ -315,7 +322,6 @@ class LiveScoreController {
             favour: e.formatFavour(favour),
             favourLabel: 'favour',
             favourAdd: false,
-            showNa: false,
         });
         el.classList.add('balatro-preview', 'visible');
 

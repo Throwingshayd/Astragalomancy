@@ -198,6 +198,7 @@ const AssetMapping = {
         'shopfront': 'shopfront-boons-libations.png',
         'artifactsChestClosed': 'artifacts-chest-closed.png',
         'artifactsChestOpen': 'artifacts-chest-open.png',
+        'goldInfoPlaque': 'gold-info-plaque.png',
         'playStelaPillar': 'play-stela-pillar.png',
         'consumableStelaPillar': 'consumable-stela-pillar.png',
         'pantheonFrieze': 'pantheon-frieze.png',

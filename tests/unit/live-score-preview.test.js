@@ -55,12 +55,16 @@ describe('Live score preview hover', () => {
         const pipsAdd = makeNode();
         pipsAdd.setAttribute('hidden', '');
         const pipsContrib = makeNode();
+        const pips = makeNode();
+        const favour = makeNode();
         const liveScoreDisplay = makeNode({ 'data-live-root': '' });
         liveScoreDisplay.querySelector = (sel) => {
             if (sel === '[data-live="row"]') return row;
             if (sel === '[data-live="row-na"]') return rowNa;
             if (sel === '[data-live="pips-add"]') return pipsAdd;
             if (sel === '[data-live="pips-contrib"]') return pipsContrib;
+            if (sel === '[data-live="pips"]') return pips;
+            if (sel === '[data-live="favour"]') return favour;
             return null;
         };
         const calculateScore = vi.fn(() => ({ pips: 12, favour: 1, isValid: true }));
@@ -87,17 +91,19 @@ describe('Live score preview hover', () => {
             formatFavour: (n) => String(n),
         };
         const ctrl = new globalThis.LiveScoreController(engine);
-        return { ctrl, engine, trialDisplay, row, rowNa, pipsAdd, pipsContrib, calculateScore, liveScoreDisplay };
+        return { ctrl, engine, trialDisplay, row, rowNa, pips, favour, pipsAdd, pipsContrib, calculateScore, liveScoreDisplay };
     }
 
     it('hovering a filled row shows offering text and does not call calculateScore', () => {
-        const { ctrl, trialDisplay, row, rowNa, calculateScore } = makeHarness({ filled: true });
+        const { ctrl, trialDisplay, row, rowNa, pips, favour, calculateScore } = makeHarness({ filled: true });
         ctrl.updateDisplay('Twos');
         expect(calculateScore).not.toHaveBeenCalled();
         expect(trialDisplay.textContent).toBe('Twos offered to Dionysus');
         expect(ctrl.hoverOfferingMessage()).toBe('Twos offered to Dionysus');
-        expect(row.hidden).toBe(true);
-        expect(rowNa.hidden).toBe(false);
+        expect(row.hidden).toBe(false);
+        expect(rowNa.hidden).toBe(true);
+        expect(pips.textContent).toBe('0');
+        expect(favour.textContent).toBe('0');
     });
 
     it('bonus pips ride the slide-in chip next to the number, not a label under it', () => {
@@ -137,6 +143,16 @@ describe('Live score preview hover', () => {
         ctrl.updateDisplay(null);
         expect(ctrl.hoverOfferingMessage()).toBeNull();
         expect(trialDisplay.textContent).toBe('4th Trial: 50 remaining');
+    });
+
+    it('an invalid hand preview stays 0 × 0 instead of N/A', () => {
+        const { ctrl, row, rowNa, pips, favour, calculateScore } = makeHarness({ filled: false });
+        calculateScore.mockReturnValue({ pips: 0, favour: 0, isValid: false });
+        ctrl.updateDisplay('Twos');
+        expect(row.hidden).toBe(false);
+        expect(rowNa.hidden).toBe(true);
+        expect(pips.textContent).toBe('0');
+        expect(favour.textContent).toBe('0');
     });
 
     it('hovering an open row shows Offering {category} and previews score', () => {
