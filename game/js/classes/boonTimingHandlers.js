@@ -78,27 +78,27 @@ const BoonTimingHandlers = {
                 break;
             
             case 'hestias_hearth':
-                // +3 Favour if all dice are odd OR all dice are even
+                // +300 Favour if all dice are odd OR all dice are even
                 const allOdd = gameState.dice.every(die => die.getEffectiveFace() % 2 === 1);
                 const allEven = gameState.dice.every(die => die.getEffectiveFace() % 2 === 0);
                 
                 if (allOdd || allEven) {
-                    result.favour += 3;
-                    boon.dynamicStats.favour = 3;
-                    engine?.showMessage?.(`Hestia's Hearth: +3 Favour (all ${allOdd ? 'odd' : 'even'})!`);
+                    result.favour += 300;
+                    boon.dynamicStats.favour = 300;
+                    engine?.showMessage?.(`Hestia's Hearth: +300 Favour (all ${allOdd ? 'odd' : 'even'})!`);
                 }
                 break;
             
             case 'prometheus_gift':
                 // +3 Favour all hands (in addition to -1 roll penalty in turn_start)
-                result.favour += 3;
-                engine?.showMessage?.("Prometheus' Gift: +3 Favour!");
+                result.favour += 300;
+                engine?.showMessage?.("Prometheus' Gift: +300 Favour!");
                 break;
             
             case 'forge_of_hephaestus':
-                // +0.5 Favour per unused roll (max +1.5)
+                // +50 Favour per unused roll (max +150)
                 const forgeUnusedRolls = gameState.rollsLeft;
-                const forgeFavour = Math.min(forgeUnusedRolls * 0.5, 1.5);
+                const forgeFavour = Math.min(forgeUnusedRolls * 50, 150);
                 if (forgeFavour > 0) {
                     result.favour += forgeFavour;
                     boon.dynamicStats.favour = forgeFavour;
@@ -107,12 +107,12 @@ const BoonTimingHandlers = {
                 break;
             
             case 'mt_olympus':
-                // +1 Favour for each Worship card used this run (sum of worship levels)
+                // +100 Favour for each Worship card used this run (sum of worship levels)
                 const worshipUsed = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
                 if (worshipUsed > 0) {
-                    result.favour += worshipUsed;
-                    boon.dynamicStats.favour = worshipUsed;
-                    engine?.showMessage?.(`Mt Olympus: +${worshipUsed} Favour from worship levels!`);
+                    result.favour += worshipUsed * 100;
+                    boon.dynamicStats.favour = worshipUsed * 100;
+                    engine?.showMessage?.(`Mt Olympus: +${worshipUsed * 100} Favour from worship levels!`);
                 }
                 break;
             
@@ -129,7 +129,7 @@ const BoonTimingHandlers = {
             
             // === NEW BOONS - Vibrant Tier ===
             case 'hydras_heads':
-                // Whenever you score with exactly 2 pairs (e.g. 2-2-3-3-5 or 2-2-2-3-3), gain +3 Favour
+                // Whenever you score with exactly 2 pairs (e.g. 2-2-3-3-5 or 2-2-2-3-3), gain +300 Favour
                 const counts = {};
                 (gameState.dice || []).forEach(d => {
                     const f = typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.face || d.currentFace);
@@ -137,24 +137,24 @@ const BoonTimingHandlers = {
                 });
                 const pairCount = Object.values(counts).filter(c => c >= 2).length;
                 if (pairCount === 2) {
-                    result.favour += 3;
-                    engine?.showMessage?.("Hydra's Heads: +×3 Favour for two pairs!");
+                    result.favour += 300;
+                    engine?.showMessage?.("Hydra's Heads: +300 Favour for two pairs!");
                 }
                 break;
             
             case 'medusas_gaze':
-                // Lower sanctum scores give ×0.5 favour bonus
+                // Lower sanctum scores give +50 Favour
                 const lowerSanctum = ['Three of a Kind', 'Four of a Kind', 'Full House', 
                                      'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'];
                 if (lowerSanctum.includes(result.category)) {
-                    result.favour += 0.5;
-                    engine?.showMessage?.("Medusa's Gaze: ×0.5 Favour (lower sanctum)!");
+                    result.favour += 50;
+                    engine?.showMessage?.("Medusa's Gaze: +50 Favour (lower sanctum)!");
                 }
                 break;
             
             case 'tantalus_curse':
-                // +0.1 Favour for each gold, but cannot spend gold
-                const tantalusFavour = Math.round((gameState.gold * 0.1) * 10) / 10;
+                // +10 Favour for each gold, but cannot spend gold
+                const tantalusFavour = (gameState.gold || 0) * 10;
                 result.favour += tantalusFavour;
                 boon.dynamicStats.favour = tantalusFavour;
                 if (tantalusFavour > 0) {
@@ -164,7 +164,7 @@ const BoonTimingHandlers = {
                 break;
             
             case 'pegasus_flight': {
-                // Dice with values 6+ give ×0.5 extra Favour when scored (only dice IN the score count)
+                // Dice with values 6+ give +50 Favour each when scored (only dice IN the score count)
                 const category = result.category;
                 const num = typeof CATEGORY_TO_NUMBER !== 'undefined' ? CATEGORY_TO_NUMBER[category] : null;
                 let highDiceInScore = 0;
@@ -178,7 +178,7 @@ const BoonTimingHandlers = {
                     }
                 });
                 if (highDiceInScore > 0) {
-                    const favourBonus = highDiceInScore * 0.5;
+                    const favourBonus = highDiceInScore * 50;
                     result.favour += favourBonus;
                     result._pegasusDieIndices = pegasusDieIndices; // For scoring animation popups
                     engine?.showMessage?.(`Pegasus' Flight: +${favourBonus} Favour from ${highDiceInScore} high dice!`);
@@ -334,7 +334,7 @@ const BoonTimingHandlers = {
                 break;
             
             case 'the_symposium':
-                // Each 4 of a kind or greater gives +0.05 Favour (stacking)
+                // Each 4 of a kind or greater gives +5 Favour (stacking)
                 const symposiumFaceCounts = {};
                 gameState.dice.forEach(die => {
                     symposiumFaceCounts[die.face] = (symposiumFaceCounts[die.face] || 0) + 1;
@@ -347,11 +347,11 @@ const BoonTimingHandlers = {
                     if (!boon.symposiumFavourStacks) {
                         boon.symposiumFavourStacks = 0;
                     }
-                    boon.symposiumFavourStacks += 0.05;
+                    boon.symposiumFavourStacks += 5;
                     result.favour += boon.symposiumFavourStacks;
                     boon.dynamicStats.favour = boon.symposiumFavourStacks;
-                    const s = Math.round(boon.symposiumFavourStacks * 10) / 10;
-                    engine?.showMessage?.(`The Symposium: +${s === Math.floor(s) ? s : s.toFixed(1)} Favour!`);
+                    const s = boon.symposiumFavourStacks;
+                    engine?.showMessage?.(`The Symposium: +${s} Favour!`);
                 } else if (boon.symposiumFavourStacks > 0) {
                     // Still apply accumulated stacks even if not triggering this turn
                     result.favour += boon.symposiumFavourStacks;
@@ -457,10 +457,10 @@ const BoonTimingHandlers = {
                 break;
             
             case 'misery':
-                // If you have 0 gold, gain +2 Favour
+                // If you have 0 gold, gain +200 Favour
                 if (gameState.gold === 0) {
-                    result.favour += 2;
-                    engine?.showMessage?.("Misery: +2 Favour (broke!)");
+                    result.favour += 200;
+                    engine?.showMessage?.("Misery: +200 Favour (broke!)");
                 }
                 break;
             
@@ -470,8 +470,8 @@ const BoonTimingHandlers = {
                     const zealotCategory = GodUtils.getCategory(gameState.lastWorshipGod);
                     
                     if (result.category === zealotCategory) {
-                        result.favour += 1;
-                        engine?.showMessage?.(`The Zealot: +1 Favour (${gameState.lastWorshipGod})!`);
+                        result.favour += 100;
+                        engine?.showMessage?.(`The Zealot: +100 Favour (${gameState.lastWorshipGod})!`);
                     }
                 }
                 break;
@@ -484,8 +484,8 @@ const BoonTimingHandlers = {
                     if (!boon.etnaFavourStacks) {
                         boon.etnaFavourStacks = 0;
                     }
-                    boon.etnaFavourStacks += 1;
-                    engine?.showMessage?.(`🌋 Eruption of Etna: +×1 Favour (${etnaTriggersThisTurn} boons triggered)!`, 3000);
+                    boon.etnaFavourStacks += 100;
+                    engine?.showMessage?.(`🌋 Eruption of Etna: +100 Favour (${etnaTriggersThisTurn} boons triggered)!`, 3000);
                 }
                 
                 // Apply accumulated favour
@@ -505,9 +505,9 @@ const BoonTimingHandlers = {
                 const asceticEmptySlots = asceticMaxSlots - asceticFilledSlots;
                 
                 if (asceticEmptySlots > 0) {
-                    result.favour += asceticEmptySlots;
-                    boon.dynamicStats.favour = asceticEmptySlots;
-                    engine?.showMessage?.(`Ascetic's Vow: +×${asceticEmptySlots} Favour (${asceticEmptySlots} empty)!`);
+                    result.favour += asceticEmptySlots * 100;
+                    boon.dynamicStats.favour = asceticEmptySlots * 100;
+                    engine?.showMessage?.(`Ascetic's Vow: +${asceticEmptySlots * 100} Favour (${asceticEmptySlots} empty)!`);
                 }
                 break;
             
@@ -574,21 +574,21 @@ const BoonTimingHandlers = {
                 if (carillonEnhancedCount === 5) {
                     if (carillonEnhancementTypes.size === 1) {
                         // SECRET BONUS: All same enhancement! (MULTIPLICATIVE!)
-                        result.favourMult *= 2.5;  // ×2.5 MULTIPLICATIVE (Balatro-style)
+                        result.favour *= 2.5;
                         engine?.showMessage?.("🎵 Carillon of the Muses: PERFECT HARMONY! ×2.5 Favour!", 5000);
-                        Logger.info("Carillon secret bonus triggered: All same enhancement - MULTIPLICATIVE!");
+                        Logger.info("Carillon secret bonus triggered: All same enhancement - ×Favour!");
                     } else {
                         // All enhanced but different (ADDITIVE)
-                        result.favour += 3;
-                        engine?.showMessage?.("Carillon of the Muses: +3 Favour!");
+                        result.favour += 300;
+                        engine?.showMessage?.("Carillon of the Muses: +300 Favour!");
                     }
                 }
                 break;
             
             case 'journey_of_perseus':
-                // Gain +10 pips per 100 total score
+                // Gain +10 pips per 10,000 total score
                 const perseusTotal = gameState.totalScore || 0;
-                const perseusBonus = Math.floor(perseusTotal / 100) * 10;
+                const perseusBonus = Math.floor(perseusTotal / 10000) * 10;
                 
                 if (perseusBonus > 0) {
                     result.pips += perseusBonus;

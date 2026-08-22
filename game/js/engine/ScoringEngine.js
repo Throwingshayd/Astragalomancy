@@ -82,14 +82,15 @@ const ScoringEngine = {
      * @param {string} category
      * @param {Object} gameState
      * @param {Object} [options] - { tempPips, tempFavour, applyGlobalBonuses }
-     * @returns {{ pips: number, favour: number, favourMult: number, finalScore: number, isValid: boolean }}
+     * @returns {{ pips: number, favour: number, finalScore: number, isValid: boolean }}
      */
     runPipeline(category, gameState, options = {}) {
         const state = gameState;
         const { tempPips = 0, tempFavour = 0, applyGlobalBonuses = true } = options;
 
         if (!state || !state.dice || state.dice.length === 0) {
-            return { pips: 0, favour: 1, favourMult: 1, finalScore: 0, isValid: false };
+            const emptyBase = (typeof BASE_FAVOUR !== 'undefined') ? BASE_FAVOUR : 100;
+            return { pips: 0, favour: emptyBase, finalScore: 0, isValid: false };
         }
 
         const diceSubstitutions = state.diceSubstitutions || {};
@@ -110,20 +111,24 @@ const ScoringEngine = {
             : category;
         const { pips: basePips, isValid } = this.evaluateCategory(evalCategory, faces, counts, context);
 
-        let favour = 1;
+        let favour = (typeof BASE_FAVOUR !== 'undefined') ? BASE_FAVOUR : 100;
+        if (state.baseFavour > 0 && state.baseFavour < 10) {
+            state.baseFavour = Math.round(state.baseFavour * 100);
+        }
+        if (Number(state.baseFavour) > 0) favour = state.baseFavour;
         const god = typeof DevotionUtils !== 'undefined'
             ? DevotionUtils.getGodForCategory(state, category)
             : GOD_TO_CATEGORY[category];
         const pipCategory = typeof DevotionUtils !== 'undefined'
             ? DevotionUtils.getPipCategory(state, category)
             : category;
-        // Worship bonus (pips + mult) only applies on non-zero dice entries; boons apply even on scratch
+        // Worship bonus (pips + Favour) only applies on non-zero dice entries; boons apply even on scratch
         const hasValidDiceScore = basePips > 0;
         if (hasValidDiceScore) {
             if (god && state.worshipLevels && state.worshipLevels[god]) {
-                const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 0.25;
+                const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 25;
                 // Altar doubles this and The Hecatomb triples it; both scale the worship
-                // contribution only, never the base 1 or anything a boon adds later.
+                // contribution only, never the base 100 or anything a boon adds later.
                 const altarMult = state.worshipFavourMultiplier ?? 1;
                 favour += state.worshipLevels[god] * perLevel * altarMult;
             }
@@ -169,8 +174,8 @@ const ScoringEngine = {
             });
         }
 
-        let favourMult = 1;
-        let eventData = { category, pips, favour, favourMult, isValid };
+        // Single pipeline: finalScore = pips × favour. Boons add pips, add Favour, or multiply Favour.
+        let eventData = { category, pips, favour, isValid };
         const boons = state.boons || [];
 
         PHASE_ORDER.forEach((phase) => {
@@ -184,23 +189,33 @@ const ScoringEngine = {
         });
 
         pips = Math.max(0, eventData.pips ?? pips);
-        favour = Math.max(0.1, eventData.favour ?? favour);
-        favourMult = Math.max(1, eventData.favourMult ?? 1);
+        const favourFloor = (typeof FAVOUR_FLOOR !== 'undefined') ? FAVOUR_FLOOR : 10;
+        const favourBase = (typeof BASE_FAVOUR !== 'undefined') ? BASE_FAVOUR : 100;
+        favour = Math.max(favourFloor, eventData.favour ?? favour);
 
         if (applyGlobalBonuses && state.globalBonuses && state.globalBonuses.fivesToAll && state.dice) {
             const fivesCount = state.dice.filter((d) => resolveDieFace(d, 0) === 5).length;
             pips += fivesCount * 5;
         }
 
-        const totalFavour = favour * favourMult;
+        // A runaway boon stack must never surface NaN/Infinity or silently collapse to 0.
+        const MAX = (typeof SafeMath !== 'undefined') ? SafeMath.MAX_SAFE_INT : Number.MAX_SAFE_INTEGER;
+        const clampFinite = (v, floor, nanFallback) => {
+            const n = Number(v);
+            if (Number.isNaN(n)) return nanFallback;
+            if (n >= MAX) return MAX;
+            return Math.max(floor, n);
+        };
+        pips = clampFinite(pips, 0, 0);
+        favour = clampFinite(favour, favourFloor, favourBase);
+
         const finalScore = typeof SafeMath !== 'undefined'
-            ? SafeMath.safeMultiply(pips, totalFavour)
-            : Math.max(0, Math.min(Math.floor(pips * totalFavour), Number.MAX_SAFE_INTEGER));
+            ? SafeMath.safeMultiply(pips, favour)
+            : Math.max(0, Math.min(Math.floor(pips * favour), MAX));
 
         return {
             pips,
             favour,
-            favourMult,
             finalScore,
             isValid
         };

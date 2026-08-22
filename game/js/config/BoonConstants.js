@@ -17,7 +17,7 @@ const BOON_EFFECTS = {
     
     PANDORAS_JAR: {
         DESTROY_INTERVAL: 3,  // Every 3rd turn
-        FAVOUR_BONUS: 4
+        FAVOUR_BONUS: 200
     },
     
     THE_FATES_LOOM: {
@@ -25,7 +25,7 @@ const BOON_EFFECTS = {
     },
     
     THE_PANTHEON: {
-        FAVOUR_PER_GOD: 0.5
+        FAVOUR_PER_GOD: 50
     },
     
     PARMENIDES_DIE: {
@@ -42,7 +42,7 @@ const BOON_EFFECTS = {
     },
     
     ASCETICS_VOW: {
-        FAVOUR_PER_EMPTY_SLOT: 1
+        FAVOUR_PER_EMPTY_SLOT: 100
     },
     
     BELLOWS_OF_WAR: {
@@ -50,7 +50,7 @@ const BOON_EFFECTS = {
     },
     
     CARILLON_OF_THE_MUSES: {
-        ALL_ENHANCED_FAVOUR: 3,
+        ALL_ENHANCED_FAVOUR: 300,
         SECRET_SAME_FAVOUR: 5
     },
     
@@ -61,7 +61,7 @@ const BOON_EFFECTS = {
     
     // === VIBRANT TIER BOONS ===
     HESTIAS_HEARTH: {
-        ALL_ODD_EVEN_FAVOUR: 3
+        ALL_ODD_EVEN_FAVOUR: 300
     },
     
     DEMETERS_HARVEST: {
@@ -71,20 +71,20 @@ const BOON_EFFECTS = {
     
     MEDUSAS_GAZE: {
         AUTO_HOLD_VALUE: 6,
-        LOWER_SANCTUM_FAVOUR: 0.5
+        LOWER_SANCTUM_FAVOUR: 50
     },
     
     HYDRAS_HEADS: {
-        TWO_DICE_FAVOUR: 3
+        TWO_DICE_FAVOUR: 300
     },
     
     TANTALUS_CURSE: {
-        FAVOUR_PER_GOLD: 0.5
+        FAVOUR_PER_GOLD: 10
     },
     
     PEGASUS_FLIGHT: {
         HIGH_DIE_THRESHOLD: 6,
-        FAVOUR_PER_HIGH_DIE: 0.5
+        FAVOUR_PER_HIGH_DIE: 50
     },
     
     CERBERUS_WATCH: {
@@ -93,7 +93,7 @@ const BOON_EFFECTS = {
     },
     
     ORPHEUS_LYRE: {
-        REPEAT_FAVOUR_BONUS: 2
+        REPEAT_FAVOUR_BONUS: 200
     },
     
     TROJAN_HORSE: {
@@ -102,7 +102,7 @@ const BOON_EFFECTS = {
     },
     
     THE_SYMPOSIUM: {
-        FOUR_OF_KIND_FAVOUR: 1
+        FOUR_OF_KIND_FAVOUR: 5
     },
     
     GOLDEN_TOUCH: {
@@ -115,11 +115,11 @@ const BOON_EFFECTS = {
     },
     
     SYMMETRY: {
-        PALINDROME_FAVOUR_GAIN: 0.5  // Stacks permanently
+        PALINDROME_FAVOUR_GAIN: 50  // Stacks permanently
     },
     
     MISERY: {
-        ZERO_GOLD_FAVOUR: 2
+        ZERO_GOLD_FAVOUR: 200
     },
     
     SMOG_OF_MORPHEUS: {
@@ -148,7 +148,7 @@ const BOON_EFFECTS = {
     },
 
     THE_ZEALOT: {
-        WORSHIP_MATCH_FAVOUR: 1
+        WORSHIP_MATCH_FAVOUR: 100
     },
     
     BETRAYAL_BY_PARIS: {
@@ -157,7 +157,7 @@ const BOON_EFFECTS = {
     
     ERUPTION_OF_ETNA: {
         MIN_BOONS_FOR_TRIGGER: 3,
-        FAVOUR_PER_ERUPTION: 1  // Stacks
+        FAVOUR_PER_ERUPTION: 100  // Stacks
     },
     
     CYCLE_OF_SEASONS: {
@@ -189,12 +189,12 @@ const BOON_EFFECTS = {
     },
     
     FORGE_OF_HEPHAESTUS: {
-        FAVOUR_PER_UNUSED_ROLL: 0.5,
-        MAX_FAVOUR: 1.5
+        FAVOUR_PER_UNUSED_ROLL: 50,
+        MAX_FAVOUR: 150
     },
     
     PROMETHEUS_GIFT: {
-        FAVOUR_BONUS: 3,
+        FAVOUR_BONUS: 300,
         ROLL_PENALTY: 1
     },
     
@@ -217,7 +217,7 @@ const BOON_EFFECTS = {
     },
     
     PHILOSOPHERS_STONE: {
-        FAVOUR_TO_GOLD_RATIO: 3  // 3 favour → 1 gold
+        FAVOUR_TO_GOLD_RATIO: 300  // 300 Favour → 1 gold
     },
     
     GAMBLERS_CHARM: {
@@ -295,7 +295,7 @@ const BOON_EFFECTS = {
     
     JOURNEY_OF_PERSEUS: {
         PIPS_PER_100_SCORE: 10,
-        SCORE_THRESHOLD: 100
+        SCORE_THRESHOLD: 10000
     }
 };
 

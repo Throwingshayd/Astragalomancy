@@ -7,7 +7,8 @@
  * shipped for months without one), and the shop must not hand out the whole roster in
  * three trials.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it, beforeAll } from 'vitest';
 
 function loadScript(path, exportName) {
@@ -46,6 +47,23 @@ describe('artifact roster', () => {
     it('uses no id twice', () => {
         const ids = roster.map((a) => a.id);
         expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('maps every shipped artifact to art that exists on disk', () => {
+        const mapping = readFileSync('game/js/data/assetMapping.js', 'utf8');
+        const block = mapping.slice(mapping.indexOf('    artifacts: {'), mapping.indexOf('    // Pack Assets'));
+        roster.forEach(({ id }) => {
+            const file = block.match(new RegExp(`'${id}':\\s*'([^']+\\.png)'`));
+            expect(file, `${id} has no artifacts mapping`).not.toBeNull();
+            expect(existsSync(path.join('game', 'public', 'ART', file[1])), `${file[1]} missing`).toBe(true);
+        });
+    });
+
+    it('paints relic art from AssetMapping, not window.AssetMapping', () => {
+        const src = readFileSync('game/js/classes/Artifact.js', 'utf8');
+        expect(src).toContain("typeof AssetMapping !== 'undefined'");
+        expect(src).not.toContain('window.AssetMapping');
+        expect(src).toContain('getArtifactAsset');
     });
 });
 
@@ -95,13 +113,16 @@ describe('ArtifactEffects', () => {
         expect(e.derive(own('artifact_clearance_sale')).shopDiscount).toBe(0.25);
         expect(e.derive(own('artifact_clearance_sale', 'artifact_hermes_bargain')).shopDiscount).toBe(0.5);
 
-        // Altar doubles worship Favour, the pair triples it.
         expect(e.derive(own('artifact_telescope')).worshipFavourMult).toBe(2);
-        expect(e.derive(own('artifact_telescope', 'artifact_hecatomb')).worshipFavourMult).toBe(3);
+        expect(e.derive(own('artifact_telescope', 'artifact_hecatomb')).worshipFavourMult).toBe(2);
+        expect(e.derive(own('artifact_hecatomb')).boonSellAtCost).toBe(true);
 
-        // Seed Money / Money Tree: cap 5 → 10 → 20. Rate is untouched.
         expect(e.derive(own('artifact_plutus_seed')).maxInterest).toBe(10);
         expect(e.derive(own('artifact_plutus_seed', 'artifact_plutus_grove')).maxInterest).toBe(20);
+
+        expect(e.derive(own('artifact_tyches_grace')).trialGold).toBe(4);
+        expect(e.derive(own('artifact_tyches_grace', 'artifact_tyches_bounty')).trialGold).toBe(8);
+        expect(e.derive(own('artifact_pythias_indulgence')).forceSingleRoll).toBe(true);
     });
 
     it('does not compound when applied repeatedly', () => {
@@ -115,8 +136,6 @@ describe('ArtifactEffects', () => {
 
         e.apply(state);
         const first = { ...state };
-        // apply() runs on purchase, on load and at every trial start. The old handler added
-        // to baseFavour in place, so a long run silently inflated it once per trial.
         e.apply(state);
         e.apply(state);
 
@@ -126,7 +145,9 @@ describe('ArtifactEffects', () => {
         expect(state.worshipSlots).toBe(2);
         expect(state.consumableSlots).toBe(5);
         expect(state.maxInterest).toBe(10);
-        expect(e.rollsPerTurn(state)).toBe(4);
+        expect(state.trialGold).toBe(4);
+        expect(e.rollsPerTurn(state)).toBe(3);
+        expect(e.trialStartGold(state)).toBe(4);
         expect(e.packRevealCount(state, 'boon')).toBe(4);
     });
 
@@ -137,7 +158,7 @@ describe('ArtifactEffects', () => {
         expect(forward).toEqual(reverse);
     });
 
-    it('drives reroll cost to free at the top of the Delphic line, never below', () => {
+    it('Delphic Tithe cheapens shop rerolls; Pythia takes your dice rerolls instead', () => {
         const e = globalThis.ArtifactEffects;
         expect(e.rerollCost({})).toBe(4);
 
@@ -147,7 +168,10 @@ describe('ArtifactEffects', () => {
 
         const both = own('artifact_delphic_tithe', 'artifact_pythias_indulgence');
         e.apply(both);
-        expect(e.rerollCost(both)).toBe(0);
+        expect(e.rerollCost(both)).toBe(2);
+        expect(e.rollsPerTurn(both)).toBe(1);
+        expect(e.sellPayout(own('artifact_hecatomb'), { type: 'boon', cost: 8, sellValue: 2 })).toBe(8);
+        expect(e.sellPayout({}, { type: 'boon', cost: 8, sellValue: 2 })).toBe(2);
     });
 
     it('never lets the shop discount pay the player', () => {
@@ -210,16 +234,12 @@ describe('ArtifactEffects', () => {
     });
 });
 
-describe('one artifact per trial', () => {
-    it('stocks the shelf only in the shop that follows a cleared trial', () => {
+describe('one artifact per shop', () => {
+    it('stocks one eligible artifact on every shop visit', () => {
         const gen = readFileSync('game/js/engine/ShopStockGenerator.js', 'utf8');
-        const trial = readFileSync('game/js/game/TrialCompletion.js', 'utf8');
-        const shop = readFileSync('game/js/ui/ShopUI.js', 'utf8');
-
-        expect(gen).toContain('if (!gameState?.shopIsTrialReward) return [];');
-        expect(trial).toContain('engine.state.shopIsTrialReward = true;');
-        // Cleared on close, so the next mid-trial shop cannot inherit the offer.
-        expect(shop).toContain('gameEngine.state.shopIsTrialReward = false;');
+        expect(gen).not.toContain('shopIsTrialReward');
+        expect(gen).toContain('pool[Math.floor(prng.random() * pool.length)]');
+        expect(gen).toContain('return [artifact]');
     });
 
     it('offers an upgrade only once its base is owned', () => {

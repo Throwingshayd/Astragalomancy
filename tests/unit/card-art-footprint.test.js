@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
  * Consumable art must fill the card footprint, or the card renders visibly
  * smaller than its neighbours in the shop and consumable rails (art is drawn
  * with `background-size: contain`, so transparent letterboxing baked into the
- * PNG shrinks the card). `npm run trim-worship-art` / `trim-libation-art`
+ * PNG shrinks the card). `npm run trim-worship-art` / `trim-libation-art` / `trim-artifact-art`
  * produce this; these fail if new art is dropped in without being run through.
  */
 const ART_DIR = path.join('game', 'public', 'ART');
@@ -44,7 +44,7 @@ function mappedFilenames(block) {
     return [...new Set([...section[1].matchAll(/:\s*'([^']+\.png)'/g)].map((m) => m[1]))].sort();
 }
 
-describe.each(['worship', 'libations'])('%s art fills the card footprint', (block) => {
+describe.each(['worship', 'libations', 'artifacts'])('%s art fills the card footprint', (block) => {
     mappedFilenames(block).forEach((filename) => {
         it(`${filename} is card-sized with no baked-in letterboxing`, async () => {
             const file = path.join(ART_DIR, filename);
@@ -66,11 +66,24 @@ describe('consumable art is not hidden by a frame overlay', () => {
      * so a frame asset for a type whose art already has a frame drawn in blanks
      * out every card of that type (libations shipped that way).
      */
-    it('worship and libation types render art instead of a frame element', () => {
+    it('worship, libation and artifact types render art instead of a frame element', () => {
         const src = readFileSync(MAPPING_PATH, 'utf8');
         const frames = src.match(/    frames:\s*\{([\s\S]*?)\n    \},/);
         expect(frames).not.toBeNull();
         expect(frames[1]).toMatch(/'worship':\s*null/);
         expect(frames[1]).toMatch(/'libation':\s*null/);
+        expect(frames[1]).toMatch(/'artifact':\s*null/);
+    });
+
+    it('boon, worship and libation art faces are fully opaque', () => {
+        const css = readFileSync('game/css/styles.css', 'utf8');
+        expect(css).toMatch(/\.card-background \{[^}]*opacity: 1;/);
+        expect(css).toMatch(
+            /\.card\.boon-card\.has-asset \.card-background,[^}]*opacity: 1;[^}]*background-color: #14222c;/,
+        );
+        expect(css).toMatch(
+            /#shopDefaultView \.card\.boon-card\.has-asset,[^}]*background-color: #14222c !important;/,
+        );
+        expect(css).toMatch(/\.card-shop-cost \{[^}]*background: #1a4a32;/);
     });
 });

@@ -244,7 +244,7 @@ class LiveScoreController {
         else this._restoreTrialBanner();
 
         if (!category || !e.state.hasRolled) {
-            const levelBonus = category ? e.getCategoryLevelBonuses(category) : { pips: 0, mult: 1 };
+            const levelBonus = category ? e.getCategoryLevelBonuses(category) : { pips: 0, mult: (typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100) };
             const hint = !category ? this.entryHintMessage() : null;
             this.updateValues(el, {
                 category: hint != null ? hint : (offeringTitle || e.getLiveOfferingTitle(category, slotFilled)),

@@ -135,7 +135,7 @@ const BlindDirector = {
         const curve = (typeof getAnteData === 'function'
             ? getAnteData(ante - 1)
             : (typeof AnteData !== 'undefined' ? AnteData[ante - 1] : null))
-            || { name: 'The Fool', scoreThreshold: 200 };
+            || { name: 'The Fool', scoreThreshold: 20000 };
         let blindId = 'none';
         if (this.blindsEnabled() && ante > 1) {
             blindId = this.isShowdownAnte(ante)
@@ -195,7 +195,11 @@ const BlindDirector = {
         engine.state.hadOtherBoonsThisAnte = false;
         engine.applyArtifactEffects();
         engine.state.rolledBonusYahtzees = 0;
-        // applyArtifactEffects ran just above, so the Tyche bonus is already current.
+        const tycheGold = ArtifactEffects.trialStartGold(engine.state);
+        if (tycheGold > 0) {
+            engine.state.gold = (engine.state.gold || 0) + tycheGold;
+            engine.showMessage?.(`Tyche: +${tycheGold} Gold.`);
+        }
         engine.state.rollsLeft = ArtifactEffects.rollsPerTurn(engine.state);
         engine.state.boons.forEach((boon) => {
             if (boon.timing && boon.timing.turn_start) {

@@ -105,7 +105,7 @@ class Card {
             usesHtml = `<div class="card-uses">${this.usesLeft}/${this.maxUses}</div>`;
         }
 
-        // Balatro-style dynamic stat display for boons (shows current values like +20 Pips, x3 Mult)
+        // Balatro-style dynamic stat display for boons (shows current values like +20 Pips, ×3 Favour)
         let dynamicStats = [];
         let dynamicStatsHtml = '';
         if (this.type === 'boon' && window.game && window.game.state) {

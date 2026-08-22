@@ -42,9 +42,9 @@ const EnhancementRegistry = {
         parchment: {
             id: 'parchment',
             displayName: 'Parchment',
-            oneLiner: '25% +1 Favour • 15% +5 Gold',
+            oneLiner: '25% +100 Favour • 15% +5 Gold',
             triggerLine: 'When scored',
-            tooltipDesc: 'When scored: 25% +1 Favour, 15% +5 Gold.',
+            tooltipDesc: 'When scored: 25% +100 Favour, 15% +5 Gold.',
             ui: { chipColor: '#c9a36a', textureClass: 'cw-tex-parchment' }
         },
         iron: {
@@ -123,4 +123,4 @@ const EnhancementRegistry = {
 };
 
 if (typeof window !== 'undefined') window.EnhancementRegistry = EnhancementRegistry;
-
+

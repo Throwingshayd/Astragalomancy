@@ -36,6 +36,7 @@ const AssetPreloader = {
         addFrom(AssetMapping.boons);
         addFrom(AssetMapping.worship);
         addFrom(AssetMapping.libations);
+        addFrom(AssetMapping.artifacts);
         addFrom(AssetMapping.packs);
         addFrom(AssetMapping.frames);
         const shop = AssetMapping.getUIAsset('shopfront');

@@ -206,17 +206,28 @@ class App {
             : null;
         this._pauseOverlay.innerHTML = `
             <div class="modal-content pause-menu-modal">
-                <h2 class="shop-title">Menu</h2>
-                <div class="pause-menu-buttons">
-                    <button class="divine-button" id="pauseSettingsBtn">Settings</button>
-                    <button class="divine-button" id="pauseExitBtn">Exit to Menu</button>
+                <header class="pause-menu-header">
+                    <p class="settings-kicker">Paused</p>
+                    <h2 class="shop-title settings-title">Menu</h2>
+                </header>
+                <div class="pause-menu-run-slot" id="pauseRunInfoSlot"></div>
+                <div class="pause-menu-actions">
+                    <button type="button" class="divine-button pause-btn-primary" id="pauseResumeBtn">Resume</button>
+                    <button type="button" class="divine-button pause-btn-secondary" id="pauseSettingsBtn">Settings</button>
+                    <button type="button" class="divine-button pause-btn-danger" id="pauseExitBtn">Exit to title</button>
                 </div>
-                <button class="divine-button" id="pauseResumeBtn">Resume</button>
             </div>
         `;
-        const modal = this._pauseOverlay.querySelector('.pause-menu-modal');
-        if (runInfoContent && modal) {
-            modal.insertBefore(runInfoContent, modal.querySelector('.pause-menu-buttons'));
+        const runSlot = this._pauseOverlay.querySelector('#pauseRunInfoSlot');
+        if (runInfoContent && runSlot) {
+            const runWrap = document.createElement('section');
+            runWrap.className = 'pause-run-info';
+            const runHeading = document.createElement('h3');
+            runHeading.className = 'settings-section-title';
+            runHeading.textContent = 'This run';
+            runWrap.appendChild(runHeading);
+            runWrap.appendChild(runInfoContent);
+            runSlot.appendChild(runWrap);
         }
         this._pauseOverlay.addEventListener('click', (e) => {
             if (e.target === this._pauseOverlay) this.hidePauseMenu();

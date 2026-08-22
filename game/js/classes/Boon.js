@@ -198,12 +198,6 @@ class Boon extends Card {
                 // EDGE CASE: Ensure favour never negative
                 processedResult.favour = Math.max(0, processedResult.favour);
             }
-            if (processedResult.favourMult !== undefined && processedResult.favourMult > 1) {
-                // Apply multiplier to multiplicative favour as well
-                processedResult.favourMult = processedResult.favourMult * multiplier;
-                // EDGE CASE: Ensure favourMult never below 1
-                processedResult.favourMult = Math.max(1, processedResult.favourMult);
-            }
             if (processedResult.gold !== undefined) {
                 processedResult.gold = Math.floor(processedResult.gold * multiplier);
             }
@@ -324,9 +318,9 @@ class Boon extends Card {
                     if (!this.symmetryFavour) {
                         this.symmetryFavour = 0;
                     }
-                    this.symmetryFavour += 0.5;
+                    this.symmetryFavour += 50;
                     
-                    engine?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +0.5 Favour!`, 4000);
+                    engine?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +50 Favour!`, 4000);
                     Logger.info(`Symmetry triggered! Pattern: [${symmetryValues.join('-')}], Total favour: ${this.symmetryFavour}`);
                 }
                 break;
@@ -396,9 +390,6 @@ class Boon extends Card {
     }
 
     applyBeforeScoreEffect(gameState, result, game = null) {
-        if (result.favourMult === undefined) {
-            result.favourMult = 1;
-        }
         if (typeof BoonTimingHandlers !== 'undefined' && typeof BoonTimingHandlers.runBeforeScore === 'function') {
             BoonTimingHandlers.runBeforeScore(this, gameState, result, game);
         } else {
@@ -544,7 +535,7 @@ class Boon extends Card {
             case 'pandoras_jar': {
                 // Every 3rd turn: +2 permanent Favour (stacking) and destroy a random other Boon
                 const pandoraInterval = (typeof BOON_EFFECTS !== 'undefined' && BOON_EFFECTS.PANDORAS_JAR?.DESTROY_INTERVAL) || 3;
-                const pandoraFavourBonus = 2;
+                const pandoraFavourBonus = 200;
                 if (gameState.turn % pandoraInterval === 0 && gameState.boons && gameState.boons.length > 1) {
                     if (!this.pandoraFavourStacks) {
                         this.pandoraFavourStacks = 0;
@@ -953,26 +944,26 @@ class Boon extends Card {
         
         switch (this.id) {
             case 'mt_olympus':
-                // +1 favour per worship used
+                // +100 Favour per worship used
                 const worshipCount = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
-                return worshipCount;
+                return worshipCount * 100;
                 
             case 'prometheus_gift':
-                // +3 favour to all hands
-                return 3;
+                // +300 Favour to all hands
+                return 300;
                 
             case 'forge_of_hephaestus':
-                // +0.5 favour per unused reroll (max 1.5)
+                // +50 Favour per unused reroll (max 150)
                 const unusedRerolls = gameState.rollsLeft || 0;
-                return Math.min(Math.max(0, unusedRerolls) * 0.5, 1.5);
+                return Math.min(Math.max(0, unusedRerolls) * 50, 150);
                 
             case 'hestias_hearth':
-                // +3 favour if all dice are odd or even
+                // +300 Favour if all dice are odd or even
                 if (gameState.dice && gameState.dice.length > 0) {
                     const allFaces = gameState.dice.map(d => d.getEffectiveFace());
                     const allOdd = allFaces.every(face => face % 2 === 1);
                     const allEven = allFaces.every(face => face % 2 === 0);
-                    return (allOdd || allEven) ? 3 : 0;
+                    return (allOdd || allEven) ? 300 : 0;
                 }
                 return 0;
                 
@@ -1000,11 +991,11 @@ class Boon extends Card {
         
         if (this.id !== 'mt_olympus' && this.dynamicStats.favour > 0) {
             const f = this.dynamicStats.favour;
-            stats.push({ value: (window.NumberFormat ? window.NumberFormat.favour(f) : `×${f}`), type: 'favour' });
+            stats.push({ value: (window.NumberFormat ? `+${window.NumberFormat.favourContrib(f)}` : `+${f}`), type: 'favour' });
         } else if (this.id !== 'mt_olympus') {
             const favour = this.getCurrentFavourValue(gameState);
             if (favour > 0) {
-                stats.push({ value: (window.NumberFormat ? window.NumberFormat.favour(favour) : `×${favour}`), type: 'favour' });
+                stats.push({ value: (window.NumberFormat ? `+${window.NumberFormat.favourContrib(favour)}` : `+${favour}`), type: 'favour' });
             }
         }
         
@@ -1022,7 +1013,7 @@ class Boon extends Card {
                 // Live counter: current favour bonus from worship cards used this run
                 const worshipUsed = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
                 if (worshipUsed > 0) {
-                    stats.push({ value: `+${worshipUsed} worship`, type: 'favour' });
+                    stats.push({ value: `+${worshipUsed * 100} Favour`, type: 'favour' });
                 }
                 break;
             case 'experience_points':

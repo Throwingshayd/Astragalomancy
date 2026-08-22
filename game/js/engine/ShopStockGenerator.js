@@ -155,15 +155,9 @@ const ShopStockGenerator = {
     },
 
     /**
-     * One artifact per trial, offered in the end-of-trial shop only.
-     *
-     * A trial opens three shops: two mid-trial breaks on BlindDirector.shopTurns, then the
-     * reward shop after the trial is cleared. Offering in all three burned the whole roster
-     * inside three trials and left the shelf empty for the ~30 shops after that, so
-     * TrialCompletion flags the reward shop and only that one stocks an artifact.
+     * One artifact per shop visit. Upgrades only enter the pool once the base is owned.
      */
     _generateArtifacts(gameState, prng) {
-        if (!gameState?.shopIsTrialReward) return [];
         const purchasedIds = new Set((gameState.artifacts || []).map(a => a.id));
         const pool = [];
         const artifacts = CardData.artifacts || {};

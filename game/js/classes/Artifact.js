@@ -34,17 +34,20 @@ class Artifact extends Card {
         el.dataset.inShop = String(isShopItem);
 
         let hasAsset = false;
-        if (window.AssetMapping) {
-            const assetPath = AssetMapping.getArtifactAsset(this.id);
-            if (assetPath) {
-                hasAsset = true;
-                el.classList.add('has-asset');
-                el.style.backgroundImage = `url('${assetPath}')`;
-                el.style.backgroundSize = 'cover';
-                el.style.backgroundPosition = 'center';
+        let backgroundStyle = '';
+        if (typeof AssetMapping !== 'undefined') {
+            const cardAsset = AssetMapping.getArtifactAsset(this.id);
+            if (cardAsset) {
+                const assetPath = AssetMapping.getAssetPath(cardAsset);
+                if (assetPath) {
+                    hasAsset = true;
+                    backgroundStyle = `background-image: url('${assetPath}');`;
+                }
             }
         }
-        if (!hasAsset) {
+        if (hasAsset) {
+            el.classList.add('has-asset');
+        } else {
             el.classList.add('no-asset');
         }
 
@@ -54,7 +57,8 @@ class Artifact extends Card {
             : '';
 
         el.innerHTML = `
-            <div class="card-frame"></div>
+            ${hasAsset ? `<div class="card-background" style="${backgroundStyle}"></div>` : ''}
+            ${!hasAsset ? '<div class="card-fallback-bg"></div>' : ''}
             <div class="card-content">
                 ${typeIndicatorHtml}
                 <div class="artifact-name" aria-hidden="true">${this.name}</div>

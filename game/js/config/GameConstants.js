@@ -26,8 +26,8 @@ const GAME_BALANCE = {
     // Progression
     MAX_TURNS_PER_ANTE: 13,
     STARTING_ANTE: 1,
-    STARTING_SCORE_THRESHOLD: 200,
-    THRESHOLD_INCREASE_PER_ANTE: 100,
+    STARTING_SCORE_THRESHOLD: 20000,
+    THRESHOLD_INCREASE_PER_ANTE: 10000,
     
     // Economy - Balatro-inspired
     SHOP_REROLL_COST: 4,  // Increased from 2 - rerolls are now expensive!
@@ -45,7 +45,7 @@ const GAME_BALANCE = {
     STARTING_WORSHIP_SLOTS: 2,
     
     // Base multipliers
-    BASE_FAVOUR: 1.5,
+    BASE_FAVOUR: 100,
     
     // Dice face limits
     MIN_DIE_FACE: 1,
@@ -104,7 +104,7 @@ const RARITY_WEIGHTS = {
  * @const {Object}
  */
 const ENHANCEMENT_CHANCES = {
-    PARCHMENT_FAVOUR_CHANCE: 0.25,   // 25% for +1 favour
+    PARCHMENT_FAVOUR_CHANCE: 0.25,   // 25% for +100 Favour
     PARCHMENT_GOLD_CHANCE: 0.15      // 15% for +5 gold
 };
 

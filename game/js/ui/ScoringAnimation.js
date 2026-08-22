@@ -64,8 +64,8 @@ class ScoringAnimation {
         const god = this.engine.getGodForCategory(category);
         const basePips = this.calculateBasePips(category);
         const worshipLevel = god ? (this.engine.state.worshipLevels?.[god] || 0) : 0;
-        const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 0.25;
-        const categoryBaseFavour = 1 + worshipLevel * perLevel;
+        const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 25;
+        const categoryBaseFavour = (typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100) + worshipLevel * perLevel;
         const diceContributions = this.getDiceContributions(category);
         const boonContributions = this.getBoonContributions(category, basePips, categoryBaseFavour);
         const up = (o) => this.engine.ensureLiveScore()?.updateValues(liveScoreEl, { ...o, category: categoryLabel, pipsLabel: 'pips', favourLabel: 'favour', showNa: false });
@@ -344,7 +344,7 @@ class ScoringAnimation {
                         source: 'enhancement',
                         dieIndex: index,
                         dieIndices: [index],
-                        favourLabel: '+1 favour'
+                        favourLabel: '+100 Favour'
                     });
                 }
             }
@@ -355,7 +355,7 @@ class ScoringAnimation {
             if (!boon.timing.before_score) return;
             
             // Test what this boon adds
-            const testData = { category, pips: basePips, favour: baseFavour, favourMult: 1 };
+            const testData = { category, pips: basePips, favour: baseFavour };
             const resultData = boon.onTimingEvent('before_score', this.engine.state, testData, this.engine);
             
             const pipsAdded = (resultData.pips || 0) - basePips;
@@ -369,10 +369,14 @@ class ScoringAnimation {
                     favour: favourAdded,
                     source: 'boon'
                 };
-                // Pegasus Flight: show ×0.5 favour popup only on dice that contributed
+                // Pegasus Flight: +0.5 Favour popup on dice that contributed
                 if (boon.id === 'pegasus_flight' && resultData._pegasusDieIndices?.length) {
                     contrib.dieIndices = resultData._pegasusDieIndices;
-                    contrib.favourLabel = '×0.5 favour';
+                    contrib.favourLabel = '+50 Favour';
+                }
+                if (boon.id === 'carillon_of_the_muses' && baseFavour > 0
+                    && Math.abs((resultData.favour / baseFavour) - 2.5) < 0.01) {
+                    contrib.favourLabel = '×2.5 Favour';
                 }
                 // Cerberus Watch: show +3 pips on each held die
                 if (boon.id === 'cerberus_watch' && resultData._cerberusDieIndices?.length) {

@@ -70,10 +70,10 @@ describe('Greek theme wiring', () => {
         );
     });
 
-    it('score line reads pips amethyst and favour ember, never gold', () => {
+    it('score line reads pips amethyst and favour devotion-rose, never gold', () => {
         const css = readFileSync('game/css/greek-theme.css', 'utf8');
         expect(css).toMatch(/--gk-pips-1:\s*#b98ceb/);
-        expect(css).toMatch(/--gk-favour-1:\s*#e2655f/);
+        expect(css).toMatch(/--gk-favour-1:\s*#e56b7a/);
         expect(css).toMatch(
             /\.center-game-area \.live-score-display\.felt-live \.pips \{[\s\S]*?color: var\(--gk-pips-1\)/,
         );
@@ -100,7 +100,7 @@ describe('Greek theme wiring', () => {
         );
         // Number band and label band are both fixed height.
         expect(css).toContain('--gnosis-num-h: 60px;');
-        expect(css).toContain('--gnosis-label-h: 20px;');
+        expect(css).toContain('--gnosis-label-h: 28px;');
         expect(css).toMatch(
             /\.live-score-display\.felt-live \.pips-line[\s\S]*?height: var\(--gnosis-num-h\)/,
         );

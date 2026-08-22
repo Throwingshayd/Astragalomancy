@@ -101,9 +101,27 @@ const AssetMapping = {
         'divine_guidance': 'dviine guidance.png'
     },
 
-    // Artifact Assets - DISABLED: Artifacts now use fallback white box display
     artifacts: {
-        // All artifacts will display as white boxes with text (no images)
+        'artifact_temple_market': 'artifact-temple-market.png',
+        'artifact_grand_agora': 'artifact-grand-agora.png',
+        'artifact_clearance_sale': 'artifact-merchants-arrival.png',
+        'artifact_hermes_bargain': 'artifact-hermes-bargain.png',
+        'artifact_telescope': 'artifact-altar.png',
+        'artifact_hecatomb': 'artifact-hecatomb.png',
+        'artifact_hall_of_heroes': 'artifact-hall-of-heroes.png',
+        'artifact_antimatter': 'artifact-antikythra.png',
+        'artifact_panegyris': 'artifact-panegyris.png',
+        'artifact_the_auspices': 'artifact-the-auspices.png',
+        'artifact_symposium': 'artifact-symposium.png',
+        'artifact_ganymedes_cup': 'artifact-ganymedes-cup.png',
+        'artifact_sixth_astragalus': 'artifact-sixth-astragalus.png',
+        'artifact_seventh_astragalus': 'artifact-seventh-astragalus.png',
+        'artifact_plutus_seed': 'artifact-plutus-seed.png',
+        'artifact_plutus_grove': 'artifact-plutus-grove.png',
+        'artifact_delphic_tithe': 'artifact-delphic-tithe.png',
+        'artifact_pythias_indulgence': 'artifact-pythias-indulgence.png',
+        'artifact_tyches_grace': 'artifact-tyches-grace.png',
+        'artifact_tyches_bounty': 'artifact-tyches-bounty.png',
     },
 
     // Pack Assets
@@ -118,7 +136,8 @@ const AssetMapping = {
     frames: {
         'boon': null, // CSS-based frame for boons
         'worship': null, // worship art has the shrine frame drawn in ('worship frame.png' is the blank source)
-        'libation': null // libation art has its cup frame drawn in ('libation frame.png' is the blank source)
+        'libation': null, // libation art has its cup frame drawn in ('libation frame.png' is the blank source)
+        'artifact': null // relic art has the bronze Greek-key frame drawn in
     },
 
     // Dice face sprite sheet (built from diceFaceSources via npm run build-dice-spritesheet)
@@ -188,6 +207,9 @@ const AssetMapping = {
         if (cardType === 'boon') {
             return this.boons[cardId] || null;
         }
+        if (cardType === 'artifact') {
+            return this.getArtifactAsset(cardId);
+        }
 
         // Map card types to the correct mapping keys
         const typeMapping = {
@@ -225,8 +247,8 @@ const AssetMapping = {
     },
 
     // Helper function to get artifact asset
-    getArtifactAsset(_artifactId) {
-        return null;
+    getArtifactAsset(artifactId) {
+        return this.artifacts[artifactId] || 'artifact-relic.png';
     },
 
     // Helper function to get boon asset (returns mapped asset or null for white fallback)
@@ -245,6 +267,10 @@ const AssetMapping = {
         return `ART/${assetName}`;
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.AssetMapping = AssetMapping;
+}
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {

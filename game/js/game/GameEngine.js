@@ -1261,7 +1261,7 @@ class GameEngine {
             tempFavour: isActualScoring ? (this.state.tempFavour || 0) : 0,
         });
         let pips = pipeResult.pips;
-        let favour = pipeResult.favour * (pipeResult.favourMult || 1);
+        let favour = pipeResult.favour;
         const isValid = pipeResult.isValid;
         const counts = typeof GnosisDisplay !== 'undefined'
             ? GnosisDisplay.getFacesAndCounts(this.state).counts
@@ -1310,7 +1310,7 @@ class GameEngine {
                     if (parchmentRoll >= ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE
                         && parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE + ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
                         favour += ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR;
-                        if (isActualScoring) this.showMessage?.('Parchment blessing: +1 Favour!');
+                        if (isActualScoring) this.showMessage?.('Parchment blessing: +100 Favour!');
                     }
                 }
             });
@@ -1320,11 +1320,11 @@ class GameEngine {
     }
 
     getFavourForCategory(_category) {
-        return 1;
+        return typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100;
     }
 
     /**
-     * Get the pips and mult associated with the current worship level (Balatro planet-card style)
+     * Get the pips and Favour associated with the current worship level
      * @param {string} category
      * @returns {{ pips: number, mult: number }}
      */
@@ -1337,8 +1337,8 @@ class GameEngine {
         const basePips = (typeof LOWER_SECTION_BONUSES !== 'undefined' && LOWER_SECTION_BONUSES[pipCategory]) || 0;
         const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[pipCategory]) || 0;
         const pips = basePips + (level * (pipsPerLevel || 0));
-        const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 0.25;
-        const mult = 1 + level * perLevel;
+        const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 25;
+        const mult = (typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100) + level * perLevel;
         return { pips, mult };
     }
 
@@ -1497,7 +1497,7 @@ class GameEngine {
         
         // Check for Yahtzee effects
         if (this.state.yahtzeeEffects.increaseFavour && this.state.pendingCategory === 'Yahtzee') {
-            this.state.baseFavour++;
+            this.state.baseFavour += (typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100);
             this.showMessage("Zeus' blessing increases your Base Favour!");
         }
     }
@@ -1934,12 +1934,12 @@ class GameEngine {
     formatFavour(favour) {
         return (this.numberFormat
             ? this.numberFormat.favour(favour, { prefix: false })
-            : String(Number(favour) || 1));
+            : String(Number(favour) || 100));
     }
 
     /**
      * Format favour contribution for display – shows actual value (0.5, 1.5, etc.).
-     * Used when showing what a boon added (e.g. "+0.5 favour" in popup or live score).
+     * Used when showing what a boon added (e.g. "+50 Favour" in popup or live score).
      * @param {number} favour - Favour contribution value
      * @returns {string} Formatted favour string (preserves decimals)
      */

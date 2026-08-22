@@ -58,49 +58,35 @@ const TooltipContent = {
         return chips ? `<div class="tooltip-stats">${chips}</div>` : '';
     },
 
+    /**
+     * Die hover: scoring-float style (+pips / +gold), enhancement name underneath.
+     * No white panel copy — matches .die-pip-popup look via CSS.
+     */
     dieBody(parsed) {
-        const statusClass = parsed.held ? 'is-held' : 'is-free';
-        const statusLabel = parsed.held ? 'Held' : 'Free';
-
         let html = `<article class="tip-die">`;
-        html += `<p class="tip-die-status ${statusClass}">${statusLabel}</p>`;
 
         if (!parsed.rolled || !parsed.face) {
-            html += `<p class="tip-die-face">Roll to reveal</p>`;
+            html += `<p class="tip-die-hint">Roll to reveal</p>`;
         } else {
-            html += `<p class="tip-die-face">Face ${this.escapeHtml(parsed.face)}</p>`;
-            const notes = [];
-            if (parsed.modified) {
-                notes.push(`Modified ${parsed.modified.from}→${parsed.modified.to}`);
+            const parts = [];
+            if (parsed.pips != null && parsed.pips > 0) {
+                parts.push(`<span class="tip-die-pips">+${this.escapeHtml(parsed.pips)}</span>`);
             }
-            if (parsed.wildMod !== null && parsed.wildMod !== undefined) {
-                const sign = parsed.wildMod > 0 ? '+' : '';
-                notes.push(`Wild ${sign}${parsed.wildMod}`);
+            if (parsed.gold != null && parsed.gold > 0) {
+                parts.push(`<span class="tip-die-gold">+${this.escapeHtml(parsed.gold)}g</span>`);
             }
-            if (notes.length > 0) {
-                html += `<p class="tip-die-note">${this.escapeHtml(notes.join(' · '))}</p>`;
+            if (parts.length > 0) {
+                html += `<p class="tip-die-scoreline">${parts.join(' ')}</p>`;
             }
-        }
 
-        if (parsed.rolled && parsed.enhancements?.length > 0) {
-            html += `<ul class="tip-die-enhs">`;
-            parsed.enhancements.forEach((enh) => {
-                const color = this.escapeAttr(enh.color || '');
-                const style = color ? ` style="--enh-color:${color}"` : '';
-                html += `<li class="tip-die-enh"${style}>
-                    <span class="tip-die-enh-name">${this.escapeHtml(enh.name)}</span>
-                    <span class="tip-die-enh-desc">${this.escapeHtml(enh.desc)}</span>
-                </li>`;
-            });
-            html += `</ul>`;
-        }
-
-        if (parsed.tempMod) {
-            const sign = parsed.tempMod > 0 ? '+' : '';
-            html += `<footer class="tip-die-footer">`;
-            html += `<div class="tip-die-footer-line">`;
-            html += `<span class="tip-die-mod">Temp modifier ${sign}${parsed.tempMod}</span>`;
-            html += `</div></footer>`;
+            if (parsed.enhancements?.length > 0) {
+                const names = parsed.enhancements.map((enh) => {
+                    const color = this.escapeAttr(enh.color || '');
+                    const style = color ? ` style="--enh-color:${color}"` : '';
+                    return `<span class="tip-die-enh-name"${style}>${this.escapeHtml(enh.name)}</span>`;
+                });
+                html += `<p class="tip-die-enh-line">${names.join('<span class="tip-die-enh-sep"> · </span>')}</p>`;
+            }
         }
 
         html += `</article>`;

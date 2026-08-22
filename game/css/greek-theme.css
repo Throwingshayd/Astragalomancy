@@ -31,14 +31,14 @@
     --gk-ink: #34250f;
     --gk-ink-soft: #6a5230;
     --gk-terracotta: #b5532f;
-    /* Score line — pips amethyst, favour ember (felt-bright takes on the parchment
-       #5a3d8a / #8b2a2a pair). Gold stays the neutral connector between them. */
+    /* Score line — pips amethyst, favour devotion-rose (love for a god, not stop-sign).
+       Gold stays the neutral connector between them. */
     --gk-pips-1: #b98ceb;
     --gk-pips-2: #5a3d8a;
     --gk-pips-glow: rgba(185, 140, 235, 0.42);
-    --gk-favour-1: #e2655f;
-    --gk-favour-2: #8b2a2a;
-    --gk-favour-glow: rgba(226, 101, 95, 0.42);
+    --gk-favour-1: #e56b7a;
+    --gk-favour-2: #8b2f45;
+    --gk-favour-glow: rgba(229, 107, 122, 0.45);
     /* Layout — main-game coordinate system (stones, pantheon, felt) */
     --felt-die-size: 95px;
     --felt-stone-w: 160px;
@@ -749,12 +749,28 @@
     color: var(--gk-favour-1);
 }
 
-/* In-run menu control. */
+/* In-run Menu — same marble-gilt family as pause / settings */
 .return-to-menu-btn {
-    border-color: var(--gk-gold-2) !important;
-    color: var(--gk-marble-1) !important;
-    background: linear-gradient(180deg, rgba(17, 64, 72, 0.92) 0%, rgba(7, 24, 28, 0.96) 100%) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(180deg, #f0d9a0 0%, var(--gk-gold-2) 48%, var(--gk-gold-3) 100%) !important;
+    border: 1px solid var(--gk-gold-3) !important;
+    color: var(--gk-ink) !important;
+    text-shadow: 0 1px 0 rgba(255, 248, 220, 0.35) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        0 3px 0 rgba(90, 58, 22, 0.85),
+        0 6px 12px rgba(0, 0, 0, 0.28) !important;
+    font-family: var(--font-manuscript), serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.return-to-menu-btn:hover {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(180deg, var(--gk-gold-1) 0%, var(--gk-gold-2) 55%, var(--gk-gold-3) 100%) !important;
+    filter: brightness(1.04);
 }
 
 /* Greek-toned drag zones — worship is label-only (tile drop targets). */
@@ -1384,7 +1400,7 @@
    move the numbers. Digits are tabular so count-up doesn't jitter. */
 .main-game .center-game-area .live-score-display.felt-live {
     --gnosis-num-h: 60px;
-    --gnosis-label-h: 20px;
+    --gnosis-label-h: 28px;
 }
 
 .main-game .center-game-area .live-score-display.felt-live .pips,
@@ -1397,13 +1413,13 @@
 
 .main-game .center-game-area .live-score-display.felt-live .gnosis-row,
 .main-game .center-game-area .live-score-display.felt-live .live-metric-cell {
-    min-height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 4px);
-    height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 4px);
+    min-height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 6px);
+    height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 6px);
 }
 
 .main-game .center-game-area .live-score-display.felt-live .live-metric-cell {
     justify-content: flex-start;
-    gap: 4px;
+    gap: 6px;
 }
 
 .main-game .center-game-area .live-score-display.felt-live .pips-line,
@@ -1427,17 +1443,20 @@
 
 .main-game .center-game-area .live-score-display.felt-live .gnosis-pips-bonus,
 .main-game .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
-    font-size: 0.95rem !important;
-    letter-spacing: 0.14em;
+    font-family: var(--font-manuscript), serif !important;
+    font-size: 1.28rem !important;
+    letter-spacing: 0.18em;
     line-height: var(--gnosis-label-h);
     height: var(--gnosis-label-h);
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-transform: lowercase;
-    font-weight: 700;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-transform: uppercase;
+    font-weight: normal;
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.55),
+        0 0 12px rgba(0, 0, 0, 0.25);
 }
 
 /* "+N" chip picks up its metric's hue instead of flat cream — sign included,
@@ -1783,3 +1802,435 @@
     display: none;
 }
 
+/* ============================================================================
+   7) PAUSE + SETTINGS — marble stele overlays (not Balatro green/red)
+============================================================================ */
+
+.settings-modal,
+.pause-menu-modal {
+    background-image: none !important;
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 36%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 58%, var(--gk-marble-3) 100%) !important;
+    border: 2px solid var(--gk-gold-2) !important;
+    border-radius: 16px !important;
+    color: var(--gk-ink);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        inset 0 0 0 1px rgba(154, 119, 48, 0.28),
+        0 18px 48px rgba(0, 0, 0, 0.5) !important;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+/* Greek-key meander rails */
+.settings-modal::before,
+.pause-menu-modal::before,
+.settings-modal::after,
+.pause-menu-modal::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    height: 10px;
+    background-image: var(--gk-meander-h);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: auto 10px;
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.settings-modal::before,
+.pause-menu-modal::before {
+    top: 8px;
+}
+
+.settings-modal::after,
+.pause-menu-modal::after {
+    bottom: 8px;
+}
+
+.settings-modal > *,
+.pause-menu-modal > * {
+    position: relative;
+    z-index: 1;
+}
+
+.settings-kicker,
+.pause-menu-header .settings-kicker {
+    color: var(--gk-bronze) !important;
+}
+
+.settings-title,
+.settings-modal .shop-title,
+.pause-menu-modal .shop-title,
+.settings-modal .settings-title,
+.pause-menu-modal .settings-title {
+    color: var(--gk-ink) !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+.settings-section-title {
+    color: var(--gk-bronze) !important;
+}
+
+.settings-row {
+    background:
+        linear-gradient(180deg, rgba(255, 253, 246, 0.72) 0%, rgba(232, 216, 184, 0.55) 100%) !important;
+    border: 1px solid rgba(154, 119, 48, 0.28) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.settings-row label {
+    color: var(--gk-ink) !important;
+}
+
+.settings-hint {
+    color: var(--gk-ink-soft) !important;
+}
+
+.settings-row select {
+    background: rgba(52, 37, 15, 0.92) !important;
+    color: var(--gk-marble-1) !important;
+    border: 1px solid var(--gk-gold-3) !important;
+}
+
+.settings-row .slider-value {
+    color: var(--gk-gold-3) !important;
+}
+
+.settings-row input[type="range"] {
+    background: rgba(125, 90, 46, 0.28) !important;
+}
+
+.settings-row input[type="range"]::-webkit-slider-thumb {
+    background: var(--gk-gold-1) !important;
+    border-color: var(--gk-bronze) !important;
+}
+
+.settings-row input[type="range"]::-moz-range-thumb {
+    background: var(--gk-gold-1) !important;
+    border-color: var(--gk-bronze) !important;
+}
+
+.settings-switch-track {
+    background: rgba(125, 90, 46, 0.35) !important;
+    border-color: rgba(154, 119, 48, 0.4) !important;
+}
+
+.settings-switch-track::after {
+    background: var(--gk-marble-1) !important;
+}
+
+.settings-switch input:checked + .settings-switch-track {
+    background: rgba(205, 162, 76, 0.7) !important;
+    border-color: var(--gk-gold-2) !important;
+}
+
+.settings-switch input:checked + .settings-switch-track::after {
+    background: var(--gk-gold-1) !important;
+}
+
+/* Shared marble-gilt action buttons inside these menus */
+.settings-modal .divine-button,
+.pause-menu-modal .divine-button {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(180deg, #f0d9a0 0%, var(--gk-gold-2) 48%, var(--gk-gold-3) 100%) !important;
+    border: 1px solid var(--gk-gold-3) !important;
+    color: var(--gk-ink) !important;
+    text-shadow: 0 1px 0 rgba(255, 248, 220, 0.35) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        0 4px 0 rgba(90, 58, 22, 0.85),
+        0 8px 16px rgba(0, 0, 0, 0.28) !important;
+    font-family: var(--font-manuscript), serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.settings-modal .divine-button:hover,
+.pause-menu-modal .divine-button:hover {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(180deg, var(--gk-gold-1) 0%, var(--gk-gold-2) 55%, var(--gk-gold-3) 100%) !important;
+    filter: brightness(1.04);
+}
+
+.settings-modal .divine-button:active,
+.pause-menu-modal .divine-button:active {
+    transform: translateY(2px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 2px 0 rgba(90, 58, 22, 0.85),
+        0 4px 10px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Resume = brightest gilt */
+.pause-menu-modal .pause-btn-primary {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 40%),
+        linear-gradient(180deg, #fff1c2 0%, var(--gk-gold-1) 40%, var(--gk-gold-2) 100%) !important;
+    border-color: var(--gk-gold-2) !important;
+    color: var(--gk-ink) !important;
+}
+
+/* Settings = quieter bronze */
+.pause-menu-modal .pause-btn-secondary {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%),
+        linear-gradient(180deg, #c9a86a 0%, var(--gk-bronze) 55%, #5a3f1f 100%) !important;
+    border-color: var(--gk-gold-3) !important;
+    color: var(--gk-marble-1) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+    opacity: 1;
+}
+
+/* Exit = deep grape-wine, not stop-sign red */
+.pause-menu-modal .pause-btn-danger {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 45%),
+        linear-gradient(180deg, #8a5a9a 0%, #5c2e6e 55%, #3a1c48 100%) !important;
+    border-color: #6b3a7a !important;
+    color: var(--gk-marble-2) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+    opacity: 1;
+}
+
+.pause-run-info {
+    background:
+        linear-gradient(180deg, rgba(255, 253, 246, 0.55) 0%, rgba(217, 200, 166, 0.35) 100%) !important;
+    border: 1px solid rgba(154, 119, 48, 0.32) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.run-info-tab {
+    color: var(--gk-ink-soft) !important;
+    background: rgba(255, 253, 246, 0.45) !important;
+    border: 1px solid rgba(154, 119, 48, 0.3) !important;
+}
+
+.run-info-tab.active {
+    color: var(--gk-ink) !important;
+    background: rgba(244, 214, 128, 0.42) !important;
+    border-color: var(--gk-gold-2) !important;
+}
+
+.run-info-empty {
+    color: var(--gk-ink-soft) !important;
+}
+
+.run-info-ante-card,
+.run-info-stat-chip,
+.run-info-artifact-row {
+    background: rgba(255, 253, 246, 0.55) !important;
+    border: 1px solid rgba(154, 119, 48, 0.22) !important;
+    color: var(--gk-ink);
+}
+
+.run-info-ante-header,
+.run-info-artifact-name,
+.run-info-stat-value,
+.run-info-ante-name {
+    color: var(--gk-gold-3) !important;
+}
+
+.run-info-ante-effect,
+.run-info-ante-threshold,
+.run-info-artifact-effect,
+.run-info-ante-row {
+    color: var(--gk-ink-soft) !important;
+}
+
+.settings-close-btn {
+    margin-top: 4px;
+}
+
+/* ============================================================================
+   8) ANTHOLOGY + START BUTTONS — marble stele, grape not stop-sign
+============================================================================ */
+
+#collectionScreen {
+    background:
+        radial-gradient(ellipse at 50% 20%, rgba(107, 58, 122, 0.18) 0%, transparent 55%),
+        rgba(7, 24, 28, 0.92) !important;
+}
+
+#collectionScreen .modal-content {
+    background-image: none !important;
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 36%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 58%, var(--gk-marble-3) 100%) !important;
+    border: 2px solid var(--gk-gold-2) !important;
+    border-radius: 16px !important;
+    color: var(--gk-ink);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        inset 0 0 0 1px rgba(154, 119, 48, 0.28),
+        0 18px 48px rgba(0, 0, 0, 0.5) !important;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+#collectionScreen .modal-content::before,
+#collectionScreen .modal-content::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    height: 10px;
+    background-image: var(--gk-meander-h);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: auto 10px;
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 0;
+}
+
+#collectionScreen .modal-content::before { top: 8px; }
+#collectionScreen .modal-content::after { bottom: 8px; }
+
+#collectionScreen .modal-content > * {
+    position: relative;
+    z-index: 1;
+}
+
+#collectionScreen .shop-title {
+    color: var(--gk-ink) !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+    font-family: var(--font-epic-title), serif;
+    letter-spacing: 0.08em;
+}
+
+#collectionScreen .divine-button {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(180deg, #c9a86a 0%, var(--gk-bronze) 55%, #5a3f1f 100%) !important;
+    border: 1px solid var(--gk-gold-3) !important;
+    color: var(--gk-marble-1) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.28),
+        0 3px 0 rgba(90, 58, 22, 0.85) !important;
+    font-family: var(--font-manuscript), serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+#collectionScreen .divine-button:hover {
+    filter: brightness(1.06);
+}
+
+#collectionScreen .collection-tabs .divine-button.active {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 40%),
+        linear-gradient(180deg, #fff1c2 0%, var(--gk-gold-1) 40%, var(--gk-gold-2) 100%) !important;
+    border-color: var(--gk-gold-2) !important;
+    color: var(--gk-ink) !important;
+    text-shadow: 0 1px 0 rgba(255, 248, 220, 0.35) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 3px 0 rgba(90, 58, 22, 0.75),
+        0 0 0 1px rgba(244, 214, 128, 0.25) !important;
+}
+
+#collectionScreen .collection-page-indicator {
+    color: var(--gk-ink-soft) !important;
+}
+
+#collectionScreen .collection-slot-placeholder {
+    border-color: rgba(154, 119, 48, 0.28) !important;
+    background: rgba(255, 253, 246, 0.35) !important;
+}
+
+/* Title-screen buttons — gilt / grape, not terracotta stop-signs */
+.start-options .divine-button#playButton,
+.start-options .divine-button#continueButton {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(140deg, #b07ad4 0%, #7a3fa0 52%, #4a2468 100%) !important;
+    border: 1px solid #6b3a7a !important;
+    color: #f8f0ff !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.28),
+        0 5px 0 rgba(42, 18, 58, 0.9),
+        0 9px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+.start-options .divine-button#collectionButton {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(140deg, #f0d9a0 0%, var(--gk-gold-2) 54%, var(--gk-gold-3) 100%) !important;
+    border: 1px solid var(--gk-gold-3) !important;
+    color: var(--gk-ink) !important;
+    text-shadow: 0 1px 0 rgba(255, 248, 220, 0.35) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 5px 0 rgba(90, 58, 22, 0.85),
+        0 9px 18px rgba(0, 0, 0, 0.3) !important;
+}
+
+.start-options .divine-button#settingsButton {
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%),
+        linear-gradient(140deg, #c9a86a 0%, var(--gk-bronze) 50%, #5a3f1f 100%) !important;
+    border: 1px solid var(--gk-gold-3) !important;
+    color: var(--gk-marble-1) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        0 5px 0 rgba(58, 36, 14, 0.9),
+        0 9px 18px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ============================================================================
+   9) LIVE SCORE POLISH — devotion favour, larger labels, scoring popups
+============================================================================ */
+
+.center-game-area .live-score-display.felt-live .gnosis-pips-bonus {
+    color: var(--gk-pips-1);
+}
+
+.center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
+    color: var(--gk-favour-1);
+}
+
+.center-game-area .live-score-display.felt-live .pips {
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.45),
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        0 0 22px var(--gk-pips-glow);
+}
+
+.center-game-area .live-score-display.felt-live .favour {
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.45),
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        0 0 22px var(--gk-favour-glow);
+}
+
+.die-pip-popup {
+    color: var(--gk-pips-1) !important;
+    text-shadow:
+        0 0 10px var(--gk-pips-glow),
+        0 2px 4px rgba(0, 0, 0, 0.9) !important;
+}
+
+.die-pip-popup.boon-dice-favour {
+    color: var(--gk-favour-1) !important;
+    text-shadow:
+        0 0 10px var(--gk-favour-glow),
+        0 2px 4px rgba(0, 0, 0, 0.9) !important;
+}
+
+.boon-contrib-popup {
+    color: var(--gk-gold-1) !important;
+    text-shadow:
+        0 0 8px rgba(244, 214, 128, 0.55),
+        0 1px 2px rgba(0, 0, 0, 0.9) !important;
+}

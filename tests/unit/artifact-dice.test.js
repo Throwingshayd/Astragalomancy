@@ -68,6 +68,20 @@ describe('The Sixth Astragalus — extra die whose faces start as 1s', () => {
         expect(state.dice[5].faces[3].modifiedValue).toBe(9);
     });
 
+    it('Seventh Astragalus adds a Wild extra die after the all-1s Sixth', () => {
+        const state = {
+            dice: fiveDice(),
+            held: Array(5).fill(false),
+            artifacts: [{ id: ArtifactDice.ID }, { id: ArtifactDice.SEVENTH_ID }],
+        };
+        ArtifactDice.ensure(state);
+        expect(state.dice).toHaveLength(7);
+        for (let face = 1; face <= 6; face += 1) {
+            expect(state.dice[5].faces[face].modifiedValue).toBe(1);
+            expect(state.dice[6].faces[face].enhancements.has('wild')).toBe(true);
+        }
+    });
+
     it('does not add a sixth die without the artifact', () => {
         const state = { dice: fiveDice(), held: Array(5).fill(false), artifacts: [] };
         ArtifactDice.ensure(state);

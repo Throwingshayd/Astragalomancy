@@ -15,7 +15,7 @@ const DiceRenderer = {
         if (textureClass) dieEl.classList.add(textureClass);
     },
 
-    buildDieTooltipData(die, index, gameState, currentFace, hasModifiedValue) {
+    buildDieTooltipData(die, index, gameState, currentFace) {
         const slot = index + 1;
         const held = !!(gameState.held && gameState.held[index]);
         const rolled = !!gameState.hasRolled;
@@ -26,24 +26,29 @@ const DiceRenderer = {
             rolled,
             face: currentFace > 0 ? currentFace : null,
             effective: null,
-            modified: null,
-            wildMod: null,
+            pips: null,
+            gold: null,
             enhancements: [],
-            tempMod: null,
         };
 
         // Only expose face/enhancement detail after roll — dice shuffle across slots on first roll.
         if (rolled && currentFace > 0) {
-            payload.effective = die.getEffectiveFace();
-            if (hasModifiedValue && die.faces[currentFace]) {
-                payload.modified = {
-                    from: die.faces[currentFace].value,
-                    to: die.faces[currentFace].modifiedValue,
-                };
+            const effective = die.getEffectiveFace();
+            payload.effective = effective;
+
+            // When-scored preview (matches ScoringAnimation die popups).
+            let pips = effective > 0 ? effective : 0;
+            if (pips > 0 && die.hasEnhancementForCurrentFace?.('iron')) {
+                pips += (typeof ENHANCEMENT_BONUSES !== 'undefined' ? ENHANCEMENT_BONUSES.IRON_PIPS : 5);
             }
-            if (die.wildValue !== undefined && die.hasEnhancementForCurrentFace('wild')) {
-                payload.wildMod = die.wildValue - currentFace;
+            if (pips > 0 && die.hasEnhancementForCurrentFace?.('mother_of_pearl') && die.motherOfPearlBonus) {
+                pips += die.motherOfPearlBonus;
             }
+            payload.pips = pips > 0 ? pips : null;
+            if (die.hasEnhancementForCurrentFace?.('gold')) {
+                payload.gold = typeof ENHANCEMENT_BONUSES !== 'undefined' ? ENHANCEMENT_BONUSES.GOLD_COINS : 1;
+            }
+
             const currentEnh = die.faces[currentFace]
                 ? Array.from(die.faces[currentFace].enhancements)
                 : [];
@@ -52,14 +57,9 @@ const DiceRenderer = {
                 return {
                     id,
                     name: def?.displayName || this.getEnhancementDisplayName(id),
-                    desc: die.getEnhancementDescription(id),
                     color: def?.ui?.chipColor || '',
                 };
             });
-        }
-
-        if (die.tempModifier !== 0 && rolled) {
-            payload.tempMod = die.tempModifier;
         }
 
         return payload;
@@ -160,9 +160,6 @@ const DiceRenderer = {
         dieEl.classList.toggle('held', !!gameState.held[index]);
         const currentFace = die.currentFace;
         const hasEnhancementsOnCurrentFace = currentFace > 0 && die.faces[currentFace] && die.faces[currentFace].enhancements.size > 0;
-        const hasModifiedValue = gameState.hasRolled && currentFace > 0 && die.faces[currentFace]
-            && die.faces[currentFace].modifiedValue
-            && die.faces[currentFace].modifiedValue !== die.faces[currentFace].value;
 
         dieEl.style.boxShadow = '';
         dieEl.style.border = '';
@@ -183,7 +180,7 @@ const DiceRenderer = {
             dieEl.textContent = displayFace;
         }
 
-        const tooltipData = this.buildDieTooltipData(die, index, gameState, currentFace, hasModifiedValue);
+        const tooltipData = this.buildDieTooltipData(die, index, gameState, currentFace);
         dieEl.setAttribute('data-tooltip', JSON.stringify(tooltipData));
         window.balatroEffects?.refreshHostTooltip?.(dieEl);
         this._syncBadges(dieEl, die, index, gameState, currentFace, hasEnhancementsOnCurrentFace);

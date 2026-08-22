@@ -30,9 +30,17 @@ const LOWER_SECTION_BONUSES = {
 };
 
 /**
+ * Favour is a 100-based integer multiplier (Balatro Mult).
+ * Score = Pips × Favour. Base 100 is a naked ×1.00; worship +25 is ×125.
+ * +Favour adds; ×Favour multiplies. Never store a third favourMult layer.
+ */
+const BASE_FAVOUR = 100;
+const FAVOUR_FLOOR = 10;
+
+/**
  * Favour added per worship level when scoring that god's category (offered on pantheon).
  */
-const WORSHIP_FAVOUR_PER_LEVEL = 0.25;
+const WORSHIP_FAVOUR_PER_LEVEL = 25;
 
 /** Default times each pantheon row may be scored per trial. */
 const DEVOTION_BASE_CAPACITY = 1;
@@ -77,7 +85,7 @@ const SCORING_THRESHOLDS = {
 const ENHANCEMENT_BONUSES = {
     IRON_PIPS: 5,           // Clockwork (formerly Iron) adds +5 pips when scored
     GOLD_COINS: 1,          // Gold adds +1 gold when scored
-    PARCHMENT_FAVOUR: 1,    // Parchment can add +1 favour
+    PARCHMENT_FAVOUR: 100,  // Parchment can add +100 Favour
     PARCHMENT_GOLD: 5,      // Parchment can add +5 gold (reduced from 15)
     // Wild and Mother of Pearl now work differently - no fixed bonuses
 };
@@ -104,6 +112,8 @@ if (typeof module !== 'undefined' && module.exports) {
         BASE_SCORES,
         LOWER_SECTION_BONUSES,
         CATEGORY_PIPS_PER_LEVEL,
+        BASE_FAVOUR,
+        FAVOUR_FLOOR,
         WORSHIP_FAVOUR_PER_LEVEL,
         DEVOTION_BASE_CAPACITY,
         DEVOTION_TRIALS_TO_ASCEND,

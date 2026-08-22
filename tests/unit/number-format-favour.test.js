@@ -10,16 +10,16 @@ describe('NumberFormat favour / mult display', () => {
         eval(src);
     });
 
-    it('shows ×1.25 not ×1.3 for quarter mults', () => {
-        expect(globalThis.NumberFormat.favour(1.25)).toBe('×1.25');
-        expect(globalThis.NumberFormat.favour(1 + 0.25)).toBe('×1.25');
+    it('shows ×125 not ×1.25 for a worshipped row', () => {
+        expect(globalThis.NumberFormat.favour(125)).toBe('×125');
+        expect(globalThis.NumberFormat.favour(100 + 25)).toBe('×125');
     });
 
-    it('formats integer mults with × prefix', () => {
-        expect(globalThis.NumberFormat.favour(2)).toBe('×2');
+    it('formats integer Favour with × prefix', () => {
+        expect(globalThis.NumberFormat.favour(200)).toBe('×200');
     });
 
-    it('contrib keeps fractional quarters without ×', () => {
-        expect(globalThis.NumberFormat.favourContrib(0.25)).toBe('0.25');
+    it('contrib keeps additive Favour without ×', () => {
+        expect(globalThis.NumberFormat.favourContrib(25)).toBe('25');
     });
 });

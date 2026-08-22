@@ -44,6 +44,8 @@
     "trim-worship-art:dry": "node scripts/trim-worship-art.cjs --dry-run",
     "trim-libation-art": "node scripts/trim-libation-art.cjs",
     "trim-libation-art:dry": "node scripts/trim-libation-art.cjs --dry-run",
+    "trim-artifact-art": "node scripts/trim-artifact-art.cjs",
+    "trim-artifact-art:dry": "node scripts/trim-artifact-art.cjs --dry-run",
     "prebuild": "node scripts/build-dice-spritesheet.cjs && node scripts/generate-sw-precache.cjs",
     "type-check": "tsc --noEmit"
   },

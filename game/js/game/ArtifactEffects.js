@@ -29,9 +29,9 @@ const ARTIFACT_CONTRIBUTIONS = {
     artifact_clearance_sale: (d) => { d.shopDiscount += 0.25; },
     artifact_hermes_bargain: (d) => { d.shopDiscount += 0.25; },
 
-    // Favour from worship levels is multiplied, so base doubles and the pair triples.
+    // Favour from worship levels is multiplied, so Altar doubles. Hecatomb is the sacrifice line.
     artifact_telescope: (d) => { d.worshipFavourMult += 1; },
-    artifact_hecatomb: (d) => { d.worshipFavourMult += 1; },
+    artifact_hecatomb: (d) => { d.boonSellAtCost = true; },
 
     artifact_hall_of_heroes: (d) => { d.packBonus.boon += 1; },
     artifact_antimatter: (d) => { d.boonSlots += 1; },
@@ -50,10 +50,10 @@ const ARTIFACT_CONTRIBUTIONS = {
     artifact_plutus_grove: (d) => { d.maxInterest += 10; },
 
     artifact_delphic_tithe: (d) => { d.rerollDiscount += 2; },
-    artifact_pythias_indulgence: (d) => { d.rerollDiscount += 2; },
+    artifact_pythias_indulgence: (d) => { d.forceSingleRoll = true; },
 
-    artifact_tyches_grace: (d) => { d.extraRolls += 1; },
-    artifact_tyches_bounty: (d) => { d.extraRolls += 1; },
+    artifact_tyches_grace: (d) => { d.trialGold += 4; },
+    artifact_tyches_bounty: (d) => { d.trialGold += 4; },
 };
 
 const ArtifactEffects = {
@@ -73,6 +73,9 @@ const ArtifactEffects = {
             maxInterest: g.MAX_INTEREST ?? 5,
             rerollDiscount: 0,
             extraRolls: 0,
+            trialGold: 0,
+            forceSingleRoll: false,
+            boonSellAtCost: false,
             packBonus: { boon: 0, worship: 0, libation: 0 },
             guaranteeTopWorship: false,
             guaranteeTopLibation: false,
@@ -106,6 +109,9 @@ const ArtifactEffects = {
         state.maxInterest = d.maxInterest;
         state.rerollDiscount = d.rerollDiscount;
         state.extraRolls = d.extraRolls;
+        state.trialGold = d.trialGold;
+        state.forceSingleRoll = d.forceSingleRoll;
+        state.boonSellAtCost = d.boonSellAtCost;
         state.packBonus = d.packBonus;
         state.guaranteeTopWorship = d.guaranteeTopWorship;
         state.guaranteeTopLibation = d.guaranteeTopLibation;
@@ -174,15 +180,30 @@ const ArtifactEffects = {
         return null;
     },
 
-    /** Reroll can reach 0 — that is what Pythia's Indulgence buys. */
+    /** Reroll can reach 0 — Delphic Tithe is −2g; stack more discounts to go free. */
     rerollCost(state) {
         const base = (typeof GAME_BALANCE !== 'undefined' && GAME_BALANCE.SHOP_REROLL_COST) || 4;
         return Math.max(0, base - (state?.rerollDiscount ?? 0));
     },
 
     rollsPerTurn(state) {
+        if (state?.forceSingleRoll) return 1;
         const base = (typeof GAME_BALANCE !== 'undefined' && GAME_BALANCE.STARTING_ROLLS) || 3;
         return base + (state?.extraRolls ?? 0);
+    },
+
+    /** Tyche: paid once at trial start, never inside apply(). */
+    trialStartGold(state) {
+        return this.derive(state).trialGold || 0;
+    },
+
+    /** Hecatomb: boons sell for their shop cost. Other cards keep their listed sellValue. */
+    sellPayout(state, card) {
+        const value = Number(card?.sellValue) || 0;
+        if (card?.type === 'boon' && this.derive(state).boonSellAtCost) {
+            return Math.max(value, Number(card.cost) || 0);
+        }
+        return value;
     },
 
     maxInterest(state) {

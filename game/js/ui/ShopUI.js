@@ -163,8 +163,7 @@ class ShopUI {
                 artifactsContainer.appendChild(el);
             }
         });
-        // Artifacts stock the end-of-trial shop only, so the two mid-trial breaks have
-        // nothing to put here. Drop the shelf rather than label an empty gap.
+        // Hide the shelf when the roster is exhausted rather than label an empty gap.
         artifactsContainer.classList.toggle('hidden', stock.artifacts.length === 0);
 
         stock.directSales.forEach(({ cardData }) => {
@@ -745,7 +744,7 @@ class ShopUI {
         const cardIndex = inventory.findIndex(c => c.id === cardToSell.id);
         if (cardIndex > -1) {
             const soldCard = inventory.splice(cardIndex, 1)[0];
-            let totalGold = soldCard.sellValue;
+            let totalGold = ArtifactEffects.sellPayout(gameState, soldCard);
             gameState.boons.forEach(boon => {
                 if (boon.timing && boon.timing.sell) {
                     boon.onTimingEvent('sell', gameState, { cardType: soldCard.type, card: soldCard }, gameEngine);

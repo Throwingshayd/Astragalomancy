@@ -364,7 +364,7 @@ class WorshipCard extends Card {
     // Get what the next worship level would provide
     getNextLevelBenefit(currentLevel) {
         const nextLevel = currentLevel + 1;
-        const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 0.25;
+        const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 25;
         const pip = this._pipsPerLevelForCategory();
         const favStr = typeof NumberFormat !== 'undefined' ? NumberFormat.favourContrib(perLevel) : String(perLevel);
         return `Level ${nextLevel}: +${pip} pips & +${favStr} Favour when scoring ${this.category}`;

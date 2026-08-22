@@ -31,84 +31,103 @@ class SettingsOverlay {
         }
     }
 
+    _toggleRow(id, label, hint, checked) {
+        return `
+            <div class="settings-row settings-row-toggle">
+                <div class="settings-row-text">
+                    <label for="${id}">${label}</label>
+                    ${hint ? `<p class="settings-hint">${hint}</p>` : ''}
+                </div>
+                <label class="settings-switch" aria-label="${label}">
+                    <input type="checkbox" id="${id}" ${checked ? 'checked' : ''}>
+                    <span class="settings-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+        `;
+    }
+
+    _sliderRow(id, label, hint, value) {
+        return `
+            <div class="settings-row settings-row-slider">
+                <div class="settings-row-text">
+                    <label for="${id}">${label}</label>
+                    ${hint ? `<p class="settings-hint">${hint}</p>` : ''}
+                </div>
+                <div class="slider-with-value">
+                    <input type="range" id="${id}" min="0" max="100" value="${value}">
+                    <span class="slider-value" id="${id}Value">${value}%</span>
+                </div>
+            </div>
+        `;
+    }
+
+    _selectRow(id, label, hint, optionsHtml) {
+        return `
+            <div class="settings-row settings-row-select">
+                <div class="settings-row-text">
+                    <label for="${id}">${label}</label>
+                    ${hint ? `<p class="settings-hint">${hint}</p>` : ''}
+                </div>
+                <select id="${id}">${optionsHtml}</select>
+            </div>
+        `;
+    }
+
     _createOverlay() {
         const s = (window.dataManager?.getSettings?.()) || {};
         const preset = ['small', 'default', 'large'].includes(s.displayScalePreset) ? s.displayScalePreset : 'default';
-        const maxVal = s.displayMaxScale;
-        const maxSel =
-            maxVal === 1 ? '1' :
-            maxVal === 1.25 ? '1.25' :
-            maxVal === 2 ? '2' : '';
+        const musicPct = Math.round((s.musicVolume ?? 0.6) * 100);
+        const sfxPct = Math.round((s.sfxVolume ?? 0.8) * 100);
         const overlay = document.createElement('div');
         overlay.className = 'overlay settings-overlay-created';
         overlay.id = 'settingsOverlayDynamic';
         overlay.style.cssText = 'z-index: 10002;';
         overlay.innerHTML = `
             <div class="modal-content settings-modal">
-                <h2 class="shop-title">Settings</h2>
+                <header class="settings-header">
+                    <p class="settings-kicker">Options</p>
+                    <h2 class="shop-title settings-title">Settings</h2>
+                </header>
                 <div class="settings-content">
-                    <div class="settings-row">
-                        <label for="settingSound">Sound</label>
-                        <input type="checkbox" id="settingSound" ${s.soundEnabled !== false ? 'checked' : ''}>
-                    </div>
-                    <div class="settings-row settings-row-slider">
-                        <label for="settingMusicVolume">Music</label>
-                        <div class="slider-with-value">
-                            <input type="range" id="settingMusicVolume" min="0" max="100" value="${Math.round((s.musicVolume ?? 0.6) * 100)}">
-                            <span class="slider-value" id="settingMusicVolumeValue">${Math.round((s.musicVolume ?? 0.6) * 100)}%</span>
-                        </div>
-                    </div>
-                    <div class="settings-row settings-row-slider">
-                        <label for="settingSfxVolume">SFX</label>
-                        <div class="slider-with-value">
-                            <input type="range" id="settingSfxVolume" min="0" max="100" value="${Math.round((s.sfxVolume ?? 0.8) * 100)}">
-                            <span class="slider-value" id="settingSfxVolumeValue">${Math.round((s.sfxVolume ?? 0.8) * 100)}%</span>
-                        </div>
-                    </div>
-                    <div class="settings-row">
-                        <label for="settingAnimations">Animations</label>
-                        <input type="checkbox" id="settingAnimations" ${s.animationsEnabled !== false ? 'checked' : ''}>
-                    </div>
-                    <div class="settings-row">
-                        <label for="settingAutoSave">Checkpoint saves (shop, score, menu)</label>
-                        <input type="checkbox" id="settingAutoSave" ${s.autoSave !== false ? 'checked' : ''}>
-                    </div>
-                    <div class="settings-row">
-                        <label for="settingTutorial">Show tutorial hints</label>
-                        <input type="checkbox" id="settingTutorial" ${s.showTutorial !== false ? 'checked' : ''}>
-                    </div>
-                    <div class="settings-row">
-                        <label for="settingGameSpeed">Game Speed</label>
-                        <select id="settingGameSpeed">
-                            <option value="0.5" ${s.gameSpeed === 0.5 ? 'selected' : ''}>0.5×</option>
-                            <option value="1" ${s.gameSpeed === 1 ? 'selected' : ''}>1×</option>
-                            <option value="2" ${(s.gameSpeed === 2 || s.gameSpeed == null) ? 'selected' : ''}>2×</option>
-                            <option value="4" ${s.gameSpeed === 4 ? 'selected' : ''}>4×</option>
-                        </select>
-                    </div>
-                    <div class="settings-row">
-                        <label for="settingDisplayPreset">Display size</label>
-                        <select id="settingDisplayPreset">
-                            <option value="small" ${preset === 'small' ? 'selected' : ''}>Small (85%)</option>
-                            <option value="default" ${preset === 'default' ? 'selected' : ''}>Default (fit)</option>
-                            <option value="large" ${preset === 'large' ? 'selected' : ''}>Large (115%)</option>
-                        </select>
-                    </div>
-                    <div class="settings-row">
-                        <label for="settingDisplayMaxScale">Max scale</label>
-                        <select id="settingDisplayMaxScale" title="Cap upscaling (fit-to-window is still limited by screen)">
-                            <option value="" ${maxSel === '' ? 'selected' : ''}>No cap</option>
-                            <option value="1" ${maxSel === '1' ? 'selected' : ''}>1× (native size)</option>
-                            <option value="1.25" ${maxSel === '1.25' ? 'selected' : ''}>1.25×</option>
-                            <option value="2" ${maxSel === '2' ? 'selected' : ''}>2×</option>
-                        </select>
-                    </div>
-                    <div class="settings-row">
-                        <label for="settingDisplayInteger">Integer width snap</label>
-                        <input type="checkbox" id="settingDisplayInteger" ${s.displayIntegerScale ? 'checked' : ''} title="Snap scaled width to whole pixels (can help crispness on some displays)">
-                    </div>
+                    <section class="settings-section" aria-labelledby="settingsAudioHeading">
+                        <h3 id="settingsAudioHeading" class="settings-section-title">Audio</h3>
+                        ${this._toggleRow('settingSound', 'Sound', null, s.soundEnabled !== false)}
+                        ${this._sliderRow('settingMusicVolume', 'Music', null, musicPct)}
+                        ${this._sliderRow('settingSfxVolume', 'Sound effects', null, sfxPct)}
+                    </section>
+
+                    <section class="settings-section" aria-labelledby="settingsPlayHeading">
+                        <h3 id="settingsPlayHeading" class="settings-section-title">Gameplay</h3>
+                        ${this._selectRow(
+                            'settingGameSpeed',
+                            'Pace',
+                            null,
+                            `
+                            <option value="0.5" ${s.gameSpeed === 0.5 ? 'selected' : ''}>Slow</option>
+                            <option value="1" ${s.gameSpeed === 1 ? 'selected' : ''}>Normal</option>
+                            <option value="2" ${(s.gameSpeed === 2 || s.gameSpeed == null) ? 'selected' : ''}>Fast</option>
+                            <option value="4" ${s.gameSpeed === 4 ? 'selected' : ''}>Very fast</option>
+                            `
+                        )}
+                        ${this._toggleRow('settingAutoSave', 'Auto-save', 'Shop, score, and menu checkpoints', s.autoSave !== false)}
+                        ${this._toggleRow('settingTutorial', 'Tutorial tips', 'Quick-start overlay for new players', s.showTutorial !== false)}
+                    </section>
+
+                    <section class="settings-section" aria-labelledby="settingsDisplayHeading">
+                        <h3 id="settingsDisplayHeading" class="settings-section-title">Display</h3>
+                        ${this._selectRow(
+                            'settingDisplayPreset',
+                            'UI size',
+                            null,
+                            `
+                            <option value="small" ${preset === 'small' ? 'selected' : ''}>Compact</option>
+                            <option value="default" ${preset === 'default' ? 'selected' : ''}>Fit window</option>
+                            <option value="large" ${preset === 'large' ? 'selected' : ''}>Larger</option>
+                            `
+                        )}
+                    </section>
                 </div>
-                <button class="divine-button" id="settingsCloseBtn">Close</button>
+                <button type="button" class="divine-button settings-close-btn" id="settingsCloseBtn">Done</button>
             </div>
         `;
 
@@ -119,7 +138,7 @@ class SettingsOverlay {
         const closeBtn = overlay.querySelector('#settingsCloseBtn');
         if (closeBtn) closeBtn.addEventListener('click', () => this.hide());
 
-        ['settingSound', 'settingAnimations', 'settingAutoSave', 'settingTutorial', 'settingGameSpeed', 'settingDisplayPreset', 'settingDisplayMaxScale', 'settingDisplayInteger'].forEach(id => {
+        ['settingSound', 'settingAutoSave', 'settingTutorial', 'settingGameSpeed', 'settingDisplayPreset'].forEach(id => {
             const el = overlay.querySelector(`#${id}`);
             if (el) el.addEventListener('change', () => this._applySettings(overlay));
         });
@@ -154,12 +173,6 @@ class SettingsOverlay {
         const prev = window.dataManager?.getSettings?.() || {};
         const musicVal = parseInt(overlay.querySelector('#settingMusicVolume')?.value || '60', 10);
         const sfxVal = parseInt(overlay.querySelector('#settingSfxVolume')?.value || '80', 10);
-        const maxRaw = overlay.querySelector('#settingDisplayMaxScale')?.value ?? '';
-        let displayMaxScale = null;
-        if (maxRaw !== '') {
-            const n = parseFloat(maxRaw);
-            if (Number.isFinite(n) && n > 0) displayMaxScale = n;
-        }
         let displayScalePreset = overlay.querySelector('#settingDisplayPreset')?.value || 'default';
         if (!['small', 'default', 'large'].includes(displayScalePreset)) displayScalePreset = 'default';
         const settings = {
@@ -167,14 +180,15 @@ class SettingsOverlay {
             soundEnabled: overlay.querySelector('#settingSound')?.checked ?? true,
             musicVolume: Math.max(0, Math.min(1, musicVal / 100)),
             sfxVolume: Math.max(0, Math.min(1, sfxVal / 100)),
-            animationsEnabled: overlay.querySelector('#settingAnimations')?.checked ?? true,
+            animationsEnabled: prev.animationsEnabled !== false,
             autoSave: overlay.querySelector('#settingAutoSave')?.checked ?? true,
             showTutorial: overlay.querySelector('#settingTutorial')?.checked ?? true,
             theme: prev.theme || 'default',
             gameSpeed: parseFloat(overlay.querySelector('#settingGameSpeed')?.value || '2'),
             displayScalePreset,
-            displayMaxScale,
-            displayIntegerScale: overlay.querySelector('#settingDisplayInteger')?.checked ?? false
+            // Keep legacy display knobs if already stored; no longer exposed in UI
+            displayMaxScale: prev.displayMaxScale ?? null,
+            displayIntegerScale: !!prev.displayIntegerScale
         };
         if (![0.5, 1, 2, 4].includes(settings.gameSpeed)) settings.gameSpeed = 2;
         window.dataManager?.saveSettings?.(settings);

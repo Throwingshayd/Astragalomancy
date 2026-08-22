@@ -242,6 +242,8 @@
 .live-score-display .pip-contribution,
 .live-score-display .pip-contribution.boon-bonus,
 .live-score-display .favour-contribution {
+    color: var(--gk-favour-1, #e56b7a) !important;
+    font-weight: 900;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
 }
 
@@ -252,9 +254,9 @@
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
 }
 
-/* Favour contributions use the red wine color */
+/* Favour contributions — grape wine purple (not stop-sign crimson) */
 .favour-contribution {
-    color: #DC143C !important; /* Red wine like favour */
+    color: var(--gk-favour-1, var(--gk-favour-1, #e56b7a)) !important;
     font-weight: 900;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
 }

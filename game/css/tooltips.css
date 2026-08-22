@@ -190,126 +190,82 @@
     font-family: var(--font-tooltip);
 }
 
-/* ── Die: narrow column aligned to die (~95px + small pad) ── */
+/* ── Die: scoring-float hover (no white panel) ── */
 #tooltip-root .tooltip-die-popup {
-    background: #f0f4f5;
-    color: #2f1c10;
-    border: 1px solid rgba(0, 0, 0, 0.14);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    background: transparent;
+    color: inherit;
+    border: none;
+    box-shadow: none;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    pointer-events: none;
 }
 
 #tooltip-root .tooltip-die-popup .tip-caret {
-    background: #f0f4f5;
-    border: 1px solid rgba(0, 0, 0, 0.14);
+    display: none;
 }
 
 #tooltip-root .tooltip-die-popup .tooltip-inner {
-    padding: 8px 10px 9px;
+    padding: 0;
+    background: transparent;
 }
 
 #tooltip-root .tip-die {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-}
-
-#tooltip-root .tip-die-status {
-    margin: 0;
-    align-self: stretch;
+    align-items: center;
+    gap: 2px;
     text-align: center;
-    font-family: var(--font-tooltip), sans-serif;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    line-height: 1.2;
-    padding: 4px 6px;
-    border-radius: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
-#tooltip-root .tip-die-status.is-held {
-    color: #e8fff4;
-    background: linear-gradient(180deg, #3d9a6e 0%, #2a7a55 100%);
-    border-color: #1f5c40;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
-}
-
-#tooltip-root .tip-die-status.is-free {
-    color: #fff5f2;
-    background: linear-gradient(180deg, #c45a4a 0%, #9e3d32 100%);
-    border-color: #7a2e26;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
-}
-
-#tooltip-root .tip-die-face {
+#tooltip-root .tip-die-hint {
     margin: 0;
-    font-family: var(--font-tooltip), sans-serif;
+    font-family: var(--font-ui), var(--font-numeric);
     font-size: 13px;
-    line-height: 1.3;
-    color: #141414;
-    text-align: center;
-    overflow-wrap: break-word;
-    word-break: normal;
+    font-weight: 700;
+    color: #c5d4d8;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
-#tooltip-root .tip-die-note {
+#tooltip-root .tip-die-scoreline {
     margin: 0;
-    font-family: var(--font-tooltip), sans-serif;
-    font-size: 11px;
-    line-height: 1.3;
-    color: #6a5a48;
+    font-family: var(--font-ui), var(--font-numeric);
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1.1;
+    white-space: nowrap;
+    text-shadow: 0 0 8px rgba(110, 193, 228, 0.8), 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
-#tooltip-root .tip-die-enhs {
-    list-style: none;
-    margin: 2px 0 0;
-    padding: 5px 0 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+#tooltip-root .tip-die-pips {
+    color: #6EC1E4;
 }
 
-#tooltip-root .tip-die-enh {
-    padding: 2px 0 2px 7px;
-    border-left: 2px solid var(--enh-color, #5a6d74);
-    font-family: var(--font-tooltip), sans-serif;
-    font-size: 11px;
-    line-height: 1.35;
-    color: #444;
-    overflow-wrap: break-word;
-    word-break: normal;
+#tooltip-root .tip-die-gold {
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.65), 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
-#tooltip-root .tip-die-enh + .tip-die-enh {
-    margin-top: 3px;
+#tooltip-root .tip-die-enh-line {
+    margin: 0;
+    font-family: var(--font-ui), sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    color: #e8eef0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    white-space: nowrap;
 }
 
 #tooltip-root .tip-die-enh-name {
-    display: block;
-    color: #141414;
-    font-size: 12px;
+    color: var(--enh-color, #e8eef0);
 }
 
-#tooltip-root .tip-die-enh-desc {
-    display: block;
-    color: #555;
-    margin-top: 1px;
-}
-
-#tooltip-root .tip-die-footer {
-    font-family: var(--font-tooltip), sans-serif;
-    font-size: 12px;
-    color: #555;
-    padding-top: 5px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    line-height: 1.35;
-}
-
-#tooltip-root .tip-die-footer-line + .tip-die-footer-line {
-    margin-top: 3px;
-}
-
-#tooltip-root .tip-die-mod {
-    color: #b5532f;
+#tooltip-root .tip-die-enh-sep {
+    color: rgba(232, 238, 240, 0.55);
+    font-weight: 600;
 }
 
 /* ── Die enhancement picker (modal — multi-die choice, not a hover tooltip) ──

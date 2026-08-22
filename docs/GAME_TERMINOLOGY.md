@@ -19,7 +19,9 @@ Artifacts are the run's vouchers: ten families, each a **base** and an **upgrade
 
 The three pack families follow Balatro's pack vouchers. Tier 1 adds one extra card of that type in the matching pack (Hall of Heroes / Panegyris / Symposium). Tier 2 for worship and libations is Telescope: the pack always contains a Blessing for your highest god, or your most-poured Libation. Boon packs upgrade into **Antikythra** (+1 Boon slot) instead. Seed of Plutus / Grove of Plutus raise the interest *cap* (5 → 10 → 20), never the gold-per-5 rate.
 
-Exactly one artifact is offered per trial, in the shop that follows a cleared trial. The two mid-trial shops (`BlindDirector.shopTurns`) stock no artifact and hide the shelf. Artifacts cannot be sold.
+Exactly one artifact is offered per shop visit. An upgrade only enters the pool once you own its base. Artifacts cannot be sold.
+
+Family upgrades are not all “the same but more”: Altar doubles worship Favour, **The Hecatomb** makes Boons sell for full cost; Delphic Tithe cheapens shop rerolls, **Pythia’s Indulgence** leaves you with a single Cast the Bones each turn; Sixth Astragalus is an all-1s extra die, **Seventh** adds a Wild extra die; Tyche pays Gold at the start of each Trial.
 
 ## Left bar label: **Consumables**
 
@@ -47,3 +49,17 @@ Older saves may reference renamed worship IDs. Migrations map:
 | `worship_persephone` | `worship_aphrodite` |
 
 Handled in `game/js/utils/dataManager.js` (collection) and `game/js/game/GameEngine.js` (run save load). Do not remove without a save-version bump.
+
+## Score: Pips × Favour
+
+Final score is **Pips × Favour** (Balatro chips × mult). There is no third hidden multiplier.
+
+| Player sees | Engine does |
+|-------------|-------------|
+| **+N Pips** | `result.pips += N` |
+| **+N Favour** | `result.favour += N` (adds to the 100-based multiplier) |
+| **×N Favour** | `result.favour *= N` (multiplies the multiplier) |
+
+Favour starts at **100** (naked hand). Worship is **+25 Favour** per level, so one Offer reads as **125**. Score is still Pips × Favour — a 20-pip Chance at 125 Favour is 2,500.
+
+The HUD Favour total is the live multiplier (`100`, `125`, `300`). Additive boons show **+N**; multiplicative boons show **×N**. Never write `+×Favour` or `favourMult` in copy or scoring.

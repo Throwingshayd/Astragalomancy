@@ -462,7 +462,7 @@ class LibationCard extends Card {
             case 'parchment':
                 if (die.addFaceEnhancement(targetFace, 'parchment')) {
             
-                    message = `Die ${dieNumber} face ${targetFace} enhanced with Parchment (25% +1 Favour, 15% +5 Gold).`;
+                    message = `Die ${dieNumber} face ${targetFace} enhanced with Parchment (25% +100 Favour, 15% +5 Gold).`;
                 } else {
                     message = 'Failed to apply parchment enhancement!';
                 }

@@ -59,15 +59,15 @@ describe('continuity regulator', () => {
 
     it('boon tooltips match handlers (no leftover Chips / ×2 / Blueprint)', () => {
         expect(byId('the_gambler').effect).toBe('+10 Pips for every re-roll remaining.');
-        expect(byId('misery').effect).toBe('If you have 0 gold, gain +2 Favour.');
+        expect(byId('misery').effect).toBe('If you have 0 gold, gain +200 Favour.');
         expect(byId('the_zealot').effect).toBe(
-            'When you score the pantheon row of the god you most recently Offered to this Trial, gain +1 Favour.',
+            'When you score the pantheon row of the god you most recently Offered to this Trial, gain +100 Favour.',
         );
         expect(byId('mt_olympus').effect).toBe(
-            'Gain +1 Favour per total worship level across the pantheon.',
+            'Gain +100 Favour per total worship level across the pantheon.',
         );
         expect(byId('forge_of_hephaestus').effect).toBe(
-            'Gain +0.5 Favour for each unused re-roll (max +1.5).',
+            'Gain +50 Favour for each unused re-roll (max +150).',
         );
         expect(byId('proteus_disguise').effect).toBe('Copies the effect of the Boon to its left.');
 
@@ -76,9 +76,52 @@ describe('continuity regulator', () => {
         expect(effects).not.toContain('Blueprint');
         const handlers = readFileSync('game/js/classes/boonTimingHandlers.js', 'utf8');
         expect(handlers).toContain('result.pips += gamblerBonus');
-        expect(handlers).toContain('result.favour += 2');
-        expect(handlers).toContain('The Zealot: +1 Favour');
+        expect(handlers).toContain('result.favour += 200');
+        expect(handlers).toContain('The Zealot: +100 Favour');
         expect(handlers).not.toContain('The Zealot: +×1');
+        expect(handlers).not.toContain('favourMult');
+        expect(handlers).toContain('result.favour *= 2.5');
+        expect(handlers).toContain("Hydra's Heads: +300 Favour");
+        expect(handlers).toContain("Medusa's Gaze: +50 Favour");
+        expect(handlers).not.toMatch(/\+×/);
+
+        const engine = readFileSync('game/js/engine/ScoringEngine.js', 'utf8');
+        expect(engine).not.toContain('favourMult');
+        expect(engine).toContain('SafeMath.safeMultiply(pips, favour)');
+
+        expect(byId('eruption_of_etna').effect).toBe(
+            "If 3+ Boons trigger on same turn, +100 Favour (stacks, doesn't reset).",
+        );
+        expect(byId('ascetics_vow').effect).toBe(
+            'If you have empty other Boon slots, gain +100 Favour for each.',
+        );
+        expect(byId('medusas_gaze').effect).toContain('+50 Favour');
+        expect(byId('pegasus_flight').effect).toContain('+50 Favour');
+        expect(byId('carillon_of_the_muses').effect).toContain('×2.5 Favour');
+        expect(effects).not.toMatch(/\+×/);
+    });
+
+    it('redesigned artifact copy matches the handlers', () => {
+        const art = (id) => {
+            for (const pair of Object.values(CardData.artifacts)) {
+                if (pair.base?.id === id) return pair.base;
+                if (pair.upgraded?.id === id) return pair.upgraded;
+            }
+            return null;
+        };
+        expect(art('artifact_telescope').effect).toBe('Double the Favour gained from worship levels.');
+        expect(art('artifact_hecatomb').effect).toBe('Selling a Boon pays its full shop cost.');
+        expect(art('artifact_seventh_astragalus').effect).toContain('Wild');
+        expect(art('artifact_pythias_indulgence').effect).toContain('Cast the Bones once');
+        expect(art('artifact_tyches_grace').effect).toBe('+4 Gold at the start of each Trial.');
+        expect(art('artifact_tyches_bounty').effect).toBe('+8 Gold at the start of each Trial.');
+
+        const handlers = readFileSync('game/js/game/ArtifactEffects.js', 'utf8');
+        expect(handlers).toContain('d.boonSellAtCost = true');
+        expect(handlers).toContain('d.forceSingleRoll = true');
+        expect(handlers).toContain('d.trialGold += 4');
+        expect(handlers).not.toContain('d.extraRolls += 1');
+        expect(handlers).not.toContain('d.extraRolls += 2');
     });
 
     it('pack stock fallbacks match CARD_ECONOMY pack costs', () => {

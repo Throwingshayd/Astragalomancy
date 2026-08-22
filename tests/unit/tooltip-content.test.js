@@ -47,24 +47,49 @@ describe('tooltip content', () => {
         expect(html).toContain('&lt;script&gt;');
     });
 
-    it('still renders die popovers, including enhancements and temp modifier', () => {
+    it('renders die hover as score float + enhancement name', () => {
         const html = TooltipContent.render(JSON.stringify({
             tooltipType: 'die',
             held: true,
             rolled: true,
-            face: '5',
-            modified: { from: 2, to: 1 },
-            wildMod: -1,
-            enhancements: [{ name: 'Golden', desc: 'Pays 3 gold', color: '#FFD700' }],
-            tempMod: 2,
+            face: 6,
+            pips: 6,
+            gold: 1,
+            enhancements: [{ name: 'Gold', color: '#f6c343' }],
         }));
 
-        expect(html).toContain('tip-die-status is-held');
-        expect(html).toContain('Face 5');
-        expect(html).toContain('Modified 2→1');
-        expect(html).toContain('Wild -1');
-        expect(html).toContain('Golden');
-        expect(html).toContain('Temp modifier +2');
+        expect(html).toContain('tip-die-scoreline');
+        expect(html).toContain('tip-die-pips');
+        expect(html).toContain('+6');
+        expect(html).toContain('tip-die-gold');
+        expect(html).toContain('+1g');
+        expect(html).toContain('tip-die-enh-line');
+        expect(html).toContain('Gold');
+        expect(html).not.toContain('tip-die-status');
+        expect(html).not.toContain('Face 6');
+    });
+
+    it('shows roll hint before dice are revealed', () => {
+        const html = TooltipContent.render(JSON.stringify({
+            tooltipType: 'die',
+            rolled: false,
+            face: null,
+        }));
+        expect(html).toContain('Roll to reveal');
+        expect(html).not.toContain('tip-die-scoreline');
+    });
+
+    it('includes clockwork pips in the score line when provided', () => {
+        const html = TooltipContent.render(JSON.stringify({
+            tooltipType: 'die',
+            rolled: true,
+            face: 6,
+            pips: 11,
+            enhancements: [{ name: 'Clockwork', color: '#7aa6c2' }],
+        }));
+        expect(html).toContain('+11');
+        expect(html).toContain('Clockwork');
+        expect(html).not.toContain('tip-die-gold');
     });
 
     it('keeps modified, wild, and 7–9 info off the die face and in the tooltip', () => {

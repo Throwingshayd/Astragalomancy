@@ -12,7 +12,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "If all 5 of your dice are odd or all 5 are even the hand gains +3 Favour.",
+            effect: "If all 5 of your dice are odd or all 5 are even the hand gains +300 Favour.",
             timing: { before_score: true }
         },
         { 
@@ -67,7 +67,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Gain +0.5 Favour for each unused re-roll (max +1.5).",
+            effect: "Gain +50 Favour for each unused re-roll (max +150).",
             timing: { before_score: true }
         },
         { 
@@ -76,7 +76,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Gives +3 Favour to all hands but you have one less re-roll each turn.",
+            effect: "Gives +300 Favour to all hands but you have one less re-roll each turn.",
             timing: { before_score: true, turn_start: true }
         },
         { 
@@ -95,7 +95,7 @@ const CardData = {
             rarity: "epic", 
             cost: 8, 
             sellValue: 2, 
-            effect: "Gain +1 Favour per total worship level across the pantheon.",
+            effect: "Gain +100 Favour per total worship level across the pantheon.",
             timing: { before_score: true }
         },
         
@@ -126,7 +126,7 @@ const CardData = {
             rarity: "epic", 
             cost: 8, 
             sellValue: 2, 
-            effect: "Every 3rd turn, randomly destroy a Boon and gain +2 Favour (stacks permanently).",
+            effect: "Every 3rd turn, randomly destroy a Boon and gain +200 Favour (stacks permanently).",
             god: "Pandora",
             timing: { before_score: true, turn_start: true }
         },
@@ -148,7 +148,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Any die showing 6 cannot be rerolled (acts as automatic hold). Lower sanctum scores give ×0.5 favour bonus.",
+            effect: "Any die showing 6 cannot be rerolled (acts as automatic hold). Lower sanctum scores give +50 Favour.",
             god: "Medusa",
             timing: { after_roll: true, before_score: true }
         },
@@ -180,7 +180,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Whenever you score with exactly 2 pairs (e.g. 2-2-3-3-5), gain +3 Favour.",
+            effect: "Whenever you score with exactly 2 pairs (e.g. 2-2-3-3-5), gain +300 Favour.",
             god: "Hydra",
             timing: { before_score: true }
         },
@@ -190,7 +190,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "+0.1 Favour for each gold you have, but cannot spend gold while active.",
+            effect: "+10 Favour for each gold you have, but cannot spend gold while active.",
             god: "Tantalus",
             description: "Punishment eternal: wealth you cannot touch.",
             timing: { before_score: true }
@@ -201,7 +201,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Dice with values 6+ give ×0.5 extra Favour when scored.",
+            effect: "Dice showing 6 or more grant +50 Favour each when scored.",
             god: "Pegasus",
             timing: { before_score: true }
         },
@@ -357,7 +357,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Each time you score 4+ matching dice, gain +0.05 Favour (stacks permanently).",
+            effect: "Each time you score 4+ matching dice, gain +5 Favour (stacks permanently).",
             description: "A gathering of equals - celebrations accumulate.",
             timing: { before_score: true }
         },
@@ -428,7 +428,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Each time you roll a palindrome, this card permanently gains +0.5 Favour (stacks).",
+            effect: "Each time you roll a palindrome, this card permanently gains +50 Favour (stacks).",
             description: "Divine harmony accumulates with each perfect pattern.",
             timing: { after_roll: true, before_score: true }
         },
@@ -438,7 +438,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "If you have 0 gold, gain +2 Favour.",
+            effect: "If you have 0 gold, gain +200 Favour.",
             description: "Poverty grants divine Favour - suffering brings blessing.",
             timing: { before_score: true }
         },
@@ -459,7 +459,7 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "When you score the pantheon row of the god you most recently Offered to this Trial, gain +1 Favour.",
+            effect: "When you score the pantheon row of the god you most recently Offered to this Trial, gain +100 Favour.",
             description: "Zealous devotion to the last worshipped god.",
             timing: { before_score: true }
         },
@@ -533,7 +533,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "If 3+ Boons trigger on same turn, +×1 Favour (stacks, doesn't reset).",
+            effect: "If 3+ Boons trigger on same turn, +100 Favour (stacks, doesn't reset).",
             description: "Volcanic eruption - when many boons align, explosive power!",
             timing: { before_score: true }
         },
@@ -543,7 +543,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "When a Worship card triggers, also trigger +1 favour to another god.",
+            effect: "When you Offer a Blessing, another god also gains +1 worship.",
             description: "The seasons cycle - worship spreads to other gods.",
             timing: {} // Special - triggers on worship card use
         },
@@ -553,7 +553,7 @@ const CardData = {
             rarity: "epic", 
             cost: 8, 
             sellValue: 2, 
-            effect: "If you have empty other Boon slots, gain +×1 Favour for each.",
+            effect: "If you have empty other Boon slots, gain +100 Favour for each.",
             description: "Less is more - the ascetic finds power in emptiness.",
             timing: { before_score: true }
         },
@@ -595,11 +595,10 @@ const CardData = {
             rarity: "epic", 
             cost: 10, 
             sellValue: 3, 
-            effect: "If all 5 dice have enhancements, gain +3 Favour (secret: if all same enhancement, ×2.5 favour!).",
-            description: "Perfect harmony - the bells ring when all are enhanced. Secret bonus is multiplicative ×favour!",
+            effect: "If all 5 dice have enhancements, gain +300 Favour (secret: if all same enhancement, ×2.5 Favour).",
+            description: "Perfect harmony - the bells ring when all are enhanced.",
             god: "The Nine Muses",
-            timing: { before_score: true },
-            favourType: "mixed"  // Additive normally, multiplicative for secret
+            timing: { before_score: true }
         },
         { 
             id: "reflection_of_narcissus", 
@@ -618,7 +617,7 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Every 100 total score, this Boon gains +10 Pips.",
+            effect: "Every 10,000 total score, this Boon gains +10 Pips.",
             description: "The hero's journey - power accumulates with achievement.",
             god: "Perseus",
             timing: { before_score: true }
@@ -627,22 +626,22 @@ const CardData = {
 
     worship: [
         // Shared package: Offer = pantheon level-up; Held 3 trials → Ascended.
-        { id: "worship_artemis", name: "Blessing of Artemis", god: "Artemis", rarity: "worship", cost: 3, effect: "Offer on Ones: +1 level (+1 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Ones/Artemis)." },
-        { id: "worship_aphrodite", name: "Blessing of Aphrodite", god: "Aphrodite", rarity: "worship", cost: 3, effect: "Offer on Twos: +1 level (+2 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Twos/Aphrodite)." },
-        { id: "worship_morpheus", name: "Blessing of Morpheus", god: "Morpheus", rarity: "worship", cost: 3, effect: "Offer on Threes: +1 level (+3 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Threes/Morpheus)." },
-        { id: "worship_hera", name: "Blessing of Hera", god: "Hera", rarity: "worship", cost: 3, effect: "Offer on Fours: +1 level (+4 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Fours/Hera)." },
-        { id: "worship_athena", name: "Blessing of Athena", god: "Athena", rarity: "worship", cost: 3, effect: "Offer on Fives: +1 level (+5 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Fives/Athena)." },
-        { id: "worship_heracles", name: "Blessing of Heracles", god: "Heracles", rarity: "worship", cost: 3, effect: "Offer on Sixes: +1 level (+6 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Sixes/Heracles)." },
-        { id: "worship_hephaestus", name: "Blessing of Hephaestus", god: "Hephaestus", rarity: "worship", cost: 3, effect: "Offer on Three of a Kind: +1 level (+7 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Three of a Kind/Hephaestus)." },
-        { id: "worship_ares", name: "Blessing of Ares", god: "Ares", rarity: "worship", cost: 3, effect: "Offer on Four of a Kind: +1 level (+15 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Four of a Kind/Ares)." },
-        { id: "worship_dionysus", name: "Blessing of Dionysus", god: "Dionysus", rarity: "worship", cost: 3, effect: "Offer on Full House: +1 level (+12 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Full House/Dionysus)." },
-        { id: "worship_hermes", name: "Blessing of Hermes", god: "Hermes", rarity: "worship", cost: 3, effect: "Offer on Small Straight: +1 level (+10 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Small Straight/Hermes)." },
-        { id: "worship_apollo", name: "Blessing of Apollo", god: "Apollo", rarity: "worship", cost: 3, effect: "Offer on Large Straight: +1 level (+20 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Large Straight/Apollo)." },
-        { id: "worship_zeus", name: "Blessing of Zeus", god: "Zeus", rarity: "worship", cost: 3, effect: "Offer on Heureka: +1 level (+25 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Heureka/Zeus)." },
-        { id: "worship_nyx", name: "Blessing of Nyx", god: "Nyx", rarity: "worship", cost: 3, effect: "Offer on Chance: +1 level (+0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Chance/Nyx)." },
-        { id: "worship_pleiades", name: "Blessing of the Pleiades", god: "The Pleiades", rarity: "worship", cost: 3, effect: "Offer on Sevens: +1 level (+7 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Sevens/The Pleiades)." },
-        { id: "worship_poseidon_eights", name: "Blessing of Poseidon (Eights)", god: "Poseidon", rarity: "worship", cost: 3, effect: "Offer on Eights: +1 level (+8 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Eights/Poseidon)." },
-        { id: "worship_muses", name: "Blessing of the Nine Muses", god: "The Nine Muses", rarity: "worship", cost: 3, effect: "Offer on Nines: +1 level (+9 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Nines/The Nine Muses)." },
+        { id: "worship_artemis", name: "Blessing of Artemis", god: "Artemis", rarity: "worship", cost: 3, effect: "Offer on Ones: +1 level (+1 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Ones/Artemis)." },
+        { id: "worship_aphrodite", name: "Blessing of Aphrodite", god: "Aphrodite", rarity: "worship", cost: 3, effect: "Offer on Twos: +1 level (+2 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Twos/Aphrodite)." },
+        { id: "worship_morpheus", name: "Blessing of Morpheus", god: "Morpheus", rarity: "worship", cost: 3, effect: "Offer on Threes: +1 level (+3 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Threes/Morpheus)." },
+        { id: "worship_hera", name: "Blessing of Hera", god: "Hera", rarity: "worship", cost: 3, effect: "Offer on Fours: +1 level (+4 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Fours/Hera)." },
+        { id: "worship_athena", name: "Blessing of Athena", god: "Athena", rarity: "worship", cost: 3, effect: "Offer on Fives: +1 level (+5 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Fives/Athena)." },
+        { id: "worship_heracles", name: "Blessing of Heracles", god: "Heracles", rarity: "worship", cost: 3, effect: "Offer on Sixes: +1 level (+6 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Sixes/Heracles)." },
+        { id: "worship_hephaestus", name: "Blessing of Hephaestus", god: "Hephaestus", rarity: "worship", cost: 3, effect: "Offer on Three of a Kind: +1 level (+7 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Three of a Kind/Hephaestus)." },
+        { id: "worship_ares", name: "Blessing of Ares", god: "Ares", rarity: "worship", cost: 3, effect: "Offer on Four of a Kind: +1 level (+15 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Four of a Kind/Ares)." },
+        { id: "worship_dionysus", name: "Blessing of Dionysus", god: "Dionysus", rarity: "worship", cost: 3, effect: "Offer on Full House: +1 level (+12 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Full House/Dionysus)." },
+        { id: "worship_hermes", name: "Blessing of Hermes", god: "Hermes", rarity: "worship", cost: 3, effect: "Offer on Small Straight: +1 level (+10 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Small Straight/Hermes)." },
+        { id: "worship_apollo", name: "Blessing of Apollo", god: "Apollo", rarity: "worship", cost: 3, effect: "Offer on Large Straight: +1 level (+20 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Large Straight/Apollo)." },
+        { id: "worship_zeus", name: "Blessing of Zeus", god: "Zeus", rarity: "worship", cost: 3, effect: "Offer on Heureka: +1 level (+25 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Heureka/Zeus)." },
+        { id: "worship_nyx", name: "Blessing of Nyx", god: "Nyx", rarity: "worship", cost: 3, effect: "Offer on Chance: +1 level (+25 Favour per level). Held 3 trials → Ascended (consecrate any row as Chance/Nyx)." },
+        { id: "worship_pleiades", name: "Blessing of the Pleiades", god: "The Pleiades", rarity: "worship", cost: 3, effect: "Offer on Sevens: +1 level (+7 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Sevens/The Pleiades)." },
+        { id: "worship_poseidon_eights", name: "Blessing of Poseidon (Eights)", god: "Poseidon", rarity: "worship", cost: 3, effect: "Offer on Eights: +1 level (+8 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Eights/Poseidon)." },
+        { id: "worship_muses", name: "Blessing of the Nine Muses", god: "The Nine Muses", rarity: "worship", cost: 3, effect: "Offer on Nines: +1 level (+9 pips & +25 Favour per level). Held 3 trials → Ascended (consecrate any row as Nines/The Nine Muses)." },
         { id: "worship_pandora", name: "Blessing of Pandora's Box", god: "Pandora's Box", rarity: "worship", cost: 3, effect: "Offer on Pandora's Box: +1 sanctum bonus level. Held 3 trials → Ascended (consecrate any row as Pandora's Box)." },
     ],
 
@@ -670,7 +669,7 @@ const CardData = {
     /**
      * Ten families, each a base and its upgrade. Both tiers cost 10 gold; the upgrade is
      * earned by scarcity, not price — it only enters the shop pool once you own its base,
-     * and one artifact is offered per trial (end-of-trial shop only).
+     * and one artifact is offered per shop visit.
      *
      * Owning an upgrade means owning both cards, so the effect text on an upgrade reads as
      * the total the pair delivers while game/ArtifactEffects.js contributes only the
@@ -726,8 +725,8 @@ const CardData = {
                 id: "artifact_hecatomb",
                 name: "The Hecatomb",
                 cost: 10,
-                effect: "Triple the Favour gained from worship levels.",
-                description: "A hundred oxen. The smoke is visible from the sea.",
+                effect: "Selling a Boon pays its full shop cost.",
+                description: "A hundred oxen. What you give up comes back as coin, not smoke.",
                 rarity: "artifact"
             }
         },
@@ -802,8 +801,8 @@ const CardData = {
                 id: "artifact_seventh_astragalus",
                 name: "The Seventh Astragalus",
                 cost: 10,
-                effect: "+2 dice. Their faces start as 1s.",
-                description: "Two spare bones now. The set was never meant to run this long.",
+                effect: "+2 extra dice: one of all 1s, and one that is Wild on every face.",
+                description: "The seventh bone will not sit still. It becomes whatever the throw needs, a little.",
                 rarity: "artifact"
             }
         },
@@ -838,8 +837,8 @@ const CardData = {
                 id: "artifact_pythias_indulgence",
                 name: "Pythia's Indulgence",
                 cost: 10,
-                effect: "Shop rerolls are free.",
-                description: "The Pythia has decided she likes you. Ask as often as you want.",
+                effect: "You have no re-rolls. Each turn you Cast the Bones once.",
+                description: "The Pythia answers once. Do not ask her to throw again.",
                 rarity: "artifact"
             }
         },
@@ -848,15 +847,15 @@ const CardData = {
                 id: "artifact_tyches_grace",
                 name: "Tyche's Grace",
                 cost: 10,
-                effect: "+1 roll each turn.",
-                description: "Fortune leans over the table and lets you throw again.",
+                effect: "+4 Gold at the start of each Trial.",
+                description: "Fortune leaves a coin in your palm before the first throw.",
                 rarity: "artifact"
             },
             upgraded: {
                 id: "artifact_tyches_bounty",
                 name: "Tyche's Bounty",
                 cost: 10,
-                effect: "+2 rolls each turn.",
+                effect: "+8 Gold at the start of each Trial.",
                 description: "She has stopped counting, and so should you.",
                 rarity: "artifact"
             }

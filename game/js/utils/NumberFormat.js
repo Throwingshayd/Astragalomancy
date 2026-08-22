@@ -81,7 +81,7 @@ const NumberFormat = {
     favour(n, opts = {}) {
         const v = Number(n);
         const withPrefix = opts.prefix !== false;
-        if (!Number.isFinite(v) || v <= 0) return withPrefix ? '×1' : '1';
+        if (!Number.isFinite(v) || v <= 0) return withPrefix ? '×100' : '100';
         if (Math.abs(v) < 10 && Math.abs(v - Math.trunc(v)) > 1e-9) {
             const s = this._formatMultDecimal(v);
             return withPrefix ? `×${s}` : s;
@@ -90,7 +90,7 @@ const NumberFormat = {
         return withPrefix ? `×${intStr}` : intStr;
     },
 
-    /** Fractional mult chip e.g. +0.25 (no × — plus is already shown). */
+    /** Additive Favour chip e.g. +25 (no × — plus is already shown). */
     favourContrib(n) {
         const v = Number(n);
         if (!Number.isFinite(v) || v <= 0) return '0';
