@@ -266,9 +266,6 @@ const BlindDirector = {
     },
 
     denyHold(state, index) {
-        if (state.boons?.some((j) => j.id === 'reckless_abandon')) {
-            return 'Reckless Abandon: You cannot hold dice!';
-        }
         const blind = this.liveBlind(state);
         if (blind === 'no_held_dice') return 'Rolling Stones: You cannot hold dice.';
         if (!state.held?.[index]) {

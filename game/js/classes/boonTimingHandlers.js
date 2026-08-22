@@ -38,16 +38,16 @@ const BoonTimingHandlers = {
                 engine?.showMessage?.("Achilles' Heel: +15 Pips!");
                 break;
             
-            case 'midas_touch':
-                // +1 pip per 5 Gold
-                const midasGold = Math.floor(gameState.gold / 5);
-                const midasBonus = midasGold * 1;
-                if (midasBonus > 0) {
-                    result.pips += midasBonus;
-                    boon.dynamicStats.pips = midasBonus;
-                    engine?.showMessage?.(`Midas Touch: +${midasBonus} Pips from ${midasGold * 5} gold!`);
+            case 'midas_touch': {
+                // Hoard payoff: gold empowers the offering (Favour, so it scales). +0.1 per 5g.
+                const midasFavour = Math.floor((gameState.gold || 0) / 5) * 10;
+                if (midasFavour > 0) {
+                    result.favour += midasFavour;
+                    boon.dynamicStats.favour = midasFavour;
+                    engine?.showMessage?.(`Midas Touch: +${midasFavour / 100} Favour from ${gameState.gold} gold!`);
                 }
                 break;
+            }
             
             case 'lethe_waters':
                 // +25 Pips flat bonus (ignoring 1-2s is cosmetic/handled elsewhere)
@@ -242,34 +242,27 @@ const BoonTimingHandlers = {
             
             // === NEW BOONS - Wave 2 ===
             case 'mathematicians_compass':
-                // +10 Pips if dice sum is divisible by 10
-                const diceSum = gameState.dice.reduce((sum, die) => sum + die.face, 0);
-                if (diceSum % 10 === 0) {
-                    result.pips += 10;
-                    engine?.showMessage?.(`Mathematician's Compass: +10 Pips (sum: ${diceSum})!`);
+                // Straights (consecutive sequences) get Favour — rewards the build, not sum-hacking.
+                if (result.category === 'Small Straight' || result.category === 'Large Straight') {
+                    result.favour += 200;
+                    boon.dynamicStats.favour = 200;
+                    engine?.showMessage?.("Mathematician's Compass: straight, +2 Favour!");
                 }
                 break;
             
-            case 'prime_time':
-                // Prime dice (2,3,5,7) give bonus based on count: [1,2,3,5,7]
+            case 'prime_time': {
+                // Primes are half the faces, so this rewards normal rolls, not a face-chase.
                 const primes = [2, 3, 5];
-                // Add 7 only if Sevens unlocked
-                if (gameState.unlockedCategories?.Sevens) {
-                    primes.push(7);
-                }
-                
+                if (gameState.unlockedCategories?.Sevens) primes.push(7);
                 const primeCount = gameState.dice.filter(die => primes.includes(die.face)).length;
-                
-                // Bonus sequence: 1 prime=+1, 2=+2, 3=+3, 4=+5, 5=+7
-                const primeBonusSequence = [0, 1, 2, 3, 5, 7]; // Index 0 unused, index 1-5 are bonuses
-                
                 if (primeCount > 0) {
-                    const primeBonus = primeBonusSequence[primeCount] || 0;
-                    result.pips += primeBonus;
-                    boon.dynamicStats.pips = primeBonus;
-                    engine?.showMessage?.(`Prime Time: +${primeBonus} Pips from ${primeCount} primes!`);
+                    const primeFavour = primeCount * 30;
+                    result.favour += primeFavour;
+                    boon.dynamicStats.favour = primeFavour;
+                    engine?.showMessage?.(`Prime Time: +${primeFavour / 100} Favour from ${primeCount} primes!`);
                 }
                 break;
+            }
             
             case 'the_locksmith':
                 // Held dice gain +1 pips for each roll they were held
@@ -302,20 +295,28 @@ const BoonTimingHandlers = {
                 }
                 break;
             
-            case 'reckless_abandon':
-                // +50 Pips flat bonus
-                result.pips += 50;
-                engine?.showMessage?.("Reckless Abandon: +50 Pips!");
-                break;
-            
-            case 'typhon':
-                // Apply stored typhon bonus if triggered
-                if (gameState.typhonBonus > 0) {
-                    result.pips += gameState.typhonBonus;
-                    engine?.showMessage?.(`🌋 Typhon's Power: +${gameState.typhonBonus} Pips!`, 5000);
-                    gameState.typhonBonus = 0; // Reset after use
+            case 'reckless_abandon': {
+                // Commit fully: no dice held → ×2 Favour. Holding is allowed but forfeits it.
+                const anyHeld = (gameState.held || []).some(Boolean) || (gameState.dice || []).some(d => d.held);
+                if (!anyHeld) {
+                    result.favour *= 2;
+                    boon.dynamicStats.favour = '×2';
+                    engine?.showMessage?.("Reckless Abandon: no dice held — ×2 Favour!");
                 }
                 break;
+            }
+            
+            case 'typhon': {
+                // Father of monsters: each 1 grants Favour, so all-1s is a reachable payoff.
+                const ones = gameState.dice.filter(die => die.face === 1).length;
+                if (ones > 0) {
+                    const typhonFavour = ones * 50;
+                    result.favour += typhonFavour;
+                    boon.dynamicStats.favour = typhonFavour;
+                    engine?.showMessage?.(`🌋 Typhon: ${ones}× 1 — +${typhonFavour / 100} Favour!`);
+                }
+                break;
+            }
             
             case 'early_bird':
                 // Turns 1-3: +20 Pips, turns 6-13: -5 Pips
@@ -539,20 +540,11 @@ const BoonTimingHandlers = {
                 break;
             
             case 'gold_standard':
-                // All gold enhancements give +3 Pips
-                let goldEnhancementCount = 0;
-                
-                gameState.dice.forEach(die => {
-                    const currentFace = die.face;
-                    if (die.faces[currentFace] && die.faces[currentFace].enhancements.has('gold')) {
-                        goldEnhancementCount++;
-                    }
-                });
-                
-                if (goldEnhancementCount > 0) {
-                    const goldBonus = goldEnhancementCount * 3;
-                    result.pips += goldBonus;
-                    engine?.showMessage?.(`Gold Standard: +${goldBonus} Pips from ${goldEnhancementCount} gold!`);
+                // Threshold payoff: stay rich and every offering is amplified (×Favour).
+                if ((gameState.gold || 0) >= 20) {
+                    result.favour *= 1.5;
+                    boon.dynamicStats.favour = '×1.5';
+                    engine?.showMessage?.(`Gold Standard: ${gameState.gold} gold — ×1.5 Favour!`);
                 }
                 break;
             
