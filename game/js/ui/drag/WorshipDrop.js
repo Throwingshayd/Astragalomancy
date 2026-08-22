@@ -24,7 +24,8 @@ const WorshipDrop = {
     categoryUnlocked(category, state) {
         if (!category || !state) return false;
         if (category === "Pandora's Box") return !!state.unlockedCategories?.["Pandora's Box"];
-        if (category === 'Sevens' || category === 'Eights' || category === 'Nines') {
+        if (category === 'Sevens' || category === 'Eights' || category === 'Nines'
+            || category === 'Heureka' || category === 'Extra Long Straight') {
             return !!state.unlockedCategories?.[category];
         }
         return true;

@@ -11,7 +11,9 @@
 const BASE_SCORES = {
     SMALL_STRAIGHT: 30,
     LARGE_STRAIGHT: 40,
-    YAHTZEE: 50,  // Heureka
+    YAHTZEE: 50,  // Five of a Kind (Zeus)
+    HEUREKA: 80,  // Six of a kind — unlocks when rolled
+    EXTRA_LONG_STRAIGHT: 60,
 };
 
 /**
@@ -25,7 +27,9 @@ const LOWER_SECTION_BONUSES = {
     'Full House': 25,
     'Four of a Kind': 30,
     'Large Straight': 40,
+    'Extra Long Straight': 60,
     'Yahtzee': 50,
+    'Heureka': 80,
     'Chance': 0,
 };
 
@@ -60,7 +64,9 @@ const CATEGORY_PIPS_PER_LEVEL = {
     'Full House': 12,
     'Four of a Kind': 15,
     'Large Straight': 20,
+    'Extra Long Straight': 30,
     'Yahtzee': 25,
+    'Heureka': 40,
     'Chance': 0
 };
 
@@ -69,14 +75,19 @@ const CATEGORY_PIPS_PER_LEVEL = {
  * @const {Object}
  */
 const SCORING_THRESHOLDS = {
-    YAHTZEE_REQUIRED: 5,        // 5 of a kind
+    YAHTZEE_REQUIRED: 5,        // Five of a Kind (Zeus)
+    HEUREKA_REQUIRED: 6,        // Heureka — unlocks the tile when rolled
     FOUR_OF_KIND_REQUIRED: 4,
     THREE_OF_KIND_REQUIRED: 3,
     FULL_HOUSE_THREE: 3,
     FULL_HOUSE_TWO: 2,
     SMALL_STRAIGHT_LENGTH: 4,   // Any run of 4 consecutive
     LARGE_STRAIGHT_LENGTH: 5,   // Any run of 5 consecutive
+    EXTRA_LONG_STRAIGHT_LENGTH: 6,
 };
+
+/** Hidden until unlocked by rolling that hand. */
+const UNLOCKABLE_SCORE_ROWS = ['Sevens', 'Eights', 'Nines', 'Heureka', 'Extra Long Straight'];
 
 /**
  * Enhancement bonuses (pips added when scored)
@@ -119,6 +130,7 @@ if (typeof module !== 'undefined' && module.exports) {
         DEVOTION_BASE_CAPACITY,
         DEVOTION_TRIALS_TO_ASCEND,
         SCORING_THRESHOLDS,
+        UNLOCKABLE_SCORE_ROWS,
         ENHANCEMENT_BONUSES,
         CATEGORY_TO_NUMBER
     };

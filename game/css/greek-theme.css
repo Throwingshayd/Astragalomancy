@@ -50,6 +50,8 @@
     --felt-panel-label: var(--gk-bronze);
     --layout-center-game-top: 260px;
     --layout-pantheon-top: 8px;
+    /* Frieze may sit closer to the worship / boon rails than the felt centre. */
+    --layout-pantheon-side-bleed: 80px;
     --layout-center-left: 260px;
     --layout-center-w: 1400px;
     --layout-center-h: 780px;
@@ -85,10 +87,10 @@
     --game-board-margin-x: calc((var(--layout-center-w) - var(--game-board-contain-w)) / 2);
     --game-board-left-main: calc(var(--layout-center-left) + var(--game-board-margin-x));
     --game-board-right-main: calc(var(--layout-center-left) + var(--layout-center-w) - var(--game-board-margin-x));
-    /* Card columns centered in gutter beside the game board */
+    /* Card columns sit on the outer gutter so the pantheon can use the middle. */
     --side-gutter-w: calc(var(--game-board-left-main) - var(--layout-side-bar-outset));
-    --side-bar-left-main: calc(var(--layout-side-bar-outset) + (var(--side-gutter-w) - var(--side-bar-w)) / 2);
-    --side-bar-right-main: calc(var(--game-board-right-main) + (var(--side-gutter-w) - var(--side-bar-w)) / 2);
+    --side-bar-left-main: var(--layout-side-bar-outset);
+    --side-bar-right-main: calc(var(--layout-main-w) - var(--layout-side-bar-outset) - var(--side-bar-w));
     /* Stelae may extend inward to ½ die width outside Trial (left) / Gold (right) outer edge */
     --side-stela-left-w: calc(var(--layout-center-left) + var(--layout-trial-inner-left) - var(--side-stela-half-die) - var(--layout-side-bar-outset));
     --side-stela-right-w: calc(var(--layout-main-w) - var(--layout-side-bar-outset) - (var(--layout-center-left) + var(--layout-gold-inner-left) + var(--felt-stone-w, 160px) + var(--side-stela-half-die)));
@@ -139,8 +141,10 @@
 .main-game .pantheon-frieze {
     --pantheon-cloud-mask: url("/ART/pantheon-cloud-mask.png");
     top: var(--layout-pantheon-top, 22px);
+    left: calc(var(--layout-center-left, 260px) - var(--layout-pantheon-side-bleed, 0px));
+    width: calc(var(--layout-center-w, 1400px) + 2 * var(--layout-pantheon-side-bleed, 0px));
     min-height: 0;
-    padding: 24px 16px 18px;
+    padding: 24px 10px 18px;
     border-radius: 0;
     position: absolute;
     background: none !important;
@@ -229,15 +233,57 @@
     margin-top: -6px;
     padding-top: 36px;
     padding-bottom: 6px;
-    flex-wrap: nowrap;
     justify-content: center;
-    gap: 4px 5px;
     padding-left: 6px;
     padding-right: 6px;
 }
 
-/* Lower row fits up to 9 chips (6 base + Sevens/Eights/Nines) without wrapping */
-.main-game .pantheon-frieze .pantheon-tier-lower .pantheon-chip {
+/*
+ * Hidden unlock chips stay display:none. When one is showing, shrink that row
+ * so the extras fit on one line. Default rows keep the full 148px tablets.
+ */
+.main-game .pantheon-frieze .pantheon-tier-upper:has(.pantheon-chip[data-category="Heureka"]:not([style*="display: none"])),
+.main-game .pantheon-frieze .pantheon-tier-upper:has(.pantheon-chip[data-category="Extra Long Straight"]:not([style*="display: none"])) {
+    flex-wrap: nowrap;
+    gap: 3px 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-upper:has(.pantheon-chip[data-category="Heureka"]:not([style*="display: none"])) .pantheon-chip,
+.main-game .pantheon-frieze .pantheon-tier-upper:has(.pantheon-chip[data-category="Extra Long Straight"]:not([style*="display: none"])) .pantheon-chip {
+    width: 134px !important;
+    min-width: 118px !important;
+    max-width: 134px !important;
+    flex: 0 1 auto !important;
+    padding: 0 1px 2px !important;
+    --tablet-h: 56px;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-upper:has(.pantheon-chip[data-category="Heureka"]:not([style*="display: none"])) .pantheon-chip .pantheon-cat,
+.main-game .pantheon-frieze .pantheon-tier-upper:has(.pantheon-chip[data-category="Extra Long Straight"]:not([style*="display: none"])) .pantheon-chip .pantheon-cat {
+    font-size: 13.5px;
+    margin-top: 6px;
+    letter-spacing: 0.03em;
+    padding: 2px 3px;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-upper:has(.pantheon-chip[data-category="Heureka"]:not([style*="display: none"])) .pantheon-chip .pantheon-deity,
+.main-game .pantheon-frieze .pantheon-tier-upper:has(.pantheon-chip[data-category="Extra Long Straight"]:not([style*="display: none"])) .pantheon-chip .pantheon-deity {
+    font-size: 14px;
+    letter-spacing: 0.05em;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Sevens"]:not([style*="display: none"])),
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Eights"]:not([style*="display: none"])),
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Nines"]:not([style*="display: none"])) {
+    flex-wrap: nowrap;
+    gap: 4px 5px;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Sevens"]:not([style*="display: none"])) .pantheon-chip,
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Eights"]:not([style*="display: none"])) .pantheon-chip,
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Nines"]:not([style*="display: none"])) .pantheon-chip {
     width: 132px !important;
     min-width: 118px !important;
     max-width: 132px !important;
@@ -245,14 +291,18 @@
     padding: 0 2px 2px !important;
 }
 
-.main-game .pantheon-frieze .pantheon-tier-lower .pantheon-chip .pantheon-cat {
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Sevens"]:not([style*="display: none"])) .pantheon-chip .pantheon-cat,
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Eights"]:not([style*="display: none"])) .pantheon-chip .pantheon-cat,
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Nines"]:not([style*="display: none"])) .pantheon-chip .pantheon-cat {
     font-size: 15px;
     padding: 2px 4px;
     letter-spacing: 0.03em;
     min-height: auto;
 }
 
-.main-game .pantheon-frieze .pantheon-tier-lower .pantheon-chip .pantheon-deity {
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Sevens"]:not([style*="display: none"])) .pantheon-chip .pantheon-deity,
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Eights"]:not([style*="display: none"])) .pantheon-chip .pantheon-deity,
+.main-game .pantheon-frieze .pantheon-tier-lower:has(.pantheon-chip[data-category="Nines"]:not([style*="display: none"])) .pantheon-chip .pantheon-deity {
     font-size: 15.6px;
     letter-spacing: 0.06em;
     line-height: 1.2;

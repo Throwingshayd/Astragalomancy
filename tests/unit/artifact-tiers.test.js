@@ -229,18 +229,61 @@ describe('ArtifactEffects', () => {
     });
 });
 
-describe('one artifact per shop', () => {
-    it('stocks one eligible artifact on every shop visit', () => {
-        const gen = readFileSync('game/js/engine/ShopStockGenerator.js', 'utf8');
-        expect(gen).not.toContain('shopIsTrialReward');
-        expect(gen).toContain('pool[Math.floor(prng.random() * pool.length)]');
-        expect(gen).toContain('return [artifact]');
+describe('one artifact per trial', () => {
+    function loadExports(filePath, names) {
+        const src = readFileSync(filePath, 'utf8');
+        return Function(`${src}; return { ${names.join(', ')} };`)();
+    }
+
+    beforeAll(() => {
+        const { CardData } = loadExports('game/js/data/gameData.js', ['CardData']);
+        globalThis.CardData = CardData;
+        const { ShopStockGenerator } = loadExports(
+            'game/js/engine/ShopStockGenerator.js',
+            ['ShopStockGenerator'],
+        );
+        globalThis.ShopStockGenerator = ShopStockGenerator;
+    });
+
+    const firstInPool = () => ({ random: () => 0 });
+
+    it('keeps the same offer across every shop of a trial', () => {
+        const gen = globalThis.ShopStockGenerator;
+        const state = { ante: 1, artifacts: [] };
+        const first = gen._generateArtifacts(state, firstInPool());
+        const second = gen._generateArtifacts(state, { random: () => 0.99 });
+        expect(first).toHaveLength(1);
+        expect(second).toEqual(first);
+        expect(state.trialArtifactAnte).toBe(1);
+    });
+
+    it('leaves the slot empty after a buy until the next trial', () => {
+        const gen = globalThis.ShopStockGenerator;
+        const state = { ante: 2, artifacts: [] };
+        const offered = gen._generateArtifacts(state, firstInPool());
+        expect(offered).toHaveLength(1);
+        state.artifacts.push({ id: offered[0].id });
+        state.trialArtifactBought = true;
+        expect(gen._generateArtifacts(state, firstInPool())).toEqual([]);
+        state.ante = 3;
+        const nextTrial = gen._generateArtifacts(state, firstInPool());
+        expect(nextTrial).toHaveLength(1);
+        expect(nextTrial[0].id).not.toBe(offered[0].id);
     });
 
     it('offers an upgrade only once its base is owned', () => {
-        const gen = readFileSync('game/js/engine/ShopStockGenerator.js', 'utf8');
-        expect(gen).toContain('if (!purchasedIds.has(pair.base.id))');
-        expect(gen).toContain('} else if (pair.upgraded && !purchasedIds.has(pair.upgraded.id))');
+        const gen = globalThis.ShopStockGenerator;
+        const state = { ante: 1, artifacts: [{ id: 'artifact_temple_market' }] };
+        const pool = gen.eligibleArtifactPool(state);
+        expect(pool.some((a) => a.id === 'artifact_temple_market')).toBe(false);
+        expect(pool.some((a) => a.id === 'artifact_grand_agora')).toBe(true);
+    });
+
+    it('buy marks the trial slot spent so a restock cannot refill it', () => {
+        const shopUi = readFileSync('game/js/ui/ShopUI.js', 'utf8');
+        expect(shopUi).toContain('gameState.trialArtifactBought = true');
+        expect(shopUi).toContain('ShopStockGenerator.ensureTrialArtifact');
+        expect(shopUi).not.toContain('shopIsTrialReward');
     });
 
     it('asks ArtifactEffects how many cards a pack reveals, and for the Telescope pin', () => {

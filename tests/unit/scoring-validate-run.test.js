@@ -56,6 +56,10 @@ describe('ScoringEngine.validateRun wiring', () => {
         expect(engine).not.toContain('applyWinningHandsTestMode');
         expect(modes).toContain('class GameEngineTestModes');
         expect(modes).toContain('applyWinningHands');
+        expect(modes).toContain("seed === '42069'");
+        expect(modes).toContain("cats['Extra Long Straight'] = true");
+        expect(modes).toContain('cats.Heureka = true');
+        expect(modes).toContain('cats.Sevens = true');
         expect(html.indexOf('GameEngineTestModes.js')).toBeLessThan(html.indexOf('GameEngine.js'));
     });
 

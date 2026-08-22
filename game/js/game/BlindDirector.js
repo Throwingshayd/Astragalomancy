@@ -52,7 +52,8 @@ const SCORE_LADDER = [
     'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
     'Sevens', 'Eights', 'Nines',
     'Three of a Kind', 'Small Straight', 'Full House',
-    'Four of a Kind', 'Large Straight', 'Yahtzee',
+    'Four of a Kind', 'Large Straight', 'Extra Long Straight', 'Yahtzee',
+    'Heureka',
     'Chance', "Pandora's Box",
 ];
 
@@ -305,7 +306,7 @@ const BlindDirector = {
     },
 
     categoryLabel(category) {
-        if (category === 'Yahtzee') return 'Heureka';
+        if (category === 'Yahtzee') return 'Five of a Kind';
         return category || 'that offering';
     },
 

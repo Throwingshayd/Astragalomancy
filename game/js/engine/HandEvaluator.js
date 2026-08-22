@@ -17,7 +17,10 @@ const HandEvaluator = {
     evaluate(category, faces, counts, context = {}) {
         const { boons = [], activeBlind = null, unlockedCategories = {} } = context;
 
-        if (['Sevens', 'Eights', 'Nines'].includes(category) && !unlockedCategories[category]) {
+        const gated = typeof UNLOCKABLE_SCORE_ROWS !== 'undefined'
+            ? UNLOCKABLE_SCORE_ROWS
+            : ['Sevens', 'Eights', 'Nines', 'Heureka', 'Extra Long Straight'];
+        if (gated.includes(category) && !unlockedCategories[category]) {
             return { pips: 0, isValid: false };
         }
 
@@ -114,9 +117,20 @@ HandEvaluator.CATEGORY_HANDLERS['Large Straight'] = (faces) => {
     return { pips: faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Large Straight'], isValid: true };
 };
 
+HandEvaluator.CATEGORY_HANDLERS['Extra Long Straight'] = (faces) => {
+    const unique = [...new Set(faces)].sort((a, b) => a - b);
+    if (HandEvaluator._maxConsecutiveRun(unique) < SCORING_THRESHOLDS.EXTRA_LONG_STRAIGHT_LENGTH) return { pips: 0, isValid: false };
+    return { pips: faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Extra Long Straight'], isValid: true };
+};
+
 HandEvaluator.CATEGORY_HANDLERS['Yahtzee'] = (faces, counts) => {
     if (!Object.values(counts).some(c => c >= SCORING_THRESHOLDS.YAHTZEE_REQUIRED)) return { pips: 0, isValid: false };
     return { pips: faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Yahtzee'], isValid: true };
+};
+
+HandEvaluator.CATEGORY_HANDLERS['Heureka'] = (faces, counts) => {
+    if (!Object.values(counts).some(c => c >= SCORING_THRESHOLDS.HEUREKA_REQUIRED)) return { pips: 0, isValid: false };
+    return { pips: faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Heureka'], isValid: true };
 };
 
 HandEvaluator.CATEGORY_HANDLERS['Chance'] = (faces, counts, { activeBlind }) => {

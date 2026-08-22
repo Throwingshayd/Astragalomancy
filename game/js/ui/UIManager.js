@@ -350,8 +350,8 @@ class UIManager {
             return false;
         }
         const handCategory = card.getCategory();
-        const handLabel = handCategory === 'Yahtzee' ? 'Heureka' : handCategory;
-        const slotLabel = targetCategory === 'Yahtzee' ? 'Heureka' : targetCategory;
+        const handLabel = handCategory === 'Yahtzee' ? 'Five of a Kind' : handCategory;
+        const slotLabel = targetCategory === 'Yahtzee' ? 'Five of a Kind' : targetCategory;
         const duplicateCount = typeof DevotionUtils !== 'undefined'
             ? DevotionUtils.countSlotsForHand(gameState, handCategory)
             : 1;

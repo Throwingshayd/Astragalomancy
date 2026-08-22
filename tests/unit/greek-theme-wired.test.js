@@ -24,6 +24,7 @@ describe('Greek theme wiring', () => {
         const fonts = readFileSync('game/css/fonts-morris.css', 'utf8');
         const styles = readFileSync('game/css/styles.css', 'utf8');
         expect(css).toContain('.main-game .pantheon-frieze');
+        expect(css).toContain('--layout-pantheon-side-bleed');
         expect(css).toContain('var(--font-manuscript)');
         expect(tokens).toContain("--font-stack: 'Morris Roman'");
         expect(tokens).toContain('--color-title:');
@@ -40,6 +41,9 @@ describe('Greek theme wiring', () => {
         expect(css).toContain('.clepsydra');
         expect(css).toContain('.trial-banner');
         expect(css).toContain('.rolls-pips');
+        expect(css).toContain(':has(.pantheon-chip[data-category="Heureka"]:not([style*="display: none"]))');
+        expect(css).toContain(':has(.pantheon-chip[data-category="Extra Long Straight"]:not([style*="display: none"]))');
+        expect(css).toContain(':has(.pantheon-chip[data-category="Sevens"]:not([style*="display: none"]))');
     });
 
     it('Kronos hourglass sits on the artifacts row with Roman numerals above', () => {
@@ -164,6 +168,8 @@ describe('Greek theme wiring', () => {
         const styles = readFileSync('game/css/styles.css', 'utf8');
 
         expect(css).toMatch(/--side-bar-top-main:\s*\d+px;/);
+        expect(css).toContain('--side-bar-left-main: var(--layout-side-bar-outset)');
+        expect(css).toContain('--side-bar-right-main: calc(var(--layout-main-w) - var(--layout-side-bar-outset) - var(--side-bar-w))');
         expect(styles).toMatch(
             /\.left-consumable-bar\.inventory-panel-consumables \{[\s\S]*?top: var\(--side-bar-top-main/,
         );
@@ -243,7 +249,9 @@ describe('Greek theme wiring', () => {
             'Full House',
             'Four of a Kind',
             'Large Straight',
+            'Extra Long Straight',
             'Yahtzee',
+            'Heureka',
             "Pandora's Box",
         ]);
     });

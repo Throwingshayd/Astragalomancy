@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
  * the same regression fail `npm test` instead of relying on anyone re-reading a doc.
  */
 const CEILINGS = {
-    'game/js/game/GameEngine.js': { lines: 1627, windowRefs: 10 },
+    'game/js/game/GameEngine.js': { lines: 1597, windowRefs: 10 },
     'game/js/classes/Boon.js': { lines: 830, windowRefs: 12 },
     'game/js/ui/ShopUI.js': { lines: 860, windowRefs: 7 },
     'game/js/ui/BalatroEffects.js': { lines: 646, windowRefs: 5 },
@@ -65,10 +65,13 @@ describe('architecture guardrails (ratchet, not aspiration)', () => {
         expect(html.indexOf('BoonDisplayStats.js')).toBeLessThan(html.indexOf('Boon.js'));
         expect(html.indexOf('GamePersistence.js')).toBeGreaterThan(-1);
         expect(html.indexOf('GamePersistence.js')).toBeLessThan(html.indexOf('GameEngine.js'));
+        expect(html.indexOf('CategoryUnlock.js')).toBeGreaterThan(-1);
+        expect(html.indexOf('CategoryUnlock.js')).toBeLessThan(html.indexOf('GameEngine.js'));
 
         const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
         expect(engine).toContain('GamePersistence.save(this)');
         expect(engine).toContain('GamePersistence.rehydrate(this, plain, prngState)');
+        expect(engine).toContain('CategoryUnlock.onRoll(this)');
 
         const boon = readFileSync('game/js/classes/Boon.js', 'utf8');
         expect(boon).toContain('BoonDisplayStats.live(this, gameState)');

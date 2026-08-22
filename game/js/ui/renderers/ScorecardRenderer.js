@@ -17,13 +17,15 @@ const ScorecardRenderer = {
             : slotCategory;
         const consecrated = typeof DevotionUtils !== 'undefined'
             && DevotionUtils.isConsecratedSlot(gameState, slotCategory);
-        const displayCategory = evalCat === 'Yahtzee' ? 'Heureka' : evalCat;
+        const displayCategory = evalCat === 'Yahtzee' ? 'Five of a Kind' : evalCat;
         const god = (consecrated && gameState.categoryGodBinding?.[slotCategory])
             || gameState.categoryGodBinding?.[slotCategory]
             || godMapping[slotCategory];
         const worshipLevel = god ? (gameState.worshipLevels?.[god] || 0) : 0;
         const displayLevel = worshipLevel + 1;
-        const deityText = worshipLevel > 0 ? `${god} Lv.${displayLevel}` : god;
+        const deityText = god
+            ? (worshipLevel > 0 ? `${god} Lv.${displayLevel}` : god)
+            : '';
         return { displayCategory, deityText, consecrated };
     },
 
@@ -62,7 +64,10 @@ const ScorecardRenderer = {
         dom.scorecardRows.forEach(row => {
             const category = row.dataset.category;
             if (!category) return;
-            if (['Sevens', 'Eights', 'Nines'].includes(category)) {
+            const gated = typeof UNLOCKABLE_SCORE_ROWS !== 'undefined'
+                ? UNLOCKABLE_SCORE_ROWS
+                : ['Sevens', 'Eights', 'Nines', 'Heureka', 'Extra Long Straight'];
+            if (gated.includes(category)) {
                 if (!gameState.unlockedCategories?.[category]) {
                     row.style.display = 'none';
                     return;

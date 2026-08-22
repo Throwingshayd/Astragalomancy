@@ -13,6 +13,8 @@ const TrialCompletion = {
         if (state.unlockedCategories?.Sevens) highCats.push('Sevens');
         if (state.unlockedCategories?.Eights) highCats.push('Eights');
         if (state.unlockedCategories?.Nines) highCats.push('Nines');
+        if (state.unlockedCategories?.Heureka) highCats.push('Heureka');
+        if (state.unlockedCategories?.['Extra Long Straight']) highCats.push('Extra Long Straight');
         return [...upperCats, ...lowerCats, ...highCats];
     },
 
@@ -177,9 +179,6 @@ const TrialCompletion = {
         if (typeof WorshipCard !== 'undefined') {
             WorshipCard.tickHeldDevotionTrials(engine.state, engine);
         }
-
-        // The artifact offer belongs to this shop and no other; ShopUI clears the flag on close.
-        engine.state.shopIsTrialReward = true;
 
         BlindDirector.prepareNextAnte(engine);
         engine.showInterestThenOpenShop(opts);

@@ -154,10 +154,21 @@ const ShopStockGenerator = {
         return items.length > 0 ? items[0] : null;
     },
 
+    artifactById(id) {
+        if (!id) return null;
+        const artifacts = CardData.artifacts || {};
+        for (const key in artifacts) {
+            const pair = artifacts[key];
+            if (pair.base?.id === id) return pair.base;
+            if (pair.upgraded?.id === id) return pair.upgraded;
+        }
+        return null;
+    },
+
     /**
-     * One artifact per shop visit. Upgrades only enter the pool once the base is owned.
+     * Bases until owned, then that family's upgrade. Owned cards never re-enter.
      */
-    _generateArtifacts(gameState, prng) {
+    eligibleArtifactPool(gameState) {
         const purchasedIds = new Set((gameState.artifacts || []).map(a => a.id));
         const pool = [];
         const artifacts = CardData.artifacts || {};
@@ -169,8 +180,38 @@ const ShopStockGenerator = {
                 pool.push(pair.upgraded);
             }
         }
-        if (pool.length === 0) return [];
+        return pool;
+    },
+
+    /**
+     * Balatro voucher slot: one artifact is rolled for this trial and kept for every
+     * shop until the next trial. Buying it empties the slot for the rest of the trial.
+     */
+    ensureTrialArtifact(gameState, prng) {
+        if (!gameState) return null;
+        const ante = gameState.ante || 1;
+        if (gameState.trialArtifactAnte === ante) {
+            if (gameState.trialArtifactBought) return null;
+            return this.artifactById(gameState.trialArtifactId);
+        }
+        if (!prng || typeof prng.random !== 'function') return null;
+        const pool = this.eligibleArtifactPool(gameState);
+        gameState.trialArtifactAnte = ante;
+        gameState.trialArtifactBought = false;
+        if (pool.length === 0) {
+            gameState.trialArtifactId = null;
+            return null;
+        }
         const artifact = pool[Math.floor(prng.random() * pool.length)];
+        gameState.trialArtifactId = artifact.id;
+        return artifact;
+    },
+
+    _generateArtifacts(gameState, prng) {
+        const artifact = this.ensureTrialArtifact(gameState, prng);
+        if (!artifact) return [];
+        const owned = (gameState.artifacts || []).some(a => a.id === artifact.id);
+        if (owned) return [];
         return [artifact];
     },
 

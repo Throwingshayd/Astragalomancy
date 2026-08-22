@@ -19,7 +19,7 @@ Artifacts are the run's vouchers: ten families, each a **base** and an **upgrade
 
 The three pack families follow Balatro's pack vouchers. Tier 1 adds one extra card of that type in the matching pack (Hall of Heroes / Panegyris / Symposium). Tier 2 for worship and libations is Telescope: the pack always contains a Blessing for your highest god, or your most-poured Libation. Boon packs upgrade into **Antikythra** (+1 Boon slot) instead. Seed of Plutus / Grove of Plutus raise the interest *cap* (5 → 10 → 20), never the gold-per-5 rate.
 
-Exactly one artifact is offered per shop visit. An upgrade only enters the pool once you own its base. Artifacts cannot be sold.
+Exactly one artifact is offered per trial, like a Balatro voucher: the same card appears in every shop of that trial. Buying it leaves the slot empty until the next trial. An upgrade only enters the pool once you own its base. Artifacts cannot be sold.
 
 Family upgrades are not all “the same but more”: Altar doubles worship Favour, **The Hecatomb** makes Boons sell for full cost; Delphic Tithe cheapens shop rerolls, **Pythia’s Indulgence** leaves you with a single Cast the Bones each turn; Sixth Astragalus is an all-1s extra die, **Seventh** adds a Wild extra die; Tyche pays Gold at the start of each Trial.
 
@@ -49,6 +49,8 @@ Older saves may reference renamed worship IDs. Migrations map:
 | `worship_persephone` | `worship_aphrodite` |
 
 Handled in `game/js/utils/dataManager.js` (collection) and `game/js/game/GameEngine.js` (run save load). Do not remove without a save-version bump.
+
+Zeus is **Five of a Kind** (internal key `Yahtzee`). **Heureka** is six of a kind and **Extra Long Straight** is a run of six: both tiles stay hidden until that hand is rolled. Name and god for the long straight can change later.
 
 ## Score: Pips × Favour
 

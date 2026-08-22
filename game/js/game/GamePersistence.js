@@ -47,7 +47,7 @@ const GamePersistence = {
                 : {},
             unlockedCategories: state.unlockedCategories && typeof state.unlockedCategories === 'object'
                 ? { ...state.unlockedCategories }
-                : { 'Sevens': false, 'Eights': false, 'Nines': false, "Pandora's Box": false }
+                : { 'Sevens': false, 'Eights': false, 'Nines': false, 'Heureka': false, 'Extra Long Straight': false, "Pandora's Box": false }
         };
         delete payload.diceEffects;
         delete payload.pipsBonuses;
@@ -121,10 +121,13 @@ const GamePersistence = {
             ? state.categoryScoringOverride
             : {};
         state.unlockedCategories = state.unlockedCategories && typeof state.unlockedCategories === 'object'
-            ? { 'Sevens': false, 'Eights': false, 'Nines': false, "Pandora's Box": false, ...state.unlockedCategories }
-            : { 'Sevens': false, 'Eights': false, 'Nines': false, "Pandora's Box": false };
+            ? { 'Sevens': false, 'Eights': false, 'Nines': false, 'Heureka': false, 'Extra Long Straight': false, "Pandora's Box": false, ...state.unlockedCategories }
+            : { 'Sevens': false, 'Eights': false, 'Nines': false, 'Heureka': false, 'Extra Long Straight': false, "Pandora's Box": false };
 
         state.yahtzeesRolledThisRun = state.yahtzeesRolledThisRun ?? (state.bonusYahtzees || 0) + 1;
+        state.trialArtifactId = typeof state.trialArtifactId === 'string' ? state.trialArtifactId : null;
+        state.trialArtifactAnte = Number.isFinite(state.trialArtifactAnte) ? state.trialArtifactAnte : null;
+        state.trialArtifactBought = !!state.trialArtifactBought;
 
         state.held = Array.isArray(state.held) ? state.held : [];
         state.eyeFloorRank = Number.isFinite(state.eyeFloorRank) ? state.eyeFloorRank : -1;

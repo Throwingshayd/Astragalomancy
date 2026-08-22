@@ -63,6 +63,7 @@ class ShopUI {
 
     openShop(gameState, gameEngine) {
         gameState.usedFreeReroll = false;
+        ShopStockGenerator.ensureTrialArtifact(gameState, gameEngine.prng);
         this.shopState.openedPacks = new Set();
 
         this.uiManager.ensureShopElementsBound?.();
@@ -107,9 +108,6 @@ class ShopUI {
         if (this.stateManager) this.stateManager.setState(this.gameStates?.ROUND || 'ROUND');
         this.effects?.hideAllTooltips();
         const gameEngine = game || window.game;
-        // One artifact per trial: the offer does not carry over to the next shop. Cleared
-        // before the save below so a reload cannot restock it.
-        if (gameEngine?.state) gameEngine.state.shopIsTrialReward = false;
         if (gameEngine?.canSave?.()) gameEngine.saveGame({ silent: true });
     }
 
@@ -612,6 +610,7 @@ class ShopUI {
         if (this.sound) this.sound.play('card1', { pitch: 0.9, volume: 0.6 });
         gameEngine.updateGoldAnimated(-effectiveCost, "artifact purchase");
         gameState.artifacts.push(artifactData);
+        gameState.trialArtifactBought = true;
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('shop_buy_artifact', {
                 id: artifactData.id,

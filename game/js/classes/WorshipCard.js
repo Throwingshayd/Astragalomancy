@@ -112,8 +112,10 @@ class WorshipCard extends Card {
     applyAscendedConsecration(gameState, targetCategory) {
         if (typeof BlindDirector !== 'undefined' && BlindDirector.blocksWorship(gameState)) return false;
         if (!this.devotionAscended || !targetCategory || !this.god) return false;
-        if (['Sevens', 'Eights', 'Nines'].includes(targetCategory)
-            && !gameState.unlockedCategories?.[targetCategory]) {
+        const gated = typeof UNLOCKABLE_SCORE_ROWS !== 'undefined'
+            ? UNLOCKABLE_SCORE_ROWS
+            : ['Sevens', 'Eights', 'Nines', 'Heureka', 'Extra Long Straight'];
+        if (gated.includes(targetCategory) && !gameState.unlockedCategories?.[targetCategory]) {
             return false;
         }
         const sourceCategory = this.getCategory();

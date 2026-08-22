@@ -32,7 +32,10 @@ const ScoringEngine = {
             const die = state.dice[i];
             if (!die || typeof die.getEffectiveFace !== 'function') return { ok: false, reason: 'die_shape' };
         }
-        if (['Sevens', 'Eights', 'Nines'].includes(category) && !state.unlockedCategories?.[category]) {
+        const gated = typeof UNLOCKABLE_SCORE_ROWS !== 'undefined'
+            ? UNLOCKABLE_SCORE_ROWS
+            : ['Sevens', 'Eights', 'Nines', 'Heureka', 'Extra Long Straight'];
+        if (gated.includes(category) && !state.unlockedCategories?.[category]) {
             return { ok: false, reason: 'locked' };
         }
         if (typeof DevotionUtils !== 'undefined' && !DevotionUtils.canScoreCategory(state, category)) {

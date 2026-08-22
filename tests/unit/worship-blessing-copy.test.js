@@ -29,7 +29,7 @@ const { GOD_METADATA, CARD_ECONOMY } = loadExports('game/js/config/GameConstants
 const { CardData } = loadExports('game/js/data/gameData.js', ['CardData']);
 
 function displayCategory(category) {
-    return category === 'Yahtzee' ? 'Heureka' : category;
+    return category === 'Yahtzee' ? 'Five of a Kind' : category;
 }
 
 function offerLine(god, category) {

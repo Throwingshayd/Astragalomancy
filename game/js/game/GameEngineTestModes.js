@@ -38,6 +38,21 @@ class GameEngineTestModes {
         if (enhanceParam) {
             GameEngineTestModes.applyEnhancement(engine, enhanceParam);
         }
+        if (seed === '42069') {
+            GameEngineTestModes.unlockLayoutRows(engine);
+        }
+    }
+
+    /** Seed 42069: show every gated pantheon tile so layout can be checked. */
+    static unlockLayoutRows(engine) {
+        const cats = engine.state.unlockedCategories;
+        if (!cats) return;
+        cats.Sevens = true;
+        cats.Eights = true;
+        cats.Nines = true;
+        cats.Heureka = true;
+        cats['Extra Long Straight'] = true;
+        engine.state.bonusYahtzees = 3;
     }
 
     /** @param {GameEngine} engine @param {string} enhancement */

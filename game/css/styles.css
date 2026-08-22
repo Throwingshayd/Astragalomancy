@@ -6968,8 +6968,10 @@ body::after {
 }
 
 /* --- Upper fan: spine (Zeus/Dionysus) → mid row Chance | Straights | Pandora → ToK/FoK on lower gap midpoints --- */
-/* Heureka sits above Full House with a real gap (no overlap at larger uniform cell size) */
+/* Five of a Kind (Zeus) sits above Full House. Heureka appears beside it once rolled. */
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Yahtzee"] { --px: 50%; --py: 28px; z-index: 8; }
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Heureka"] { --px: 64%; --py: 8px; z-index: 9; }
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Extra Long Straight"] { --px: 72%; --py: 88px; z-index: 8; }
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Full House"] { --px: 50%; --py: 112px; z-index: 7; }
 /* Straights/ends lowered slightly to tighten spacing to lower tier (Heureka + Full House untouched) */
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Small Straight"] { --px: 38%; --py: 118px; z-index: 6; }
@@ -7000,6 +7002,7 @@ body::after {
 .pantheon-frieze .pantheon-chip[data-category="Pandora's Box"] { --chip-rot: 8deg; }
 .pantheon-frieze .pantheon-chip[data-category="Four of a Kind"] { --chip-rot: 4deg; }
 .pantheon-frieze .pantheon-chip[data-category="Large Straight"] { --chip-rot: 2deg; }
+.pantheon-frieze .pantheon-chip[data-category="Extra Long Straight"] { --chip-rot: 3deg; }
 .pantheon-frieze .pantheon-chip[data-category="Fives"] { --chip-rot: 1.5deg; }
 .pantheon-frieze .pantheon-chip[data-category="Sixes"] { --chip-rot: 2.5deg; }
 

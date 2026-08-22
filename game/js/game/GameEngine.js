@@ -153,6 +153,7 @@ class GameEngine {
                 'Sevens': false,
                 'Eights': false,
                 'Nines': false,
+                'Heureka': false, 'Extra Long Straight': false,
                 "Pandora's Box": false
             },
             // Message in a Bottle: track if any other boon triggered this ante
@@ -616,20 +617,8 @@ class GameEngine {
         return die?.face ?? die?.currentFace ?? fallback;
     }
 
-    // Bonus Yahtzee unlocks 7s/8s/9s on roll — 2nd/3rd/4th Yahtzee rolled unlocks 7s/8s/9s.
-    // No need to score in Yahtzee slot; just rolling five of a kind counts.
     previewUnlockBonusCategoriesOnRoll() {
-        const faces = this.state.dice.map((d) => this.getDieFaceValue(d, 1));
-        const counts = faces.reduce((acc, val) => { acc[val] = (acc[val] || 0) + 1; return acc; }, {});
-        const rolledYahtzee = Object.values(counts).some(c => c >= 5);
-        if (!rolledYahtzee) return;
-
-        this.state.yahtzeesRolledThisRun = (this.state.yahtzeesRolledThisRun || 0) + 1;
-        this.state.bonusYahtzees = Math.min(3, this.state.yahtzeesRolledThisRun - 1);
-        if (this.state.bonusYahtzees > 0) {
-            this.unlockBonusCategories();
-            this.showMessage(`Bonus Heureka! (${this.state.bonusYahtzees} total)`, 3000);
-        }
+        CategoryUnlock.onRoll(this);
     }
 
     /**
@@ -997,7 +986,7 @@ class GameEngine {
                 </div>
                 ${this.state.bonusYahtzees > 0 ? `
                 <div class="stat-row special">
-                    <span class="stat-label">Bonus Heurekas</span>
+                    <span class="stat-label">Bonus Five of a Kind</span>
                     <span class="stat-value">${this.state.bonusYahtzees}</span>
                 </div>` : ''}
             </div>
@@ -1126,25 +1115,8 @@ class GameEngine {
         }
     }
 
-    // Unlock bonus categories based on bonus Yahtzees
     unlockBonusCategories() {
-        const unlockOrder = ['Sevens', 'Eights', 'Nines'];
-        const yahtzeeCount = this.state.bonusYahtzees;
-        
-        for (let i = 0; i < yahtzeeCount && i < unlockOrder.length; i++) {
-            const category = unlockOrder[i];
-            if (!this.state.unlockedCategories[category]) {
-                this.state.unlockedCategories[category] = true;
-                this.updateMaxTurns();
-                const sides = 7 + i;
-                this.showMessage(`${category} unlocked! Dice upgraded to ${sides}-sided!`, 4000);
-                
-                // Update UI to show the new category
-                if (this.domReady) {
-                    this.updateAllUI();
-                }
-            }
-        }
+        CategoryUnlock.unlockHighFaces(this);
     }
 
     /**
@@ -1298,7 +1270,7 @@ class GameEngine {
         if (!category) return 'Offering';
         const displayCat = typeof DevotionUtils !== 'undefined'
             ? DevotionUtils.getDisplayCategory(this.state, category)
-            : (category === 'Yahtzee' ? 'Heureka' : category);
+            : (category === 'Yahtzee' ? 'Five of a Kind' : category);
         if (filledSlot) {
             const g = this.getGodForCategory(category);
             const godShown = g === "Pandora's Box" ? 'Pandora' : (g || '—');
@@ -1357,7 +1329,10 @@ class GameEngine {
      */
     updateMaxTurns() {
         const base = GAME_BALANCE.MAX_TURNS_PER_ANTE;
-        const highCount = ['Sevens', 'Eights', 'Nines'].filter(
+        const highCount = (typeof UNLOCKABLE_SCORE_ROWS !== 'undefined'
+            ? UNLOCKABLE_SCORE_ROWS
+            : ['Sevens', 'Eights', 'Nines', 'Heureka', 'Extra Long Straight']
+        ).filter(
             c => this.state.unlockedCategories?.[c]
         ).length;
         this.state.maxTurns = base + highCount;

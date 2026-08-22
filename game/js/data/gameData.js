@@ -637,7 +637,7 @@ const CardData = {
         { id: "worship_dionysus", name: "Blessing of Dionysus", god: "Dionysus", rarity: "worship", cost: 3, effect: "Offer on Full House: +1 level (+12 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Full House/Dionysus)." },
         { id: "worship_hermes", name: "Blessing of Hermes", god: "Hermes", rarity: "worship", cost: 3, effect: "Offer on Small Straight: +1 level (+10 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Small Straight/Hermes)." },
         { id: "worship_apollo", name: "Blessing of Apollo", god: "Apollo", rarity: "worship", cost: 3, effect: "Offer on Large Straight: +1 level (+20 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Large Straight/Apollo)." },
-        { id: "worship_zeus", name: "Blessing of Zeus", god: "Zeus", rarity: "worship", cost: 3, effect: "Offer on Heureka: +1 level (+25 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Heureka/Zeus)." },
+        { id: "worship_zeus", name: "Blessing of Zeus", god: "Zeus", rarity: "worship", cost: 3, effect: "Offer on Five of a Kind: +1 level (+25 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Five of a Kind/Zeus)." },
         { id: "worship_nyx", name: "Blessing of Nyx", god: "Nyx", rarity: "worship", cost: 3, effect: "Offer on Chance: +1 level (+0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Chance/Nyx)." },
         { id: "worship_pleiades", name: "Blessing of the Pleiades", god: "The Pleiades", rarity: "worship", cost: 3, effect: "Offer on Sevens: +1 level (+7 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Sevens/The Pleiades)." },
         { id: "worship_poseidon_eights", name: "Blessing of Poseidon (Eights)", god: "Poseidon", rarity: "worship", cost: 3, effect: "Offer on Eights: +1 level (+8 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Eights/Poseidon)." },
@@ -670,7 +670,8 @@ const CardData = {
     /**
      * Ten families, each a base and its upgrade. Both tiers cost 10 gold; the upgrade is
      * earned by scarcity, not price — it only enters the shop pool once you own its base,
-     * and one artifact is offered per shop visit.
+     * and one artifact is offered per trial (same card in every shop until bought or the
+     * next trial).
      *
      * Owning an upgrade means owning both cards, so the effect text on an upgrade reads as
      * the total the pair delivers while game/ArtifactEffects.js contributes only the

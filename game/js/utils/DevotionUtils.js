@@ -41,7 +41,10 @@ const DevotionUtils = {
 
     canScoreCategory(state, category) {
         if (!category || !state) return false;
-        if (['Sevens', 'Eights', 'Nines'].includes(category) && !state.unlockedCategories?.[category]) {
+        const gated = typeof UNLOCKABLE_SCORE_ROWS !== 'undefined'
+            ? UNLOCKABLE_SCORE_ROWS
+            : ['Sevens', 'Eights', 'Nines', 'Heureka', 'Extra Long Straight'];
+        if (gated.includes(category) && !state.unlockedCategories?.[category]) {
             return false;
         }
         return this.getMarks(state, category) < this.getCapacity(state, category);
@@ -74,7 +77,7 @@ const DevotionUtils = {
     /** Display name for a pantheon slot (consecrated slots show the worship hand). */
     getDisplayCategory(state, slotCategory) {
         const evalCat = this.getEvalCategory(state, slotCategory);
-        return evalCat === 'Yahtzee' ? 'Heureka' : evalCat;
+        return evalCat === 'Yahtzee' ? 'Five of a Kind' : evalCat;
     },
 
     isConsecratedSlot(state, slotCategory) {
@@ -95,6 +98,8 @@ const DevotionUtils = {
         if (state.unlockedCategories?.Sevens) slots.push('Sevens');
         if (state.unlockedCategories?.Eights) slots.push('Eights');
         if (state.unlockedCategories?.Nines) slots.push('Nines');
+        if (state.unlockedCategories?.Heureka) slots.push('Heureka');
+        if (state.unlockedCategories?.['Extra Long Straight']) slots.push('Extra Long Straight');
         let n = 0;
         for (const slot of slots) {
             if (this.getEvalCategory(state, slot) === handCategory) n += 1;
