@@ -128,8 +128,8 @@ test.describe('Boon Playtests', () => {
     await expectTurn(page, 2);
   });
 
-  // --- MECHANIC + VISUAL: Gold-scaling pips ---
-  test("Midas Touch - +1 pip per 5 Gold (visual in live counter)", async ({ page }) => {
+  // --- MECHANIC + VISUAL: Gold-scaling favour ---
+  test("Midas Touch - +0.1 Favour per 5 Gold", async ({ page }) => {
     await startGame(page, 'midas_touch');
     await rollAndScore(page, 'Chance');
     await page.waitForTimeout(500);
@@ -175,7 +175,7 @@ test.describe('Boon Playtests', () => {
   });
 
   // --- MECHANIC: Sum divisible by 10 ---
-  test("Mathematician's Compass - +10 pips if sum divisible by 10", async ({ page }) => {
+  test("Mathematician's Compass - Small/Large Straights gain +2 Favour", async ({ page }) => {
     await startGame(page, 'mathematicians_compass');
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
@@ -261,7 +261,7 @@ test.describe('Boon Playtests', () => {
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
   });
-  test("Kronos' Hourglass - random rolls 1-5 per turn", async ({ page }) => {
+  test("Kronos' Hourglass - +1 roll each turn", async ({ page }) => {
     await startGame(page, 'kronos_hourglass');
     await expect(page.locator('.boon-slots [data-card-id="kronos_hourglass"]')).toBeVisible();
     await rollAndScore(page, 'Chance');
@@ -352,7 +352,7 @@ test.describe('Boon Playtests', () => {
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
   });
-  test("Prime Time - prime dice bonus", async ({ page }) => {
+  test("Prime Time - prime dice grant +0.3 Favour each", async ({ page }) => {
     await startGame(page, 'prime_time');
     await expect(page.locator('.boon-slots [data-card-id="prime_time"]')).toBeVisible();
     await rollAndScore(page, 'Chance');
@@ -376,13 +376,13 @@ test.describe('Boon Playtests', () => {
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
   });
-  test("Reckless Abandon - +50 pips, cannot hold", async ({ page }) => {
+  test("Reckless Abandon - ×2 Favour when no dice held", async ({ page }) => {
     await startGame(page, 'reckless_abandon');
     await expect(page.locator('.boon-slots [data-card-id="reckless_abandon"]')).toBeVisible();
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
   });
-  test("Typhon - all 1s first roll +90% threshold", async ({ page }) => {
+  test("Typhon - each 1 grants +0.5 Favour", async ({ page }) => {
     await startGame(page, 'typhon');
     await expect(page.locator('.boon-slots [data-card-id="typhon"]')).toBeVisible();
     await rollAndScore(page, 'Chance');
@@ -521,7 +521,7 @@ test.describe('Boon Playtests', () => {
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
   });
-  test("Gold Standard - gold enhancements +3 pips", async ({ page }) => {
+  test("Gold Standard - ×1.5 Favour while rich (20+ gold)", async ({ page }) => {
     await startGame(page, 'gold_standard', { enhance: 'gold' });
     await expect(page.locator('.boon-slots [data-card-id="gold_standard"]')).toBeVisible();
     await rollAndScore(page, 'Chance');
