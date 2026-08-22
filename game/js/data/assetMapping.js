@@ -70,17 +70,17 @@ const AssetMapping = {
     worship: {
         'worship_artemis': 'artemis bow.png',
         'worship_aphrodite': 'persephone pomegranate.png',
-        'worship_hecate': 'morpheus poppy.png', // placeholder until Hecate art ships
+        'worship_hecate': 'worship hecate.png',
         'worship_hera': 'worship hera.png',
         'worship_athena': 'worship athena.png',
-        'worship_demeter': 'worship heracles.png', // placeholder until Demeter art ships
+        'worship_demeter': 'worship demeter.png',
         'worship_hephaestus': 'worship heaphestus.png',
         'worship_ares': 'worship ares.png',
         'worship_dionysus': 'worship dionysus.png',
         'worship_hermes': 'worship hermes.png',
         'worship_apollo': 'worship apollo.png',
-        'worship_iris': 'worship hermes.png', // placeholder until Iris art ships
-        'worship_hades': 'worship nyx.png', // placeholder until Hades art ships
+        'worship_iris': 'worship iris.png',
+        'worship_hades': 'worship hades.png',
         'worship_zeus': 'worship zues.png', // Note: asset has typo "zues" instead of "zeus"
         'worship_nyx': 'worship nyx.png',
         'worship_pleiades': 'worship pleasdes.png', // Note: asset has typo "pleasdes" instead of "pleiades"
