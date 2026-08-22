@@ -47,10 +47,12 @@ Older saves may reference renamed worship IDs. Migrations map:
 | Legacy ID | Current ID |
 |-----------|------------|
 | `worship_persephone` | `worship_aphrodite` |
+| `worship_morpheus` | `worship_hecate` |
+| `worship_heracles` | `worship_demeter` |
 
-Handled in `game/js/utils/dataManager.js` (collection) and `game/js/game/GameEngine.js` (run save load). Do not remove without a save-version bump.
+Handled in `game/js/game/GamePersistence.js` (run save load). Collection version bumps still wipe mismatched anthologies via `dataManager.js`. Do not remove without a save-version bump.
 
-Zeus is **Five of a Kind** (internal key `Yahtzee`). **Heureka** is six of a kind and **Extra Long Straight** is a run of six: both tiles stay hidden until that hand is rolled. Name and god for the long straight can change later.
+**Hades** is **Five of a Kind** (internal key `Yahtzee`). **Zeus** (Hypsistos / Most High) is **Heureka** (six of a kind). **Iris** is **Extra Long Straight** (run of six). Heureka and Extra Long Straight stay hidden until that hand is rolled.
 
 ## Score: Pips × Favour
 
