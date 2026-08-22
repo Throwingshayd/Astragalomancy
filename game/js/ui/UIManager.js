@@ -57,12 +57,9 @@ class UIManager {
             shopStage: document.getElementById('shopStage'),
             shopDefaultView: document.getElementById('shopDefaultView'),
             packOpeningView: document.getElementById('packOpeningView'),
-            shopTrial: document.getElementById('shopTrial'),
-            interestDisplay: document.getElementById('interestDisplay'),
             
             // Overlays
             confirmOverlay: document.getElementById('confirmOverlay'),
-            libationOverlay: document.getElementById('libationOverlay'),
             expulsionOverlay: document.getElementById('expulsionOverlay'),
             
             // Message popup
@@ -252,10 +249,11 @@ class UIManager {
      * Sell and use are pointer drag (gold stone, pantheon, dice) via bindBoonSlotDrag / bindConsumableHorizonDrag.
      * @param {Card} card
      * @param {HTMLElement} container
-     * @param {Object} [_opts] - Reserved for legacy; unused when cards have no action labels.
+     * @param {Object} [opts]
+     * @param {Object} [opts.gameState] - Run state for live boon chips
      */
-    appendInventoryCard(card, container, _opts = {}) {
-        const cardEl = card.render();
+    appendInventoryCard(card, container, opts = {}) {
+        const cardEl = card.render(false, false, opts.gameState || null);
         cardEl.classList.add('inventory-draggable');
         container.appendChild(cardEl);
         return cardEl;

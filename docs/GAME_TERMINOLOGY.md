@@ -62,4 +62,4 @@ Final score is **Pips × player Favour**. Engine Favour is stored as hundredths 
 
 Favour starts at **1** (naked hand). Worship is **+0.25 Favour** per level, so one Offer reads as **×1.25**. Score is Pips × that number — a 20-pip Chance at 1.25 Favour is 25.
 
-The HUD Favour total is the live multiplier (`1`, `1.25`, `3`). Additive boons show **+N**; multiplicative boons show **×N**. Never write `+×Favour` or `favourMult` in copy or scoring.
+The HUD Favour total is the live multiplier (`1`, `1.25`, `3`). Additive boons show **+N**; multiplicative boons show **×N**.

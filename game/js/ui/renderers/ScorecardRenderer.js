@@ -35,7 +35,7 @@ const ScorecardRenderer = {
 
     updateBonusYahtzeeIndicator(gameState) {
         const indicator = document.getElementById('bonusYahtzeeIndicator');
-        const countDisplay = document.getElementById('bonusYahtzeeCount');
+        const countDisplay = document.getElementById('bonusCount');
         const progressItems = document.querySelectorAll('.progress-item');
         if (indicator && countDisplay) {
             countDisplay.textContent = gameState.bonusYahtzees;

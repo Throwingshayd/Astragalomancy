@@ -32,7 +32,7 @@ const LOWER_SECTION_BONUSES = {
 /**
  * Favour is stored as hundredths so the engine stays on integers:
  * 100 = player ×1, worship +25 = +0.25. Score = Pips × (Favour / 100).
- * +Favour adds; ×Favour multiplies. Never store a third favourMult layer.
+ * +Favour adds; ×Favour multiplies.
  */
 const BASE_FAVOUR = 100;
 const FAVOUR_FLOOR = 10;
@@ -87,6 +87,7 @@ const ENHANCEMENT_BONUSES = {
     GOLD_COINS: 1,          // Gold adds +1 gold when scored
     PARCHMENT_FAVOUR: 100,  // Engine hundredths; player sees +1 Favour
     PARCHMENT_GOLD: 5,      // Parchment can add +5 gold (reduced from 15)
+    BLESSED_FAVOUR: 10,     // Engine hundredths; player sees +0.1 Favour
     // Wild and Mother of Pearl now work differently - no fixed bonuses
 };
 

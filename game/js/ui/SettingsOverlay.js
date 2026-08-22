@@ -1,7 +1,5 @@
 /**
- * SettingsOverlay - Balatro-style settings UI created on demand
- * Balatro: G.FUNCS.overlay_menu { definition = create_UIBox_settings() }
- * Creates overlay when shown, removes when hidden (like Balatro's UIBox lifecycle)
+ * SettingsOverlay — built when opened, removed when closed.
  */
 class SettingsOverlay {
     constructor() {

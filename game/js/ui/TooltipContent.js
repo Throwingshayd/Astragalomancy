@@ -75,6 +75,12 @@ const TooltipContent = {
             if (parsed.gold != null && parsed.gold > 0) {
                 parts.push(`<span class="tip-die-gold">+${this.escapeHtml(parsed.gold)}g</span>`);
             }
+            if (parsed.favour != null && parsed.favour > 0) {
+                const shown = typeof NumberFormat !== 'undefined'
+                    ? NumberFormat.favourContrib(parsed.favour)
+                    : String(parsed.favour / 100);
+                parts.push(`<span class="tip-die-favour">+${this.escapeHtml(shown)} Favour</span>`);
+            }
             if (parts.length > 0) {
                 html += `<p class="tip-die-scoreline">${parts.join(' ')}</p>`;
             }

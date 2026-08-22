@@ -82,7 +82,6 @@ class ShopUI {
         document.querySelector('.main-game')?.classList.add('shop-active');
 
         if (this.stateManager) this.stateManager.setState(this.gameStates?.SHOP || 'SHOP');
-        if (this.dom.shopTrial) this.dom.shopTrial.textContent = gameState.ante;
         if (this.dom.packOpeningView) this.dom.packOpeningView.classList.add('hidden');
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.remove('hidden');
         this.attachShopEventListeners(gameEngine);
@@ -245,7 +244,7 @@ class ShopUI {
 
         if (type === 'artifact') {
             cardInstance = new Artifact(displayData);
-            cardEl = cardInstance.render(true, true);
+            cardEl = cardInstance.render(true, true, gameState);
             cardEl.classList.add('shop-draggable-card', 'shop-draggable-artifact');
             this._attachShopCardDrag(cardEl, { mode: 'artifact', artifactData: displayData, gameState, gameEngine });
         } else {
@@ -253,7 +252,7 @@ class ShopUI {
             else if (displayData.rarity === 'libation') cardInstance = new LibationCard(displayData);
             else cardInstance = new Boon(displayData);
             const isDirect = type === 'direct';
-            cardEl = cardInstance.render(true, isDirect);
+            cardEl = cardInstance.render(true, isDirect, gameState);
             if (type === 'direct') {
                 cardEl.classList.add('shop-draggable-card', 'shop-draggable-ware');
                 this._attachShopCardDrag(cardEl, { mode: 'direct', card: cardInstance, gameState, gameEngine });
@@ -792,7 +791,7 @@ class ShopUI {
         gridEl.innerHTML = '';
 
         inventory.forEach((c) => {
-            const el = c.render();
+            const el = c.render(false, false, gameState);
             el.classList.add('expulsion-choice-card');
             el.addEventListener('click', () => this.completeExpulsion(c));
             gridEl.appendChild(el);

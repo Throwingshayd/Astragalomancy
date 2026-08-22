@@ -194,7 +194,6 @@ const BlindDirector = {
         engine.state.pendingBlindPlan = null;
         engine.state.hadOtherBoonsThisAnte = false;
         engine.applyArtifactEffects();
-        engine.state.rolledBonusYahtzees = 0;
         const tycheGold = ArtifactEffects.trialStartGold(engine.state);
         if (tycheGold > 0) {
             engine.state.gold = (engine.state.gold || 0) + tycheGold;

@@ -26,7 +26,6 @@ describe('ScoringEngine.buildContext shape', () => {
 
     it('fills defaults for empty state', () => {
         const c = globalThis.ScoringEngine.buildContext({});
-        expect(c.pipsBonuses).toEqual({});
         expect(c.boons).toEqual([]);
         expect(c.activeBlind).toBe(null);
         expect(c.unlockedCategories).toEqual({});
@@ -34,14 +33,12 @@ describe('ScoringEngine.buildContext shape', () => {
 
     it('preserves provided fields', () => {
         const state = {
-            pipsBonuses: { x: 1 },
             boons: [{ id: 'a' }],
             activeBlind: 'no_chance',
             unlockedCategories: { Sevens: true },
             turn: 8,
         };
         const c = globalThis.ScoringEngine.buildContext(state);
-        expect(c.pipsBonuses).toEqual({ x: 1 });
         expect(c.boons).toEqual([{ id: 'a' }]);
         expect(c.unlockedCategories).toEqual({ Sevens: true });
         expect(c.activeBlind).toBe('no_chance');

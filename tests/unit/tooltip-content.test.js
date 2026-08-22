@@ -63,8 +63,11 @@ describe('tooltip content', () => {
         expect(html).toContain('+6');
         expect(html).toContain('tip-die-gold');
         expect(html).toContain('+1g');
+        expect(html).not.toContain('tip-die-favour');
         expect(html).toContain('tip-die-enh-line');
         expect(html).toContain('Gold');
+        expect(html).not.toContain('tip-die-id');
+        expect(html).not.toContain('Die 4');
         expect(html).not.toContain('tip-die-status');
         expect(html).not.toContain('Face 6');
     });
@@ -92,6 +95,20 @@ describe('tooltip content', () => {
         expect(html).not.toContain('tip-die-gold');
     });
 
+    it('shows Blessed Favour on the die score line', () => {
+        const html = TooltipContent.render(JSON.stringify({
+            tooltipType: 'die',
+            rolled: true,
+            face: 6,
+            pips: 6,
+            favour: 10,
+            enhancements: [{ name: 'Blessed', color: '#fff1b0' }],
+        }));
+        expect(html).toContain('tip-die-favour');
+        expect(html).toContain('+0.1 Favour');
+        expect(html).toContain('Blessed');
+    });
+
     it('keeps modified, wild, and 7–9 info off the die face and in the tooltip', () => {
         const renderer = readFileSync('game/js/ui/renderers/DiceRenderer.js', 'utf8');
         const styles = readFileSync('game/css/styles.css', 'utf8');
@@ -116,8 +133,11 @@ describe('tooltip content', () => {
         const effects = readFileSync('game/js/ui/BalatroEffects.js', 'utf8');
         const cardJs = readFileSync('game/js/classes/Card.js', 'utf8');
 
-        expect(html.indexOf('js/ui/TooltipContent.js')).toBeLessThan(html.indexOf('js/ui/BalatroEffects.js'));
+        expect(html.indexOf('js/ui/TooltipContent.js')).toBeLessThan(html.indexOf('js/ui/TooltipPlacement.js'));
+        expect(html.indexOf('js/ui/TooltipPlacement.js')).toBeLessThan(html.indexOf('js/ui/BalatroEffects.js'));
         expect(effects).toContain('TooltipContent.render(tooltipData)');
+        expect(effects).toContain('preferSide');
+        expect(effects).toContain('isInPause');
         expect(effects).not.toContain('parseTooltipData');
         expect(cardJs).toContain('stats: dynamicStats');
     });

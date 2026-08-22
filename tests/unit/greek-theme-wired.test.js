@@ -104,17 +104,16 @@ describe('Greek theme wiring', () => {
         expect(css).toMatch(
             /\.live-score-display\.felt-live \.pips-line[\s\S]*?height: var\(--gnosis-num-h\)/,
         );
-        // A longer label ("+25 pip bonus") can't wrap and push the row taller.
+        // A longer unit label can't wrap and push the row taller.
         expect(css).toMatch(
             /\.live-score-display\.felt-live \.gnosis-mult-bonus \{[\s\S]*?height: var\(--gnosis-label-h\)[\s\S]*?white-space: nowrap/,
         );
-        // The "+N" chip stays out of flow (already) and the N/A state swaps rows
-        // instead of stacking both — class rules out-rank the UA [hidden] sheet.
+        // Bonus sits in-flow beside the number; N/A still swaps rows.
         expect(styles).toMatch(
             /\.live-score-display \.gnosis-row\[hidden\] \{\s*display: none !important;/,
         );
         expect(styles).toMatch(
-            /\.live-score-display\.felt-live \.live-add \{[\s\S]*?position: absolute/,
+            /\.live-score-display\.felt-live \.live-add \{[\s\S]*?position: static/,
         );
         // Pulses must not hardcode a palette or they flicker the felt hues.
         const pulses = effects.match(/@keyframes (pipsPulse|favourPulse) \{[\s\S]*?\n\}/g) || [];
@@ -148,14 +147,15 @@ describe('Greek theme wiring', () => {
         expect(liveScore).toMatch(/s\.type === 'payout'[\s\S]{0,80}juiceUp/);
         // Dice pips land on the running total via a chip, same as boons.
         expect(scoringAnim).toMatch(
-            /pips: this\.engine\.formatDisplay\(beforePips\), pipsAdd: true/,
+            /pips: this\.engine\.formatDisplay\(beforePips\),\s*pipsAdd: true/,
         );
         // The chip is a bare numeral on the felt — no box behind it.
         expect(styles).toMatch(
             /\.felt-live \.live-add \{[\s\S]*?background: none;[\s\S]*?box-shadow: none;/,
         );
-        // The offering's pip floor is the number dice land on, not a late step.
-        expect(scoringAnim).toMatch(/let currentPips = categoryBasePips;/);
+        // Dice count up from zero, then the offering bonus, then boons.
+        expect(scoringAnim).toMatch(/let currentPips = 0;/);
+        expect(scoringAnim).toMatch(/Step 1: Dice[\s\S]*Step 2: offering bonus[\s\S]*Step 3: Boons/);
         expect(scoringAnim).not.toMatch(/shouldShowBonus/);
     });
 

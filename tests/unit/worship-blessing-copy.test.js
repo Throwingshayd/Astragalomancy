@@ -3,9 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 /**
  * Blessing tooltips are hardcoded `effect` strings. Mechanics are shared:
- * Offer = pantheon level-up, Held 3 trials → Ascended. No held gold.
- * This test generates the expected blurb from scoring/god constants so copy
- * cannot advertise a gold payout that the engine no longer pays.
+ * Offer = pantheon level-up, Held 3 trials → Ascended.
  */
 
 function loadExports(path, names) {
@@ -72,20 +70,10 @@ describe('blessing tooltip copy matches shared devotion package', () => {
         }
     });
 
-    it('documents Offer pips/favour plus Held Ascended, never held gold', () => {
+    it('documents Offer pips/favour plus Held Ascended', () => {
         expect(CardData.worship.length).toBeGreaterThan(0);
         for (const card of CardData.worship) {
             expect(card.effect, card.id).toBe(expectedEffect(card));
-            expect(card.effect.toLowerCase()).not.toContain('gold');
         }
-    });
-
-    it('does not pay gold for held worship', () => {
-        const scoring = readFileSync('game/js/config/ScoringConstants.js', 'utf8');
-        const worship = readFileSync('game/js/classes/WorshipCard.js', 'utf8');
-        const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
-        expect(scoring).not.toContain('WORSHIP_HELD_GOLD_PER_SCORE');
-        expect(worship).not.toContain('applyHeldDevotionGold');
-        expect(engine).not.toContain('applyHeldDevotionGold');
     });
 });

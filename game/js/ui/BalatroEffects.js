@@ -1,7 +1,7 @@
 // Balatro-style Visual Effects Manager
 // Inspired by Balatro's polished UI and animation system
 // Tooltip body HTML lives in TooltipContent.js; this file owns placement + lifecycle.
-/* global TooltipContent */
+/* global TooltipContent, TooltipPlacement */
 
 class BalatroEffects {
     constructor() {
@@ -19,7 +19,6 @@ class BalatroEffects {
         if (this.isInitialized) return;
         
         this.setupTooltipSystem();
-        this.setupParticleSystem();
         this.setupNotificationSystem();
         this.setupAnimationQueue();
         
@@ -151,7 +150,7 @@ class BalatroEffects {
     /**
      * Card tooltips use one style/placement everywhere (shop, pack, owned sidebars).
      * @param {HTMLElement} element
-     * @returns {{ isDie: boolean, isCard: boolean, isPackShelf: boolean, isInShopStage: boolean, cardEl: HTMLElement | null }}
+     * @returns {{ isDie: boolean, isCard: boolean, isPackShelf: boolean, isInShopStage: boolean, isInPause: boolean, cardEl: HTMLElement | null }}
      */
     _tooltipHostMeta(element) {
         const isDie = element.classList.contains('die');
@@ -159,7 +158,8 @@ class BalatroEffects {
         const isCard = !!cardEl;
         const isPackShelf = element.classList.contains('pack-card');
         const isInShopStage = !!element.closest?.('#shopStage');
-        return { isDie, isCard, isPackShelf, isInShopStage, cardEl };
+        const isInPause = !!element.closest?.('.pause-menu-modal, #pauseMenuOverlayDynamic');
+        return { isDie, isCard, isPackShelf, isInShopStage, isInPause, cardEl };
     }
 
     showTooltip(element, _event, opts = {}) {
@@ -192,7 +192,7 @@ class BalatroEffects {
             this.tooltips.delete(element);
 
             const meta = this._tooltipHostMeta(element);
-            const { isDie, isCard, isPackShelf, isInShopStage, cardEl } = meta;
+            const { isDie, isCard, isPackShelf, isInShopStage, isInPause, cardEl } = meta;
 
             let parsed;
             try {
@@ -221,7 +221,7 @@ class BalatroEffects {
             const root = this.ensureTooltipRoot();
             root.appendChild(tooltip);
 
-            if (isDie) {
+            if (isDie && !isInPause) {
                 const dieW = Math.round(element.getBoundingClientRect().width);
                 const extra = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_DIE_EXTRA_W : 14;
                 const w = dieW > 0 ? dieW + extra : 0;
@@ -244,12 +244,13 @@ class BalatroEffects {
                 }
             }
 
-            const preferBelow = isCard || useShopChrome;
+            const preferSide = isInPause;
+            const preferBelow = !preferSide && (isCard || useShopChrome);
             tooltip.classList.add('is-measuring');
-            this.positionPopover(tooltip, element, { preferBelow, gap: 10 });
+            this.positionPopover(tooltip, element, { preferBelow, preferSide, gap: 10 });
             requestAnimationFrame(() => {
                 if (!tooltip.isConnected) return;
-                this.positionPopover(tooltip, element, { preferBelow, gap: 10 });
+                this.positionPopover(tooltip, element, { preferBelow, preferSide, gap: 10 });
                 tooltip.classList.remove('is-measuring');
                 tooltip.classList.add('show');
             });
@@ -272,61 +273,8 @@ class BalatroEffects {
         this.tooltipTimeouts.set(element, timeoutId);
     }
 
-    positionPopover(tooltip, anchorEl, { preferBelow = false, gap = 10 } = {}) {
-        if (!anchorEl?.isConnected || !tooltip) return;
-
-        const pad = 12;
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const anchor = anchorEl.getBoundingClientRect();
-        const isPackShelf = anchorEl.classList.contains('pack-card');
-
-        tooltip.classList.remove('below');
-
-        let placement = preferBelow ? 'below' : 'above';
-        let top;
-        let left;
-
-        const measure = () => tooltip.getBoundingClientRect();
-
-        let tip = measure();
-        left = anchor.left + anchor.width / 2 - tip.width / 2;
-        left = Math.max(pad, Math.min(left, vw - tip.width - pad));
-
-        if (placement === 'above') {
-            top = anchor.top - tip.height - gap;
-            if (top < pad) {
-                placement = 'below';
-                top = anchor.bottom + gap;
-            }
-        } else {
-            top = anchor.bottom + gap;
-            if (top + tip.height > vh - pad) {
-                if (isPackShelf) {
-                    // Shelf packs sit low — keep tooltip below; clip at viewport bottom instead of jumping above
-                    placement = 'below';
-                    top = anchor.bottom + gap;
-                } else {
-                    placement = 'above';
-                    top = anchor.top - tip.height - gap;
-                }
-            }
-        }
-
-        if (placement === 'below') {
-            top = Math.max(pad, top);
-        } else {
-            top = Math.max(pad, Math.min(top, vh - tip.height - pad));
-        }
-        tip = measure();
-
-        tooltip.style.left = `${left}px`;
-        tooltip.style.top = `${top}px`;
-        tooltip.dataset.placement = placement;
-        if (placement === 'below') tooltip.classList.add('below');
-
-        const arrowX = anchor.left + anchor.width / 2 - left;
-        tooltip.style.setProperty('--tip-arrow-x', `${Math.max(18, Math.min(arrowX, tip.width - 18))}px`);
+    positionPopover(tooltip, anchorEl, opts) {
+        TooltipPlacement.position(tooltip, anchorEl, opts);
     }
 
     /**
@@ -344,9 +292,9 @@ class BalatroEffects {
         if (inner) inner.innerHTML = TooltipContent.render(tooltipData);
 
         const meta = this._tooltipHostMeta(element);
-        const { isDie, isCard, isPackShelf, isInShopStage, cardEl } = meta;
+        const { isDie, isCard, isPackShelf, isInPause, cardEl } = meta;
 
-        if (isDie) {
+        if (isDie && !isInPause) {
             const dieW = Math.round(element.getBoundingClientRect().width);
             const extra = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_DIE_EXTRA_W : 14;
             const w = dieW > 0 ? dieW + extra : 0;
@@ -367,8 +315,9 @@ class BalatroEffects {
             }
         }
 
-        const preferBelow = isCard || isPackShelf;
-        this.positionPopover(tooltip, element, { preferBelow, gap: 10 });
+        const preferSide = isInPause;
+        const preferBelow = !preferSide && (isCard || isPackShelf);
+        this.positionPopover(tooltip, element, { preferBelow, preferSide, gap: 10 });
     }
 
     hideTooltip(element) {
@@ -458,27 +407,11 @@ class BalatroEffects {
     updateTooltipPosition(_event) {
         this.tooltips.forEach((tooltip, host) => {
             if (!host?.isConnected) return;
-            const { isCard, isPackShelf, isInShopStage } = this._tooltipHostMeta(host);
-            const preferBelow = isCard || isPackShelf || isInShopStage;
-            this.positionPopover(tooltip, host, { preferBelow, gap: 10 });
+            const { isCard, isPackShelf, isInShopStage, isInPause } = this._tooltipHostMeta(host);
+            const preferSide = isInPause;
+            const preferBelow = !preferSide && (isCard || isPackShelf || isInShopStage);
+            this.positionPopover(tooltip, host, { preferBelow, preferSide, gap: 10 });
         });
-    }
-
-    getRarityColor(rarity) {
-        const colors = {
-            'rustic': '#8B7355',
-            'vibrant': '#4A90E2',
-            'epic': '#9B59B6',
-            'worship': '#F39C12',
-            'libation': '#E74C3C',
-            'artifact': '#2ECC71'
-        };
-        return colors[rarity] || '#95A5A6';
-    }
-
-    // Particle System
-    setupParticleSystem() {
-        // Particle system will be updated in animation loop
     }
 
     createParticle(x, y, type = 'default', options = {}) {
@@ -662,16 +595,6 @@ class BalatroEffects {
         }, 500);
     }
 
-    // Physics dice archived to physics-dice-attempt-1/ — use original non-physics roll
-
-    // Card Effects
-    addCardHoverEffect(cardElement) {
-        if (!cardElement) return;
-        
-        // Card hover effects are handled by CSS
-        // This method can be used for additional JavaScript effects
-    }
-
     addCardPurchaseEffect(cardElement) {
         if (!cardElement) return;
         
@@ -693,62 +616,6 @@ class BalatroEffects {
         }, 600);
     }
 
-    // Score Update Effects
-    addScoreUpdateEffect(scoreElement, newValue) {
-        if (!scoreElement) return;
-        
-        scoreElement.classList.add('updated');
-        
-        // Create score particle
-        const rect = scoreElement.getBoundingClientRect();
-        this.createParticle(
-            rect.left + rect.width / 2,
-            rect.top + rect.height / 2,
-            'score',
-            { value: newValue, life: 120, size: 18 }
-        );
-        
-        setTimeout(() => {
-            scoreElement.classList.remove('updated');
-        }, 400);
-    }
-
-    // Enhanced Button Effects
-    addButtonPressEffect(buttonElement) {
-        if (!buttonElement) return;
-        
-        // Button press effects are handled by CSS
-        // This method can be used for additional effects
-    }
-
-    // Utility Methods
-    createShimmerEffect(element) {
-        if (!element) return;
-        
-        const shimmer = document.createElement('div');
-        shimmer.style.cssText = `
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 1.5s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 1;
-        `;
-        
-        element.style.position = 'relative';
-        element.appendChild(shimmer);
-        
-        setTimeout(() => {
-            if (shimmer.parentNode) {
-                shimmer.parentNode.removeChild(shimmer);
-            }
-        }, 1500);
-    }
-
-    // Cleanup
     destroy() {
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);

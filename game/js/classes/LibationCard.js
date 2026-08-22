@@ -52,6 +52,9 @@ class LibationCard extends Card {
             case 'soma_wild':
                 this.promptForDieFaceSelection(gameState, 'wild', gameEngine);
                 return false;
+            case 'blessed_nectar':
+                this.promptForDieFaceSelection(gameState, 'blessed', gameEngine);
+                return false;
             case 'kylix_hermit': {
                 const gain = Math.min(gameState.gold, 20);
                 gameState.gold += gain;
@@ -109,6 +112,7 @@ class LibationCard extends Card {
             mother_of_pearl: 'Mother of Pearl',
             mirror: 'Mirror',
             wild: 'Wild',
+            blessed: 'Blessed',
             permanent_reduce: 'Permanently Reduce by 1',
             permanent_increase: 'Permanently Increase by 1',
         };
@@ -181,6 +185,11 @@ class LibationCard extends Card {
                     ? `Die ${dieNumber} face ${targetFace} enhanced with Wild (becomes ±1 or same when rolled).`
                     : 'Failed to apply wild enhancement!';
                 break;
+            case 'blessed':
+                message = die.addFaceEnhancement(targetFace, 'blessed')
+                    ? `Die ${dieNumber} face ${targetFace} enhanced with Blessed (+0.1 Favour when scored).`
+                    : 'Failed to apply blessed enhancement!';
+                break;
             case 'permanent_reduce':
                 message = die.modifyFaceValue(targetFace, -1)
                     ? `Die ${dieNumber} face ${targetFace} permanently reduced by 1!`
@@ -212,6 +221,7 @@ class LibationCard extends Card {
             ambrosial_krasi: 'gold',
             retsina_echoes: 'mother_of_pearl',
             soma_wild: 'wild',
+            blessed_nectar: 'blessed',
             elixir_lethe: 'permanent_reduce',
             chalice_helios: 'permanent_increase',
         };

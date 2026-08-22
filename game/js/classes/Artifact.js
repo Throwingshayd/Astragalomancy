@@ -1,5 +1,4 @@
-// Artifact class - Represents Divine Artifacts (like Balatro's Vouchers)
-// Artifacts are permanent passive effects that cost 10 gold each
+// Artifact — permanent run upgrade. Shop cost 10g; cannot be sold.
 
 class Artifact extends Card {
     constructor(data) {

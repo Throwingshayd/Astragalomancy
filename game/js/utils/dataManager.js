@@ -35,18 +35,6 @@ class DataManager {
             for (const k of ['boons', 'artifacts', 'worship', 'libations']) {
                 if (!Array.isArray(c[k])) c[k] = [];
             }
-            const legacyWorship = {
-                worship_persephone: 'worship_aphrodite',
-                persephone_2: 'aphrodite_2',
-                persephone_3: 'aphrodite_3'
-            };
-            let worshipChanged = false;
-            c.worship = [...new Set(c.worship.map((id) => {
-                const next = legacyWorship[id] || id;
-                if (next !== id) worshipChanged = true;
-                return next;
-            }))];
-            if (worshipChanged) this.saveCollection(c);
             return c;
         } catch {
             return this._emptyCollection();

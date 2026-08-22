@@ -106,6 +106,7 @@ describe('Sixth Astragalus wiring', () => {
     it('shops from CardData, is granted through ArtifactEffects, and is not sliced off on load', () => {
         const data = readFileSync('game/js/data/gameData.js', 'utf8');
         const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
+        const persist = readFileSync('game/js/game/GamePersistence.js', 'utf8');
         const effects = readFileSync('game/js/game/ArtifactEffects.js', 'utf8');
         const html = readFileSync('game/index.html', 'utf8');
         const libation = readFileSync('game/js/classes/LibationCard.js', 'utf8');
@@ -114,11 +115,12 @@ describe('Sixth Astragalus wiring', () => {
         // The grant moved out of GameEngine when the effect hub was extracted.
         expect(effects).toContain('ArtifactDice.ensure(state)');
         expect(engine).toContain('ArtifactDice.expectedCount(this.state)');
-        expect(engine).toContain('ArtifactDice.syncHeld(state)');
+        expect(persist).toContain('ArtifactDice.syncHeld(state)');
         expect(engine).not.toContain('this.state.dice.length !== 5');
         expect(html.indexOf('ArtifactDice.js')).toBeGreaterThan(-1);
         expect(html.indexOf('ArtifactDice.js')).toBeLessThan(html.indexOf('ArtifactEffects.js'));
-        expect(html.indexOf('ArtifactEffects.js')).toBeLessThan(html.indexOf('GameEngine.js'));
+        expect(html.indexOf('ArtifactEffects.js')).toBeLessThan(html.indexOf('GamePersistence.js'));
+        expect(html.indexOf('GamePersistence.js')).toBeLessThan(html.indexOf('GameEngine.js'));
         expect(libation).toContain("enhancementType === 'permanent_reduce'");
         expect(libation).toContain('die.currentFace');
     });

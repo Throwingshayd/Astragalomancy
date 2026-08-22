@@ -19,7 +19,7 @@ class GameEngineTestModes {
         if (testMode === 'seven_sided') {
             GameEngineTestModes.applySevenSided(engine);
         }
-        if (seed === '42067') {
+        if (testMode === 'yahtzee') {
             GameEngineTestModes.applyYahtzee(engine);
         }
         if (testMode === 'winning') {
@@ -42,7 +42,7 @@ class GameEngineTestModes {
 
     /** @param {GameEngine} engine @param {string} enhancement */
     static applyEnhancement(engine, enhancement) {
-        const valid = ['iron', 'parchment', 'gold'];
+        const valid = ['iron', 'parchment', 'gold', 'blessed'];
         if (!valid.includes(enhancement)) return;
         const dice = engine.state.dice || [];
         if (dice.length < 2) return;

@@ -14,7 +14,7 @@ const outPath = path.join(root, 'game', 'public', 'boon-data.json');
 global.RARITY_WEIGHTS = { RUSTIC: 1, VIBRANT: 1, EPIC: 1, WORSHIP: 1, LIBATION: 1, ARTIFACT: 1 };
 
 const code = fs.readFileSync(gameDataPath, 'utf8');
-const match = code.match(/boons:\s*(\[[\s\S]*?\])\s*,\s*consumables/);
+const match = code.match(/boons:\s*(\[[\s\S]*?\])\s*,\s*worship/);
 if (!match) {
   console.error('Could not extract boons array from gameData.js');
   process.exit(1);

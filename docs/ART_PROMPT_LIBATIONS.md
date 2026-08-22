@@ -172,6 +172,22 @@ Filenames are **exact and must not be corrected** — see the gotchas in section
 
 ---
 
+### 11. Blessed Nectar → `blessed nectar.png`
+*Effect: Enhance a die face to Blessed (when scored: +0.1 Favour).*
+
+- `{TINT}` = pale blossom-ivory and soft gold
+- `{STUDS}` = pale gold
+- `{INNER}` = cream
+- `{SCENE}` = a short turned **wooden** drinking cup (visible wood grain, darker oak, two
+  small wood ears — not a gold kantharos, not clay) at the centre, filled with **clear pale
+  floral nectar** (watery translucent white-green, not thick amber honey); a thin clear stream
+  pouring onto a pale bone knucklebone die below, the die's upward face glowing with a soft
+  ivory blessed halo; **two chunky pixel bees** hovering beside the cup; a few white blossom
+  petals at the base. No honeycomb, no honey jar, no coins, no gold cup. Flat circular pale
+  blossom-ivory glow disc behind the cup; flat deep umber background with dithered gradient
+
+---
+
 ### 6. Kylix of the Hermit → `kylix of hermit.png`
 *Effect: Double your gold (maximum gain 20).*
 

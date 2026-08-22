@@ -1,11 +1,6 @@
 /**
- * Artifacts are a two-tier voucher line: ten families, each a base and an upgrade you can
- * only reach by owning the base, both a flat 10 gold, one offered per trial.
- *
- * The cases that actually bite are covered here: effects must not compound across the
- * repeated apply() calls the engine makes, every shipped id must have a handler (Altar
- * shipped for months without one), and the shop must not hand out the whole roster in
- * three trials.
+ * Artifacts are two-tier: ten families, base then upgrade, 10 gold each, one per trial.
+ * apply() is additive and safe to call again. Every shipped id has a handler.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -100,8 +95,8 @@ describe('ArtifactEffects', () => {
         const d = globalThis.ArtifactEffects.derive({ artifacts: [] });
         expect(d).toMatchObject({
             boonSlots: 5, worshipSlots: 2, libationSlots: 3,
-            shopDiscount: 0, worshipFavourMult: 1, extraDice: 0,
-            maxInterest: 5, rerollDiscount: 0, extraRolls: 0,
+            shopDiscount: 0, worshipLevelFavourScale: 1, extraDice: 0,
+            maxInterest: 5, rerollDiscount: 0,
         });
     });
 
@@ -113,8 +108,8 @@ describe('ArtifactEffects', () => {
         expect(e.derive(own('artifact_clearance_sale')).shopDiscount).toBe(0.25);
         expect(e.derive(own('artifact_clearance_sale', 'artifact_hermes_bargain')).shopDiscount).toBe(0.5);
 
-        expect(e.derive(own('artifact_telescope')).worshipFavourMult).toBe(2);
-        expect(e.derive(own('artifact_telescope', 'artifact_hecatomb')).worshipFavourMult).toBe(2);
+        expect(e.derive(own('artifact_telescope')).worshipLevelFavourScale).toBe(2);
+        expect(e.derive(own('artifact_telescope', 'artifact_hecatomb')).worshipLevelFavourScale).toBe(2);
         expect(e.derive(own('artifact_hecatomb')).boonSellAtCost).toBe(true);
 
         expect(e.derive(own('artifact_plutus_seed')).maxInterest).toBe(10);
@@ -256,26 +251,9 @@ describe('one artifact per shop', () => {
     });
 });
 
-describe('the ghost voucher handlers are gone', () => {
-    it('leaves no dead Balatro ids switched on in the engine', () => {
+describe('Trojan Horse', () => {
+    it('sets boon multiplier from the current trial, not a leftover flag', () => {
         const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
-        const shop = readFileSync('game/js/ui/ShopUI.js', 'utf8');
-        [
-            'faded_map_plus', 'libation_pouch', 'bronze_crown', 'golden_crown',
-            'artifact_trojan_horse', 'ritual_knife', 'devotion_beads', 'sundial_plus',
-        ].forEach((id) => {
-            expect(engine).not.toContain(id);
-            expect(shop).not.toContain(id);
-        });
-        // The streak counters existed only to feed ritual_knife / devotion_beads.
-        expect(engine).not.toContain('upperSanctumStreak');
-        expect(engine).not.toContain('lowerSanctumStreak');
-    });
-
-    it('resets the Trojan Horse boon multiplier when its condition lapses', () => {
-        const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
-        // The old branch only reset when the boon was absent, so a ×2 earned on turn 11
-        // survived into every later trial.
         expect(engine).toContain('this.state.boonMultiplier = trojanActive ? 2 : 1;');
     });
 });

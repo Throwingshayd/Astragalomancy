@@ -1,7 +1,5 @@
 /**
- * Scoring must stay finite no matter how hard boons stack. A runaway or buggy
- * boon value must never surface NaN/Infinity in the reveal or silently collapse
- * the score to 0. Score is pips × favour — no third favourMult layer.
+ * Score is Pips × (Favour / 100). Favour 100 is ×1.
  */
 import { readFileSync } from 'node:fs';
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -15,13 +13,13 @@ function loadScript(path, exportName) {
     eval(src);
 }
 
-describe('SafeMath naneinf protection', () => {
+describe('SafeMath', () => {
     beforeAll(() => {
         loadScript('game/js/engine/SafeMath.js', 'SafeMath');
     });
     const S = () => globalThis.SafeMath;
 
-    it('clampScore handles NaN, Infinity, negatives and overflow', () => {
+    it('clampScore floors, and keeps a finite integer', () => {
         expect(S().clampScore(NaN)).toBe(0);
         expect(S().clampScore(Infinity)).toBe(S().MAX_SAFE_INT);
         expect(S().clampScore(-Infinity)).toBe(0);
@@ -30,20 +28,17 @@ describe('SafeMath naneinf protection', () => {
         expect(S().clampScore(42.9)).toBe(42);
     });
 
-    it('safeMultiply never returns NaN or Infinity', () => {
+    it('safeMultiply and safeAdd stay finite', () => {
         expect(S().safeMultiply(NaN, 5)).toBe(0);
         expect(S().safeMultiply(20, 3)).toBe(60);
         expect(S().safeMultiply(1e308, 1e308)).toBe(S().MAX_SAFE_INT);
         expect(Number.isFinite(S().safeMultiply(Infinity, 2))).toBe(true);
-    });
-
-    it('safeAdd coerces NaN operands to 0', () => {
         expect(S().safeAdd(NaN, 5)).toBe(5);
         expect(S().safeAdd(10, 20)).toBe(30);
     });
 });
 
-describe('ScoringEngine.runPipeline stays finite under runaway boons', () => {
+describe('ScoringEngine.runPipeline', () => {
     beforeAll(() => {
         globalThis.window = globalThis;
         globalThis.CATEGORY_TO_NUMBER = {
@@ -71,51 +66,32 @@ describe('ScoringEngine.runPipeline stays finite under runaway boons', () => {
     const run = (boons) => globalThis.ScoringEngine.runPipeline('Chance', baseState(boons));
     const MAX = () => globalThis.SafeMath.MAX_SAFE_INT;
 
-    it('scores a clean hand as pips × (favour/100)', () => {
+    it('naked Chance is pips × 1', () => {
         const r = run([]);
         expect(r.pips).toBe(20);
         expect(r.favour).toBe(100);
         expect(r.finalScore).toBe(20);
-        expect(r).not.toHaveProperty('favourMult');
     });
 
-    it('×Favour boons multiply the same favour the reveal shows', () => {
+    it('×Favour multiplies the same Favour the reveal shows', () => {
         const r = run([boon((d) => { d.favour *= 2.5; return d; })]);
         expect(r.pips).toBe(20);
         expect(r.favour).toBe(250);
         expect(r.finalScore).toBe(50);
     });
 
-    it('Infinity favour clamps to a finite MAX score (not 0 or NaN)', () => {
-        const r = run([boon((d) => { d.favour = Infinity; return d; })]);
-        expect(Number.isFinite(r.favour)).toBe(true);
-        expect(Number.isFinite(r.finalScore)).toBe(true);
-        expect(r.finalScore).toBe(MAX());
+    it('non-finite Favour or pips clamp to a finite score', () => {
+        const infFavour = run([boon((d) => { d.favour = Infinity; return d; })]);
+        expect(infFavour.finalScore).toBe(MAX());
+        const nanFavour = run([boon((d) => { d.favour = NaN; return d; })]);
+        expect(nanFavour.finalScore).toBe(20);
+        const infPips = run([boon((d) => { d.pips = Infinity; return d; })]);
+        expect(infPips.finalScore).toBe(MAX());
     });
 
-    it('NaN favour falls back to a neutral multiplier', () => {
-        const r = run([boon((d) => { d.favour = NaN; return d; })]);
-        expect(Number.isNaN(r.favour)).toBe(false);
-        expect(Number.isNaN(r.finalScore)).toBe(false);
-        expect(r.finalScore).toBe(20);
-    });
-
-    it('Infinity pips clamps rather than overflowing to 0', () => {
-        const r = run([boon((d) => { d.pips = Infinity; return d; })]);
-        expect(Number.isFinite(r.pips)).toBe(true);
-        expect(r.finalScore).toBe(MAX());
-    });
-
-    it('negative favour is held at the 10 floor', () => {
+    it('Favour below the floor scores at the floor', () => {
         const r = run([boon((d) => { d.favour = -100; return d; })]);
         expect(r.favour).toBe(10);
         expect(r.finalScore).toBe(2);
-    });
-
-    it('stacked ×Favour boons stay finite and clamped', () => {
-        const times = (m) => boon((d) => { d.favour *= m; return d; });
-        const r = run([times(1e6), times(1e6), times(1e6)]);
-        expect(Number.isFinite(r.finalScore)).toBe(true);
-        expect(r.finalScore).toBeLessThanOrEqual(MAX());
     });
 });

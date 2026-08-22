@@ -27,5 +27,5 @@ Blessing tooltips: Offer = pantheon level-up; Held 3 trials → Ascended. No hel
 ## Copy rules
 
 - Match `CardData.effect` to the handler in `boonTimingHandlers.js` / `WorshipCard.js` / `ArtifactEffects.js`.
-- **Pips** not Chips. **Favour** not Favor. **Gold** / `g`. **Trial** not round. **Blessing** for worship cards.
+- Current terms: **Pips**, **Favour**, **Gold** / `g`, **Trial**, **Blessing**.
 - Artifacts are 10g (`CARD_ECONOMY.ARTIFACT_BASE_COST`). Sell is 25% of cost, min 1; explicit `0` stays 0.

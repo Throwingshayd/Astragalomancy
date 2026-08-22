@@ -46,7 +46,7 @@ const PlayAreaRenderer = {
         if (boonsPanel) boonsPanel.classList.toggle('has-multiple-boons', boons.length >= 2);
 
         boons.forEach((boon) => {
-            uiManager.appendInventoryCard(boon, container, {});
+            uiManager.appendInventoryCard(boon, container, { gameState });
         });
         uiManager.bindBoonSlotDrag(container, gameState, gameEngine);
     },
@@ -64,7 +64,7 @@ const PlayAreaRenderer = {
         if (!container) { Logger.warn(`${kind} slots element not found`); return; }
         container.innerHTML = '';
         ConsumableSlots.held(gameState, kind).forEach((card) => {
-            uiManager.appendInventoryCard(card, container, {});
+            uiManager.appendInventoryCard(card, container, { gameState });
         });
         uiManager.bindConsumableHorizonDrag(container, gameEngine);
     }

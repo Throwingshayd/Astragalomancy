@@ -6,7 +6,7 @@
 const DieScoreContribution = {
     _bonuses() {
         if (typeof ENHANCEMENT_BONUSES !== 'undefined') return ENHANCEMENT_BONUSES;
-        return globalThis.ENHANCEMENT_BONUSES || { IRON_PIPS: 5, GOLD_COINS: 1 };
+        return globalThis.ENHANCEMENT_BONUSES || { IRON_PIPS: 5, GOLD_COINS: 1, BLESSED_FAVOUR: 10 };
     },
 
     _ironAmount() {
@@ -34,6 +34,14 @@ const DieScoreContribution = {
 
     gold(die) {
         return this.has(die, 'gold') ? this._goldAmount() : 0;
+    },
+
+    _blessedAmount() {
+        return this._bonuses().BLESSED_FAVOUR ?? 10;
+    },
+
+    blessedFavour(die) {
+        return this.has(die, 'blessed') ? this._blessedAmount() : 0;
     },
 
     _chances() {
@@ -102,23 +110,49 @@ const DieScoreContribution = {
     /**
      * @param {Object} die
      * @param {string} [category] scored row; omit for hover (treat as a matching row)
-     * @returns {{ face: number, pips: number, gold: number }}
+     * @returns {{ face: number, pips: number, gold: number, favour: number }}
      */
     preview(die, category) {
         const face = typeof die?.getEffectiveFace === 'function' ? die.getEffectiveFace() : 0;
         const gold = this.gold(die);
+        const favour = this.blessedFavour(die);
         if (category != null) {
             const facePips = this.contributes(face, category) ? face : 0;
             return {
                 face,
                 pips: facePips + this.scoredEnhancementPips(die, face, category),
                 gold,
+                favour,
             };
         }
         const pips = face > 0
             ? face + this.alwaysOnPips(die) + this.mirrorExtraPips(die, face, null)
             : 0;
-        return { face, pips, gold };
+        return { face, pips, gold, favour };
+    },
+
+    faceHas(die, faceKey, id) {
+        const enh = die?.faces?.[faceKey]?.enhancements;
+        if (!enh) return false;
+        if (typeof enh.has === 'function') return enh.has(id);
+        return Array.from(enh).includes(id);
+    },
+
+    /**
+     * Hover preview for one printed face (inspect tray), not the face that is up.
+     * @returns {{ face: number, pips: number, gold: number, favour: number }}
+     */
+    previewFace(die, faceKey) {
+        const data = die?.faces?.[faceKey];
+        const shown = Number(data?.modifiedValue ?? data?.value ?? faceKey);
+        const face = Number.isFinite(shown) && shown > 0 ? shown : 0;
+        const iron = this.faceHas(die, faceKey, 'iron') ? this._ironAmount() : 0;
+        const gold = this.faceHas(die, faceKey, 'gold') ? this._goldAmount() : 0;
+        const favour = this.faceHas(die, faceKey, 'blessed') ? this._blessedAmount() : 0;
+        const pips = face > 0
+            ? face + iron + (this.faceHas(die, faceKey, 'mirror') ? face + iron : 0)
+            : 0;
+        return { face, pips, gold, favour };
     },
 };
 

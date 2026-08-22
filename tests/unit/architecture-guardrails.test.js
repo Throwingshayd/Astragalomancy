@@ -13,20 +13,17 @@ import { describe, expect, it } from 'vitest';
  * the same regression fail `npm test` instead of relying on anyone re-reading a doc.
  */
 const CEILINGS = {
-    // Ratcheted down 2026-08 when parchment fortune moved into DieScoreContribution.
-    'game/js/game/GameEngine.js': { lines: 1950, windowRefs: 10 },
-    'game/js/classes/Boon.js': { lines: 1048, windowRefs: 16 },
-    // Ratcheted down 2026-08 with the sundial_plus free-reroll branch.
-    'game/js/ui/ShopUI.js': { lines: 862, windowRefs: 7 },
-    // Ratcheted down 2026-08 when tooltip body HTML moved out to ui/TooltipContent.js.
-    'game/js/ui/BalatroEffects.js': { lines: 779, windowRefs: 5 },
+    'game/js/game/GameEngine.js': { lines: 1627, windowRefs: 10 },
+    'game/js/classes/Boon.js': { lines: 830, windowRefs: 12 },
+    'game/js/ui/ShopUI.js': { lines: 860, windowRefs: 7 },
+    'game/js/ui/BalatroEffects.js': { lines: 646, windowRefs: 5 },
     'game/js/classes/boonTimingHandlers.js': { lines: 612, windowRefs: 2 },
     // Main.js grew deliberately here: it now builds one `services` object (sound, effects, data,
     // stateManager, gameStates, numberFormat, uiManager, shopManager, app) at bootstrap and injects
     // it into UIManager/ShopUI/GameEngine, replacing ~130 scattered window.* reach-throughs in those
     // three files with getters that fall back to these globals. The remaining refs here are the
     // single consolidated read site for each singleton, not spread-out coupling.
-    'game/js/Main.js': { lines: 658, windowRefs: 38 },
+    'game/js/Main.js': { lines: 603, windowRefs: 36 },
 };
 
 const countLines = (content) => content.split(/\r?\n/).length;
@@ -60,5 +57,21 @@ describe('architecture guardrails (ratchet, not aspiration)', () => {
         const handlers = readFileSync('game/js/classes/boonTimingHandlers.js', 'utf8');
         expect(handlers).toMatch(/runBeforeScore\(boon, gameState, result, game = null\)/);
         expect(handlers).toContain('const engine = game || window.game;');
+    });
+
+    it('persist and boon face chips stay extracted so the god files can take the next feature', () => {
+        const html = readFileSync('game/index.html', 'utf8');
+        expect(html.indexOf('BoonDisplayStats.js')).toBeGreaterThan(-1);
+        expect(html.indexOf('BoonDisplayStats.js')).toBeLessThan(html.indexOf('Boon.js'));
+        expect(html.indexOf('GamePersistence.js')).toBeGreaterThan(-1);
+        expect(html.indexOf('GamePersistence.js')).toBeLessThan(html.indexOf('GameEngine.js'));
+
+        const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
+        expect(engine).toContain('GamePersistence.save(this)');
+        expect(engine).toContain('GamePersistence.rehydrate(this, plain, prngState)');
+
+        const boon = readFileSync('game/js/classes/Boon.js', 'utf8');
+        expect(boon).toContain('BoonDisplayStats.live(this, gameState)');
+        expect(boon).not.toContain('window.NumberFormat');
     });
 });

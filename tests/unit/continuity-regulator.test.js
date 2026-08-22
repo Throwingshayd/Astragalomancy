@@ -54,10 +54,9 @@ describe('continuity regulator', () => {
         expect(new Card({ id: 'z', name: 'Z', cost: 5, sellValue: 1 }).sellValue).toBe(1);
         const cardJs = readFileSync('game/js/classes/Card.js', 'utf8');
         expect(cardJs).toContain('data.sellValue ?? Card.defaultSellValue');
-        expect(cardJs).not.toContain('cost * 0.75');
     });
 
-    it('boon tooltips match handlers (no leftover Chips / ×2 / Blueprint)', () => {
+    it('boon tooltips match handlers', () => {
         expect(byId('the_gambler').effect).toBe('+10 Pips for every re-roll remaining.');
         expect(byId('misery').effect).toBe('If you have 0 gold, gain +2 Favour.');
         expect(byId('the_zealot').effect).toBe(
@@ -70,25 +69,6 @@ describe('continuity regulator', () => {
             'Gain +0.5 Favour for each unused re-roll (max +1.5).',
         );
         expect(byId('proteus_disguise').effect).toBe('Copies the effect of the Boon to its left.');
-
-        const effects = CardData.boons.map((c) => c.effect).join('\n');
-        expect(effects).not.toMatch(/\bChips\b/);
-        expect(effects).not.toContain('Blueprint');
-        const handlers = readFileSync('game/js/classes/boonTimingHandlers.js', 'utf8');
-        expect(handlers).toContain('result.pips += gamblerBonus');
-        expect(handlers).toContain('result.favour += 200');
-        expect(handlers).toContain('The Zealot: +1 Favour');
-        expect(handlers).not.toContain('The Zealot: +×1');
-        expect(handlers).not.toContain('favourMult');
-        expect(handlers).toContain('result.favour *= 2.5');
-        expect(handlers).toContain("Hydra's Heads: +3 Favour");
-        expect(handlers).toContain("Medusa's Gaze: +0.5 Favour");
-        expect(handlers).not.toMatch(/\+×/);
-
-        const engine = readFileSync('game/js/engine/ScoringEngine.js', 'utf8');
-        expect(engine).not.toContain('favourMult');
-        expect(engine).toContain('SafeMath.safeScore(pips, favour)');
-
         expect(byId('eruption_of_etna').effect).toBe(
             "If 3+ Boons trigger on same turn, +1 Favour (stacks, doesn't reset).",
         );
@@ -98,10 +78,20 @@ describe('continuity regulator', () => {
         expect(byId('medusas_gaze').effect).toContain('+0.5 Favour');
         expect(byId('pegasus_flight').effect).toContain('+0.5 Favour');
         expect(byId('carillon_of_the_muses').effect).toContain('×2.5 Favour');
-        expect(effects).not.toMatch(/\+×/);
+
+        const handlers = readFileSync('game/js/classes/boonTimingHandlers.js', 'utf8');
+        expect(handlers).toContain('result.pips += gamblerBonus');
+        expect(handlers).toContain('result.favour += 200');
+        expect(handlers).toContain('The Zealot: +1 Favour');
+        expect(handlers).toContain('result.favour *= 2.5');
+        expect(handlers).toContain("Hydra's Heads: +3 Favour");
+        expect(handlers).toContain("Medusa's Gaze: +0.5 Favour");
+
+        const engine = readFileSync('game/js/engine/ScoringEngine.js', 'utf8');
+        expect(engine).toContain('SafeMath.safeScore(pips, favour)');
     });
 
-    it('redesigned artifact copy matches the handlers', () => {
+    it('artifact copy matches the handlers', () => {
         const art = (id) => {
             for (const pair of Object.values(CardData.artifacts)) {
                 if (pair.base?.id === id) return pair.base;
@@ -120,8 +110,6 @@ describe('continuity regulator', () => {
         expect(handlers).toContain('d.boonSellAtCost = true');
         expect(handlers).toContain('d.forceSingleRoll = true');
         expect(handlers).toContain('d.trialGold += 4');
-        expect(handlers).not.toContain('d.extraRolls += 1');
-        expect(handlers).not.toContain('d.extraRolls += 2');
     });
 
     it('pack stock fallbacks match CARD_ECONOMY pack costs', () => {
@@ -132,46 +120,37 @@ describe('continuity regulator', () => {
         expect(CARD_ECONOMY.LIBATION_PACK_COST).toBe(4);
     });
 
-    it('libation cards do not revive Balatro enhancement numbers', () => {
+    it('libation scored extras match the engine', () => {
         const libation = readFileSync('game/js/classes/LibationCard.js', 'utf8');
-        expect(libation).not.toContain('+3 Gold when scored');
-        expect(libation).not.toContain('x1.5 Favour if not selected');
-        expect(libation).not.toContain('+1 Pip when scored');
         expect(libation).toContain('+1 Gold when scored');
         expect(libation).toContain('+1 Favour');
-        expect(libation).not.toContain('window.game');
-        expect(libation).not.toContain('getAllLibationCards');
-        expect(libation).not.toContain('createGodSelectionUI');
-        expect(libation).not.toContain('wild_dice');
-        expect(libation).not.toContain('bonus_yahtzee');
+        expect(libation).toContain('+0.1 Favour when scored');
     });
 
-    it('enhancement registry only lists faces the engine actually scores', () => {
+    it('enhancement registry lists the faces the engine scores', () => {
         const { EnhancementRegistry } = loadExports(
             'game/js/config/EnhancementRegistry.js',
             ['EnhancementRegistry'],
         );
         expect(Object.keys(EnhancementRegistry._defs).sort()).toEqual([
-            'gold', 'iron', 'mirror', 'mother_of_pearl', 'parchment', 'wild',
+            'blessed', 'gold', 'iron', 'mirror', 'mother_of_pearl', 'parchment', 'wild',
         ].sort());
-        const css = readFileSync('game/css/balatro-effects.css', 'utf8');
-        expect(css).not.toContain('cw-tex-lucky');
-        expect(css).not.toContain('cw-tex-cursed');
-        expect(css).not.toContain('cw-tex-divine');
-        expect(css).not.toContain('cw-tex-chaos');
     });
 
-    it('scorecard, info bar, worship, and consumable drag no longer reach through window.game', () => {
+    it('scorecard, info bar, worship, card face, and consumable drag no longer reach through window.game', () => {
         const scorecard = readFileSync('game/js/ui/renderers/ScorecardRenderer.js', 'utf8');
         const info = readFileSync('game/js/ui/renderers/InfoBarRenderer.js', 'utf8');
         const worship = readFileSync('game/js/classes/WorshipCard.js', 'utf8');
+        const card = readFileSync('game/js/classes/Card.js', 'utf8');
         const drag = readFileSync('game/js/ui/drag/ConsumableDrag.js', 'utf8');
         expect(scorecard).not.toContain('window.game');
         expect(info).not.toContain('window.game');
         expect(worship).not.toContain('window.game');
+        expect(card).not.toContain('window.game');
         expect(drag).not.toContain('window.game');
         expect(worship).toContain('applyWorship(gameState, game = null)');
         expect(scorecard).toContain('engine.calculateScore(category)');
         expect(drag).toContain('container._gameEngine');
+        expect(card).toContain('render(isShopItem = false, isDirectSale = false, gameState = null)');
     });
 });

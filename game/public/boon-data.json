@@ -25,7 +25,7 @@
     "rarity": "rustic",
     "cost": 3,
     "sellValue": 1,
-    "effect": "+10 Chips for every re-roll remaining.",
+    "effect": "+10 Pips for every re-roll remaining.",
     "description": "",
     "god": ""
   },
@@ -75,7 +75,7 @@
     "rarity": "vibrant",
     "cost": 5,
     "sellValue": 1,
-    "effect": "Gain x0.5 Favour for each unused re-roll you have at the end of the turn (Max x1.5).",
+    "effect": "Gain +0.5 Favour for each unused re-roll (max +1.5).",
     "description": "",
     "god": ""
   },
@@ -105,7 +105,7 @@
     "rarity": "epic",
     "cost": 8,
     "sellValue": 2,
-    "effect": "Gain +1 Favour for each Worship card you have used this run.",
+    "effect": "Gain +1 Favour per total worship level across the pantheon.",
     "description": "",
     "god": ""
   },
@@ -155,7 +155,7 @@
     "rarity": "vibrant",
     "cost": 5,
     "sellValue": 1,
-    "effect": "Any die showing 6 cannot be rerolled (acts as automatic hold). Lower sanctum scores give ×0.5 favour bonus.",
+    "effect": "Any die showing 6 cannot be rerolled (acts as automatic hold). Lower sanctum scores give +0.5 Favour.",
     "description": "",
     "god": "Medusa"
   },
@@ -205,7 +205,7 @@
     "rarity": "vibrant",
     "cost": 5,
     "sellValue": 1,
-    "effect": "Dice with values 6+ give ×0.5 extra Favour when scored.",
+    "effect": "Dice showing 6 or more grant +0.5 Favour each when scored.",
     "description": "",
     "god": "Pegasus"
   },
@@ -435,8 +435,8 @@
     "rarity": "vibrant",
     "cost": 5,
     "sellValue": 1,
-    "effect": "If you have 0 gold, gain ×2 Favour.",
-    "description": "Poverty grants divine favor - suffering brings blessing.",
+    "effect": "If you have 0 gold, gain +2 Favour.",
+    "description": "Poverty grants divine Favour - suffering brings blessing.",
     "god": ""
   },
   {
@@ -455,7 +455,7 @@
     "rarity": "rustic",
     "cost": 3,
     "sellValue": 1,
-    "effect": "Gives +×1 favour of the most recently scored Worship card, to that score this Trial.",
+    "effect": "When you score the pantheon row of the god you most recently Offered to this Trial, gain +1 Favour.",
     "description": "Zealous devotion to the last worshipped god.",
     "god": ""
   },
@@ -475,7 +475,7 @@
     "rarity": "vibrant",
     "cost": 5,
     "sellValue": 1,
-    "effect": "Copies the effect of the Boon to its left (Blueprint-style).",
+    "effect": "Copies the effect of the Boon to its left.",
     "description": "The shape-shifter takes the form of its neighbour.",
     "god": "Proteus"
   },
@@ -525,7 +525,7 @@
     "rarity": "vibrant",
     "cost": 5,
     "sellValue": 1,
-    "effect": "If 3+ Boons trigger on same turn, +×1 Favour (stacks, doesn't reset).",
+    "effect": "If 3+ Boons trigger on same turn, +1 Favour (stacks, doesn't reset).",
     "description": "Volcanic eruption - when many boons align, explosive power!",
     "god": ""
   },
@@ -535,7 +535,7 @@
     "rarity": "vibrant",
     "cost": 5,
     "sellValue": 1,
-    "effect": "When a Worship card triggers, also trigger +1 favour to another god.",
+    "effect": "When you Offer a Blessing, another god also gains +1 worship.",
     "description": "The seasons cycle - worship spreads to other gods.",
     "god": ""
   },
@@ -545,7 +545,7 @@
     "rarity": "epic",
     "cost": 8,
     "sellValue": 2,
-    "effect": "If you have empty other Boon slots, gain +×1 Favour for each.",
+    "effect": "If you have empty other Boon slots, gain +1 Favour for each.",
     "description": "Less is more - the ascetic finds power in emptiness.",
     "god": ""
   },
@@ -585,8 +585,8 @@
     "rarity": "epic",
     "cost": 10,
     "sellValue": 3,
-    "effect": "If all 5 dice have enhancements, gain +3 Favour (secret: if all same enhancement, ×2.5 favour!).",
-    "description": "Perfect harmony - the bells ring when all are enhanced. Secret bonus is multiplicative ×favour!",
+    "effect": "If all 5 dice have enhancements, gain +3 Favour (secret: if all same enhancement, ×2.5 Favour).",
+    "description": "Perfect harmony - the bells ring when all are enhanced.",
     "god": "The Nine Muses"
   },
   {

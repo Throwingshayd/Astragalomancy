@@ -47,11 +47,10 @@ const ScoringEngine = {
     /**
      * Build scoring context from game state
      * @param {Object} state - Game state
-     * @returns {{ pipsBonuses: Object, boons: Object[], activeBlind: string|null, unlockedCategories: Object }}
+     * @returns {{ boons: Object[], activeBlind: string|null, unlockedCategories: Object }}
      */
     buildContext(state) {
         return {
-            pipsBonuses: state.pipsBonuses || {},
             boons: state.boons || [],
             // Only the boss segment's blind reaches the evaluator; earlier segments score clean.
             activeBlind: (typeof BlindDirector !== 'undefined'
@@ -81,23 +80,21 @@ const ScoringEngine = {
      * Run full scoring pipeline: Hand -> Base -> Blessings (phased)
      * @param {string} category
      * @param {Object} gameState
-     * @param {Object} [options] - { tempPips, tempFavour, applyGlobalBonuses }
+     * @param {Object} [options] - { tempPips, tempFavour }
      * @returns {{ pips: number, favour: number, finalScore: number, isValid: boolean }}
      */
     runPipeline(category, gameState, options = {}) {
         const state = gameState;
-        const { tempPips = 0, tempFavour = 0, applyGlobalBonuses = true } = options;
+        const { tempPips = 0, tempFavour = 0 } = options;
 
         if (!state || !state.dice || state.dice.length === 0) {
             const emptyBase = (typeof BASE_FAVOUR !== 'undefined') ? BASE_FAVOUR : 100;
             return { pips: 0, favour: emptyBase, finalScore: 0, isValid: false };
         }
 
-        const diceSubstitutions = state.diceSubstitutions || {};
         const faces = state.dice.map((d) => {
             let face = resolveDieFace(d, 0);
             if (typeof face !== 'number' || isNaN(face)) face = 0;
-            if (diceSubstitutions.foursAsFives && face === 4) face = 5;
             return face;
         });
         const counts = {};
@@ -127,17 +124,16 @@ const ScoringEngine = {
         if (hasValidDiceScore) {
             if (god && state.worshipLevels && state.worshipLevels[god]) {
                 const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 25;
-                // Altar doubles this and The Hecatomb triples it; both scale the worship
-                // contribution only, never the base 100 or anything a boon adds later.
-                const altarMult = state.worshipFavourMultiplier ?? 1;
-                favour += state.worshipLevels[god] * perLevel * altarMult;
+                // Altar scales worship-level Favour only, never the base 100 or boon adds.
+                const worshipScale = state.worshipLevelFavourScale ?? 1;
+                favour += state.worshipLevels[god] * perLevel * worshipScale;
             }
         }
 
         let pips = basePips + tempPips;
         favour += tempFavour;
 
-        // Balatro-style: add pips per worship level — only on non-zero dice score
+        // Worship pips per level — only on a non-zero dice score
         if (hasValidDiceScore) {
             const worshipLevel = (god && state.worshipLevels && state.worshipLevels[god]) ? state.worshipLevels[god] : 0;
             const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[pipCategory]) || 0;
@@ -147,6 +143,7 @@ const ScoringEngine = {
         if (isValid && state.dice) {
             state.dice.forEach((die, i) => {
                 pips += DieScoreContribution.scoredEnhancementPips(die, faces[i] || 0, category);
+                favour += DieScoreContribution.blessedFavour(die);
             });
         }
 
@@ -168,11 +165,6 @@ const ScoringEngine = {
         const favourFloor = (typeof FAVOUR_FLOOR !== 'undefined') ? FAVOUR_FLOOR : 10;
         const favourBase = (typeof BASE_FAVOUR !== 'undefined') ? BASE_FAVOUR : 100;
         favour = Math.max(favourFloor, eventData.favour ?? favour);
-
-        if (applyGlobalBonuses && state.globalBonuses && state.globalBonuses.fivesToAll && state.dice) {
-            const fivesCount = state.dice.filter((d) => resolveDieFace(d, 0) === 5).length;
-            pips += fivesCount * 5;
-        }
 
         // A runaway boon stack must never surface NaN/Infinity or silently collapse to 0.
         const MAX = (typeof SafeMath !== 'undefined') ? SafeMath.MAX_SAFE_INT : Number.MAX_SAFE_INTEGER;

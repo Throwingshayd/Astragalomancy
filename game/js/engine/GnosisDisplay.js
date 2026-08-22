@@ -7,14 +7,8 @@
 const GnosisDisplay = {
     getFacesAndCounts(state) {
         const faces = (state?.dice || []).map((d) => {
-            try {
-                let face = typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : 0;
-                if (typeof face !== 'number' || isNaN(face)) return 0;
-                if (state.diceSubstitutions?.foursAsFives && face === 4) face = 5;
-                return face;
-            } catch (_) {
-                return 0;
-            }
+            const face = typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : 0;
+            return (typeof face === 'number' && !isNaN(face)) ? face : 0;
         });
         const counts = {};
         faces.forEach((val) => {
@@ -53,25 +47,16 @@ const GnosisDisplay = {
         const level = god && state?.worshipLevels ? (state.worshipLevels[god] || 0) : 0;
         const basePips = (typeof LOWER_SECTION_BONUSES !== 'undefined' && LOWER_SECTION_BONUSES[pipCategory]) || 0;
         const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[pipCategory]) || 0;
-        let bonus = basePips + level * (pipsPerLevel || 0);
-        const pb = state?.pipsBonuses || {};
-        if (category === 'Twos' && pb.twosBonus) bonus += (counts[2] || 0) * pb.twosBonus;
-        if (category === 'Sixes' && pb.sixesBonus) bonus += (counts[6] || 0) * pb.sixesBonus;
-        if (category === 'Three of a Kind' && pb.threeOfKindBonus) bonus += pb.threeOfKindBonus;
-        if (category === 'Four of a Kind' && pb.fourOfKindBonus) bonus += pb.fourOfKindBonus;
-        return bonus;
+        return basePips + level * (pipsPerLevel || 0);
     },
 
-    formatPipsLabel(category, state, counts = null) {
-        if (!category) return 'pips';
-        const c = counts || this.getFacesAndCounts(state).counts;
-        const bonus = this.getCategoryPipBonus(category, state, c);
-        if (bonus > 0) return `+${bonus} pip bonus`;
+    formatPipsLabel(_category, _state, _counts = null) {
         return 'pips';
     },
 
     /**
-     * Split pipeline pips into Gnosis row: dice subtotal, optional +extra from boons/enhancements.
+     * Split pipeline pips into Gnosis row: dice subtotal, then +extra
+     * (offering floor, worship, boons) as the slide-in chip beside the number.
      * @param {string} category
      * @param {Object} state
      * @param {{ pips: number, isValid: boolean }} totals - from calculateScore / runPipeline
@@ -79,16 +64,15 @@ const GnosisDisplay = {
     buildPreviewSplit(category, state, totals) {
         const { counts } = this.getFacesAndCounts(state);
         if (!totals.isValid) {
-            return { counts, dicePips: 0, extraPips: 0, pipsLabel: this.formatPipsLabel(category, state, counts) };
+            return { counts, dicePips: 0, extraPips: 0, pipsLabel: 'pips' };
         }
         const dicePips = this.getDicePips(category, state, counts);
-        const categoryBonus = this.getCategoryPipBonus(category, state, counts);
-        const extraPips = Math.max(0, Math.floor(totals.pips) - dicePips - categoryBonus);
+        const extraPips = Math.max(0, Math.floor(totals.pips) - dicePips);
         return {
             counts,
             dicePips,
             extraPips,
-            pipsLabel: this.formatPipsLabel(category, state, counts),
+            pipsLabel: 'pips',
         };
     },
 };

@@ -37,7 +37,8 @@
 .die.cw-tex-gold::after,
 .die.cw-tex-parchment::after,
 .die.cw-tex-pearl::after,
-.die.cw-tex-mirror::after {
+.die.cw-tex-mirror::after,
+.die.cw-tex-blessed::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -79,6 +80,13 @@
         radial-gradient(circle at 70% 35%, rgba(220, 220, 255, 0.18), transparent 60%);
     mix-blend-mode: screen;
     opacity: 0.55;
+}
+.die.cw-tex-blessed::after {
+    background:
+        radial-gradient(circle at 50% 40%, rgba(255, 244, 196, 0.42), transparent 58%),
+        radial-gradient(circle at 70% 75%, rgba(255, 220, 120, 0.16), transparent 60%);
+    mix-blend-mode: screen;
+    opacity: 0.6;
 }
 
 /* Score row hover: magnify only (2-visuals: crisp, no blur) */
@@ -497,50 +505,3 @@
     border-left: 4px solid #2196F3;
 }
 
-/* Enhanced Dice Enhancement Display */
-.die-enhancement {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-    color: white;
-    z-index: 5;
-    animation: enhancementPulse 2s ease-in-out infinite;
-}
-
-@keyframes enhancementPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-.enhancement-gold {
-    background: linear-gradient(135deg, #ffd700, #ffed4e);
-    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
-}
-
-.enhancement-iron {
-    background: linear-gradient(135deg, #708090, #a9a9a9);
-    box-shadow: 0 2px 8px rgba(112, 128, 144, 0.4);
-}
-
-.enhancement-iron {
-    background: linear-gradient(135deg, #4682b4, #87ceeb);
-    box-shadow: 0 2px 8px rgba(70, 130, 180, 0.4);
-}
-
-.enhancement-parchment {
-    background: linear-gradient(135deg, #f5deb3, #deb887);
-    box-shadow: 0 2px 8px rgba(245, 222, 179, 0.4);
-}
-
-.enhancement-mirror {
-    background: linear-gradient(135deg, #e6e6fa, #d8bfd8);
-    box-shadow: 0 2px 8px rgba(230, 230, 250, 0.4);
-}

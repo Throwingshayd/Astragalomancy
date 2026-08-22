@@ -30,7 +30,6 @@ const DevotionUtils = {
         if (cap == null) {
             cap = typeof DEVOTION_BASE_CAPACITY !== 'undefined' ? DEVOTION_BASE_CAPACITY : 1;
         }
-        if (state.doubleScoringAllowed?.includes(category)) cap += 1;
         return cap;
     },
 

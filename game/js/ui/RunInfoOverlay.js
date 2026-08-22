@@ -9,6 +9,7 @@ class RunInfoOverlay {
         container.className = 'run-info-container';
 
         const tabs = [
+            { id: 'dice', label: 'Dice' },
             { id: 'antes', label: 'Trials' },
             { id: 'hands', label: 'Hands' },
             { id: 'artifacts', label: 'Artifacts' },
@@ -63,6 +64,9 @@ class RunInfoOverlay {
         }
 
         switch (tabId) {
+            case 'dice':
+                RunInfoOverlay._renderDice(wrap, state);
+                break;
             case 'antes':
                 RunInfoOverlay._renderAntes(wrap, state);
                 break;
@@ -77,6 +81,15 @@ class RunInfoOverlay {
                 break;
         }
         return wrap;
+    }
+
+    static _renderDice(wrap, state) {
+        if (typeof DiceInspectOverlay === 'undefined') {
+            wrap.innerHTML = '<p class="run-info-empty">Dice info unavailable.</p>';
+            return;
+        }
+        wrap.classList.add('dice-inspect-shell', 'run-info-dice');
+        wrap.innerHTML = DiceInspectOverlay.renderBody(state) + DiceInspectOverlay.renderAside(state);
     }
 
     static _renderAntes(wrap, state) {

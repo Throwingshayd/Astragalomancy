@@ -29,6 +29,7 @@ class LiveScoreController {
         this._cashoutInProgress = false;
         this._hoveredDieIndex = null;
         this._hoveredCategory = null;
+        this._scoringCategory = null;
         this._addChipTimers = new Map();
     }
 
@@ -66,8 +67,18 @@ class LiveScoreController {
         return state.scorecard?.[category] !== undefined;
     }
 
+    /** Keep “Sixes offered to Dionysus” on the banner for the whole score beat. */
+    setScoringOffering(category) {
+        this._scoringCategory = category || null;
+        if (!category) return;
+        this._setOfferingMessage(this.engine.getLiveOfferingTitle(category, true));
+    }
+
     /** Offering line while a pantheon row is hovered (InfoBarRenderer must not clobber this). */
     hoverOfferingMessage() {
+        if (this._scoringCategory) {
+            return this.engine.getLiveOfferingTitle(this._scoringCategory, true);
+        }
         if (!this._hoveredCategory) return null;
         const filled = this._isSlotFilled(this._hoveredCategory);
         if (!filled && typeof BlindDirector !== 'undefined') {
@@ -193,7 +204,8 @@ class LiveScoreController {
         const q = (key) => el.querySelector(`[data-live="${key}"]`);
         const set = (key, val) => { const n = q(key); if (n) n.textContent = val ?? ''; };
 
-        // Category label (if present inside live-score root only).
+        // Category label lives on #trialDisplay now; keep an inner node if one exists.
+        if (typeof o.category === 'string' && o.category) this._setOfferingMessage(o.category);
         const categoryEl = q('category');
         if (categoryEl) categoryEl.textContent = o.category ?? '';
         const row = q('row');
@@ -229,6 +241,7 @@ class LiveScoreController {
 
     updateDisplay(category) {
         const e = this.engine;
+        if (!category) this._scoringCategory = null;
         if (!this.domReady || !this.dom.liveScoreDisplay) return;
         if (e.liveScoreAnimationTimeout) clearTimeout(e.liveScoreAnimationTimeout);
         const el = this.dom.liveScoreDisplay;
@@ -244,14 +257,14 @@ class LiveScoreController {
         else this._restoreTrialBanner();
 
         if (!category || !e.state.hasRolled) {
-            const levelBonus = category ? e.getCategoryLevelBonuses(category) : { pips: 0, mult: (typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100) };
+            const levelBonus = category ? e.getCategoryLevelBonuses(category) : { pips: 0, favour: (typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100) };
             const hint = !category ? this.entryHintMessage() : null;
             this.updateValues(el, {
-                category: hint != null ? hint : (offeringTitle || e.getLiveOfferingTitle(category, slotFilled)),
+                category: hint ?? offeringTitle ?? undefined,
                 pips: '0',
                 pipsLabel: gnosis ? gnosis.formatPipsLabel(category, e.state) : 'pips',
                 pipsAdd: false,
-                favour: category ? e.formatFavour(levelBonus.mult) : '0',
+                favour: category ? e.formatFavour(levelBonus.favour) : '0',
                 favourLabel: 'favour',
                 favourAdd: false,
                 showNa: false,

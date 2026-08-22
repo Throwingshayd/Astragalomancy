@@ -57,21 +57,20 @@ class Card {
      * Surface: `rack` (shop/pack/anthology) vs `owned` (sidebars) — see docs/UI_CONSISTENCY_CHECKLIST.md
      * @param {boolean} [isShopItem=false] - true → rack surface
      * @param {boolean} [isDirectSale=false] - Whether card is a direct purchase (vs pack)
+     * @param {Object|null} [gameState=null] - Run state for live boon chips
      * @returns {HTMLElement} The card's DOM element
      */
-    render(isShopItem = false, isDirectSale = false) {
+    render(isShopItem = false, isDirectSale = false, gameState = null) {
         const surface = isShopItem
             ? (typeof CARD_SURFACE !== 'undefined' ? CARD_SURFACE.RACK : 'rack')
             : (typeof CARD_SURFACE !== 'undefined' ? CARD_SURFACE.OWNED : 'owned');
         const el = document.createElement('div');
         el.className = `card ${this.type}-card ${this.rarity}`;
-        el.dataset.id = this.id; // Add data-id for animations and targeting
-        
-        // Get asset for this card
+        el.dataset.id = this.id;
+
         const cardAsset = AssetMapping.getCardAsset(this.id, this.type);
         const frameAsset = AssetMapping.getFrameAsset(this.type);
-        
-        // Create background image style
+
         let backgroundStyle = '';
         let hasAsset = false;
         if (cardAsset) {
@@ -84,43 +83,28 @@ class Card {
             }
         }
         
-        // Add has-asset class if card has an asset, otherwise use fallback
-        if (hasAsset) {
-            el.classList.add('has-asset');
-        } else {
-            el.classList.add('no-asset');
-        }
-        
-        // Add disabled class if not active
-        if (!this.isActive) {
-            el.classList.add('disabled');
-        }
+        el.classList.add(hasAsset ? 'has-asset' : 'no-asset');
+        if (!this.isActive) el.classList.add('disabled');
 
-        // Shop / inventory: actions are drag-and-drop (shop → slots or gold; inventory → gold / zones).
-        let labelHtml = '';
-
-        // Uses counter for limited use cards
         let usesHtml = '';
         if (this.maxUses > 0) {
             usesHtml = `<div class="card-uses">${this.usesLeft}/${this.maxUses}</div>`;
         }
 
-        // Balatro-style dynamic stat display for boons (shows current values like +20 Pips, ×3 Favour)
         let dynamicStats = [];
         let dynamicStatsHtml = '';
-        if (this.type === 'boon' && window.game && window.game.state) {
-            dynamicStats = (this.getDynamicDisplayStats ? this.getDynamicDisplayStats(window.game.state) : []) || [];
+        if (this.type === 'boon' && gameState) {
+            dynamicStats = (this.getDynamicDisplayStats ? this.getDynamicDisplayStats(gameState) : []) || [];
             if (dynamicStats.length > 0) {
                 dynamicStatsHtml = '<div class="card-dynamic-stats">';
                 dynamicStats.forEach(stat => {
-                    const colorClass = stat.type || 'pips'; // pips, mult, favour, gold, other
+                    const colorClass = stat.type || 'pips'; // pips, favour, gold, other
                     dynamicStatsHtml += `<div class="dynamic-stat ${colorClass}">${stat.value}</div>`;
                 });
                 dynamicStatsHtml += '</div>';
             }
         }
 
-        // Add type indicator: show actual card name (from shop) in inventory, not generic "Boon"/"Libation"
         let typeIndicatorHtml = '';
         if (this.type === 'boon') {
             typeIndicatorHtml = `<div class="card-type-indicator card-type-boon">${this.name}</div>`;
@@ -149,7 +133,6 @@ class Card {
             `;
         }
 
-        // Create frame style
         let frameStyle = '';
         if (frameAsset) {
             const framePath = AssetMapping.getAssetPath(frameAsset);
@@ -168,22 +151,19 @@ class Card {
             ${!hasAsset ? `<div class="card-fallback-bg">${showFallbackName ? `<div class="fallback-name">${this.name}</div>` : ''}</div>` : ''}
             <div class="card-content">
                 ${cardContent}
-                ${labelHtml}
                 ${typeIndicatorHtml}
                 ${dynamicStatsHtml}
             </div>
             ${(isShopItem && isDirectSale) ? `<div class="card-shop-cost" aria-label="Price">${this.cost}g</div>` : ''}
         `;
 
-        // Add data attributes for easy access
         el.dataset.cardId = this.id;
         el.dataset.cardType = this.type;
         el.dataset.rarity = this.rarity;
         el.dataset.inShop = isShopItem.toString();
         el.dataset.cardSurface = surface;
 
-        // Add Balatro-style tooltip with full information. Live stats ride along
-        // because the boon rail overlaps cards, hiding the chips on the face.
+        // Live stats ride along because the boon rail can hide face chips.
         const tooltipData = {
             title: this.name,
             effect: this.effect,
@@ -338,83 +318,5 @@ class Card {
             canUse: this.canUse(),
             stats: this.getStats()
         };
-    }
-
-    /**
-     * Compare two cards for sorting
-     * @param {Card} a - First card
-     * @param {Card} b - Second card
-     * @returns {number} Negative if a < b, positive if a > b, 0 if equal
-     */
-    static compare(a, b) {
-        // Sort by rarity first
-        const rarityOrder = { 'common': 1, 'uncommon': 2, 'rare': 3, 'legendary': 4 };
-        const rarityDiff = rarityOrder[a.rarity] - rarityOrder[b.rarity];
-        if (rarityDiff !== 0) return rarityDiff;
-        
-        // Then by cost
-        const costDiff = a.cost - b.cost;
-        if (costDiff !== 0) return costDiff;
-        
-        // Finally by name
-        return a.name.localeCompare(b.name);
-    }
-
-    /**
-     * Create a card from data object
-     * @static
-     * @param {Object} data - Card configuration
-     * @returns {Card} New card instance
-     */
-    static fromData(data) {
-        return new Card(data);
-    }
-
-    /**
-     * Get the color associated with this card's rarity
-     * @returns {string} Hex color code
-     */
-    getRarityColor() {
-        const colors = {
-            'common': '#8B4513',
-            'uncommon': '#4682B4', 
-            'rare': '#9932CC',
-            'legendary': '#FFD700'
-        };
-        return colors[this.rarity] || colors.common;
-    }
-
-    /**
-     * Get emoji icon for card type
-     * @returns {string} Emoji icon
-     */
-    getTypeIcon() {
-        const icons = {
-            'boon': '⭐',
-            'worship': '🛐',
-            'libation': '🍷',
-            'artifact': '🏺'
-        };
-        return icons[this.type] || '🎲';
-    }
-
-    // Check if this card is an upgrade of another
-    isUpgradeOf(_otherCard) {
-        return false;
-    }
-
-    // Get the base version of this card (if it's an upgrade)
-    getBaseVersion() {
-        // Default implementation - override in subclasses
-        return null;
-    }
-
-    // Check if this card synergizes with another
-    synergizesWith(otherCard) {
-        // Default implementation - can be overridden
-        if (this.god && otherCard.god && this.god === otherCard.god) {
-            return true;
-        }
-        return false;
     }
 }

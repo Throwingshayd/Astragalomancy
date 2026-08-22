@@ -20,12 +20,10 @@ const DiceRenderer = {
     },
 
     buildDieTooltipData(die, index, gameState, currentFace) {
-        const slot = index + 1;
         const held = !!(gameState.held && gameState.held[index]);
         const rolled = !!gameState.hasRolled;
         const payload = {
             tooltipType: 'die',
-            slot,
             held,
             rolled,
             face: currentFace > 0 ? currentFace : null,
@@ -41,6 +39,7 @@ const DiceRenderer = {
             payload.effective = preview.face;
             payload.pips = preview.pips > 0 ? preview.pips : null;
             payload.gold = preview.gold || null;
+            payload.favour = preview.favour || null;
 
             const currentEnh = die.faces[currentFace]
                 ? Array.from(die.faces[currentFace].enhancements)
@@ -100,21 +99,24 @@ const DiceRenderer = {
     },
 
     _ensureDieShell(container, index) {
-        let dieEl = container.querySelector(`.die[data-die-index="${index}"]`);
-        if (dieEl) {
+        let slot = container.querySelector(`.die-slot[data-die-index="${index}"]`);
+        if (slot) {
+            const dieEl = slot.querySelector('.die');
             this._bindUnrolledDieHint(dieEl, index);
             return dieEl;
         }
-        dieEl = document.createElement('div');
+        slot = document.createElement('div');
+        slot.className = 'die-slot';
+        slot.dataset.dieIndex = String(index);
+        const dieEl = document.createElement('div');
         dieEl.className = 'die';
         dieEl.dataset.dieIndex = String(index);
         dieEl.style.position = 'relative';
-        const dieIdBadge = document.createElement('div');
-        dieIdBadge.className = 'die-id-badge';
-        dieIdBadge.style.cssText = 'position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--stone-terracotta-dark);border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;border:1px solid var(--statue-cream);z-index:5;opacity:0.8;';
-        dieEl.appendChild(dieIdBadge);
+        const caption = document.createElement('span');
+        caption.className = 'die-id-caption';
+        slot.append(dieEl, caption);
         this._bindUnrolledDieHint(dieEl, index);
-        container.appendChild(dieEl);
+        container.appendChild(slot);
         return dieEl;
     },
 
@@ -123,8 +125,8 @@ const DiceRenderer = {
         dieEl.querySelector('.wild-badge')?.remove();
         dieEl.querySelectorAll('.die-enhancement-overlay').forEach((n) => n.remove());
 
-        const dieIdBadge = dieEl.querySelector('.die-id-badge');
-        if (dieIdBadge) dieIdBadge.textContent = die.dieId || (index + 1);
+        const caption = dieEl.parentElement?.querySelector('.die-id-caption');
+        if (caption) caption.textContent = `Die ${die.dieId ?? (index + 1)}`;
 
         const showEnhOnDie = gameState.hasRolled && hasEnhancementsOnCurrentFace && currentFace > 0 && die.faces[currentFace];
         if (showEnhOnDie) {
@@ -195,7 +197,7 @@ const DiceRenderer = {
             const dieEl = this._ensureDieShell(container, index);
             this._applyDieState(dieEl, gameState.dice[index], index, gameState);
         }
-        container.querySelectorAll('.die').forEach((el) => {
+        container.querySelectorAll('.die-slot').forEach((el) => {
             const idx = parseInt(el.dataset.dieIndex, 10);
             if (Number.isNaN(idx) || idx >= count) el.remove();
         });

@@ -87,6 +87,14 @@ const EnhancementRegistry = {
             tooltipDesc: 'When scored: counts twice (incl. other effects).',
             ui: { chipColor: '#e9e7ff', textureClass: 'cw-tex-mirror' }
         },
+        blessed: {
+            id: 'blessed',
+            displayName: 'Blessed',
+            oneLiner: '+0.1 Favour',
+            triggerLine: 'When scored',
+            tooltipDesc: 'When scored: +0.1 Favour.',
+            ui: { chipColor: '#fff1b0', textureClass: 'cw-tex-blessed' }
+        },
     }
 };
 

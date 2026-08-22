@@ -2,10 +2,8 @@
  * ArtifactEffects — the single place an owned artifact becomes a derived run stat.
  *
  * Every artifact is a pure contribution to an accumulator that restarts from the
- * GAME_BALANCE baseline on each call. That is the whole point of the shape: apply()
- * runs on purchase, on save load, and at the start of every trial, so any handler
- * that mutated run state cumulatively would silently compound. The old bronze_crown
- * handler did exactly that to baseFavour and would have paid out again every trial.
+ * GAME_BALANCE baseline on each call. apply() runs on purchase, on save load,
+ * and at the start of every trial, so contributions stay additive.
  *
  * Tiers: an upgrade is a second artifact the player owns *alongside* its base, never
  * a replacement — the shop stops offering the base once owned and offers the upgrade
@@ -30,7 +28,7 @@ const ARTIFACT_CONTRIBUTIONS = {
     artifact_hermes_bargain: (d) => { d.shopDiscount += 0.25; },
 
     // Favour from worship levels is multiplied, so Altar doubles. Hecatomb is the sacrifice line.
-    artifact_telescope: (d) => { d.worshipFavourMult += 1; },
+    artifact_telescope: (d) => { d.worshipLevelFavourScale += 1; },
     artifact_hecatomb: (d) => { d.boonSellAtCost = true; },
 
     artifact_hall_of_heroes: (d) => { d.packBonus.boon += 1; },
@@ -68,11 +66,10 @@ const ArtifactEffects = {
             libationSlots: g.STARTING_LIBATION_SLOTS ?? 3,
             shopWares: 0,
             shopDiscount: 0,
-            worshipFavourMult: 1,
+            worshipLevelFavourScale: 1,
             extraDice: 0,
             maxInterest: g.MAX_INTEREST ?? 5,
             rerollDiscount: 0,
-            extraRolls: 0,
             trialGold: 0,
             forceSingleRoll: false,
             boonSellAtCost: false,
@@ -105,10 +102,9 @@ const ArtifactEffects = {
         state.consumableSlots = d.worshipSlots + d.libationSlots;
         state.shopPriceMultiplier = 1 - d.shopDiscount;
         state.shopWareBonus = d.shopWares;
-        state.worshipFavourMultiplier = d.worshipFavourMult;
+        state.worshipLevelFavourScale = d.worshipLevelFavourScale;
         state.maxInterest = d.maxInterest;
         state.rerollDiscount = d.rerollDiscount;
-        state.extraRolls = d.extraRolls;
         state.trialGold = d.trialGold;
         state.forceSingleRoll = d.forceSingleRoll;
         state.boonSellAtCost = d.boonSellAtCost;
@@ -188,8 +184,7 @@ const ArtifactEffects = {
 
     rollsPerTurn(state) {
         if (state?.forceSingleRoll) return 1;
-        const base = (typeof GAME_BALANCE !== 'undefined' && GAME_BALANCE.STARTING_ROLLS) || 3;
-        return base + (state?.extraRolls ?? 0);
+        return (typeof GAME_BALANCE !== 'undefined' && GAME_BALANCE.STARTING_ROLLS) || 3;
     },
 
     /** Tyche: paid once at trial start, never inside apply(). */
@@ -209,11 +204,6 @@ const ArtifactEffects = {
     maxInterest(state) {
         const base = (typeof GAME_BALANCE !== 'undefined' && GAME_BALANCE.MAX_INTEREST) || 5;
         return state?.maxInterest ?? base;
-    },
-
-    /** Favour earned from worship levels, scaled by the Altar line. */
-    worshipFavourMultiplier(state) {
-        return state?.worshipFavourMultiplier ?? 1;
     },
 };
 

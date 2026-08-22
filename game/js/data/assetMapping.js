@@ -94,6 +94,7 @@ const AssetMapping = {
         'ambrosial_krasi': 'ambrosia.png',
         'retsina_echoes': 'retina of echoes.png',
         'soma_wild': 'soma of the wild.png',
+        'blessed_nectar': 'blessed nectar.png',
         'kylix_hermit': 'kylix of hermit.png',
         'elixir_lethe': 'ekuxur of lethe.png',
         'chalice_helios': 'chalice of helios.png',
@@ -179,6 +180,7 @@ const AssetMapping = {
         'gold': null, // CSS: .cw-tex-gold
         'mother_of_pearl': null, // CSS: .cw-tex-pearl
         'mirror': null, // CSS: .cw-tex-mirror
+        'blessed': null, // CSS: .cw-tex-blessed
         'wild': null, // Tooltip only — no die-face tint
         'sevens': null, // Spritesheet frame 7
         'eights': null, // Spritesheet frame 8

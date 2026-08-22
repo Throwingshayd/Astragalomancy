@@ -83,7 +83,7 @@ describe('Live score preview hover', () => {
             getLiveOfferingTitle: (category, filledSlot) => (
                 filledSlot ? `${category} offered to Dionysus` : `Offering ${category}`
             ),
-            getCategoryLevelBonuses: () => ({ pips: 0, mult: 1 }),
+            getCategoryLevelBonuses: () => ({ pips: 0, favour: 1 }),
             formatFavour: (n) => String(n),
         };
         const ctrl = new globalThis.LiveScoreController(engine);
@@ -100,11 +100,43 @@ describe('Live score preview hover', () => {
         expect(rowNa.hidden).toBe(false);
     });
 
+    it('bonus pips ride the slide-in chip next to the number, not a label under it', () => {
+        const gnosis = readFileSync('game/js/engine/GnosisDisplay.js', 'utf8');
+        const ctrl = readFileSync('game/js/ui/LiveScoreController.js', 'utf8');
+        expect(gnosis).toContain('Math.floor(totals.pips) - dicePips');
+        expect(gnosis).not.toContain('pip bonus');
+        expect(gnosis).toContain("pipsLabel: 'pips'");
+        expect(ctrl).toContain('pipsAdd: split.extraPips > 0');
+        expect(ctrl).toContain('pipsContrib: split.extraPips > 0 ? String(split.extraPips)');
+    });
+
+    it('score animation writes the offered-to-god line onto the live banner', () => {
+        const anim = readFileSync('game/js/ui/ScoringAnimation.js', 'utf8');
+        expect(anim).toContain('setScoringOffering(category)');
+        expect(anim).toContain('getLiveOfferingTitle(category, true)');
+    });
+
     it('a filled pantheon row names the offering, not just the god', () => {
         const src = readFileSync('game/js/game/GameEngine.js', 'utf8');
         // "Fours offered to Hera", never the anonymous "Offering made to Hera".
         expect(src).toContain('return `${displayCat} offered to ${godShown}`;');
         expect(src).not.toContain('Offering made to');
+    });
+
+    it('clicking a score puts the offered-to-god line on the live banner', () => {
+        const { ctrl, trialDisplay } = makeHarness({ filled: false });
+        ctrl.setScoringOffering('Twos');
+        expect(trialDisplay.textContent).toBe('Twos offered to Dionysus');
+        expect(ctrl.hoverOfferingMessage()).toBe('Twos offered to Dionysus');
+        ctrl.updateValues(ctrl.engine.dom.liveScoreDisplay, {
+            category: 'Twos offered to Dionysus',
+            pips: '12',
+            pipsAdd: false,
+        });
+        expect(trialDisplay.textContent).toBe('Twos offered to Dionysus');
+        ctrl.updateDisplay(null);
+        expect(ctrl.hoverOfferingMessage()).toBeNull();
+        expect(trialDisplay.textContent).toBe('4th Trial: 50 remaining');
     });
 
     it('hovering an open row shows Offering {category} and previews score', () => {

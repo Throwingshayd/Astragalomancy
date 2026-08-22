@@ -262,7 +262,6 @@
                             <p class="pack-open-drag-hint">Drag one card to your <strong>Boon</strong> (right) or <strong>Blessing / Libation</strong> (left) column to claim.</p>
                             <div class="shop-main-area">
                                 <div class="shop-section" id="packRevealedCards"><h4>Pack Contents</h4></div>
-                                <div class="shop-section" id="packPlayerConsumables"><h4>Your Blessings &amp; Libations</h4></div>
                             </div>
                         </div>
                     </div>
@@ -288,24 +287,6 @@
             <div id="confirmActions">
                 <button class="divine-button" id="confirmYes">✅ Yes</button>
                 <button class="divine-button" id="confirmNo">❌ No</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="overlay hidden" id="libationOverlay">
-        <div class="modal-content libation-modal">
-            <h2 class="shop-title">Libation to the Gods</h2>
-            <p>Enhance all dice of a chosen face permanently.</p>
-            <div class="enhancement-choice-grid" id="libationChoices"></div>
-        </div>
-    </div>
-
-    <div class="overlay hidden" id="pantheonTotalOverlay">
-        <div class="modal-content pantheon-total-modal">
-            <div class="pantheon-overlay-content" id="pantheonOverlayContent">
-                <h3 class="pantheon-total-title">Pantheon Total</h3>
-                <div class="pantheon-total-value" id="pantheonTotalValue">0</div>
-                <p class="pantheon-total-sub">— Off to the shop —</p>
             </div>
         </div>
     </div>
@@ -347,6 +328,7 @@
     <script defer src="js/classes/Die.js"></script>
     <script defer src="js/classes/Card.js"></script>
     <script defer src="js/classes/boonTimingHandlers.js"></script>
+    <script defer src="js/classes/BoonDisplayStats.js"></script>
     <script defer src="js/classes/Boon.js"></script>
     <script defer src="js/classes/WorshipCard.js"></script>
     <script defer src="js/classes/LibationCard.js"></script>
@@ -367,8 +349,10 @@
     <script defer src="js/game/ConsumableSlots.js"></script>
     <script defer src="js/game/ArtifactDice.js"></script>
     <script defer src="js/game/ArtifactEffects.js"></script>
+    <script defer src="js/game/GamePersistence.js"></script>
     <script defer src="js/game/GameEngine.js"></script>
     <script defer src="js/ui/renderers/InfoBarRenderer.js"></script>
+    <script defer src="js/ui/DiceInspectOverlay.js"></script>
     <script defer src="js/ui/renderers/DiceRenderer.js"></script>
     <script defer src="js/ui/renderers/ScorecardRenderer.js"></script>
     <script defer src="js/ui/renderers/PlayAreaRenderer.js"></script>
@@ -381,6 +365,7 @@
     <script defer src="js/ui/UIManager.js"></script>
     <script defer src="js/ui/CollectionManager.js"></script>
     <script defer src="js/ui/TooltipContent.js"></script>
+    <script defer src="js/ui/TooltipPlacement.js"></script>
     <script defer src="js/ui/BalatroEffects.js"></script>
     <script defer src="js/data/musicPool.js"></script>
     <script defer src="js/ui/SoundManager.js"></script>
@@ -390,7 +375,5 @@
     <script defer src="js/ui/SoftPause.js"></script>
     <script defer src="js/ui/KeyboardShortcuts.js"></script>
     <script defer src="js/Main.js"></script>
-
-    <!-- Cash out feature removed as requested -->
 </body>
 </html>

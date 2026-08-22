@@ -189,14 +189,10 @@ class Boon extends Card {
         const multiplier = gameState.boonMultiplier || 1;
         if (multiplier !== 1 && processedResult) {
             if (processedResult.pips !== undefined) {
-                processedResult.pips = Math.floor(processedResult.pips * multiplier);
-                // EDGE CASE: Ensure pips never negative
-                processedResult.pips = Math.max(0, processedResult.pips);
+                processedResult.pips = Math.max(0, Math.floor(processedResult.pips * multiplier));
             }
             if (processedResult.favour !== undefined) {
-                processedResult.favour = processedResult.favour * multiplier;
-                // EDGE CASE: Ensure favour never negative
-                processedResult.favour = Math.max(0, processedResult.favour);
+                processedResult.favour = Math.max(0, processedResult.favour * multiplier);
             }
             if (processedResult.gold !== undefined) {
                 processedResult.gold = Math.floor(processedResult.gold * multiplier);
@@ -352,7 +348,7 @@ class Boon extends Card {
         return result;
     }
     
-    // Special handler for Proteus - Blueprint-style: copies the boon to its LEFT
+    // Proteus copies the boon to its left.
     applyProteusEffect(timingEvent, gameState, eventData, game = null) {
         const boons = gameState.boons || [];
         const proteusIndex = boons.findIndex(j => j === this);
@@ -587,7 +583,6 @@ class Boon extends Card {
                 break;
             
             case 'proteus_disguise':
-                // Blueprint-style: copies boon to the left (no turn_start action needed)
                 break;
             
             case 'reflection_of_narcissus':
@@ -798,231 +793,18 @@ class Boon extends Card {
         return Object.values(counts).filter(count => count === 2).length;
     }
 
-    // Calculate value added by this boon
     calculateValueAdded(original, modified) {
-        // Handle null/undefined cases (e.g., turn_start events)
-        if (!original || !modified) {
-            return 0;
-        }
-        
-        // Ensure both objects have the required properties
-        const originalPips = original.pips || 0;
-        const originalFavour = original.favour || 0;
-        const modifiedPips = modified.pips || 0;
-        const modifiedFavour = modified.favour || 0;
-        
-        const originalTotal = originalPips * originalFavour;
-        const modifiedTotal = modifiedPips * modifiedFavour;
+        if (!original || !modified) return 0;
+        const originalTotal = (original.pips || 0) * (original.favour || 0);
+        const modifiedTotal = (modified.pips || 0) * (modified.favour || 0);
         return modifiedTotal - originalTotal;
     }
 
-    // Get ongoing effects this boon provides
-    getOngoingEffects() {
-        const effects = [];
-        
-        switch (this.id) {
-            case 'hermes_sandals':
-                effects.push({ type: 'extra_roll', value: 1 });
-                break;
-            case 'cerberus_collar':
-                effects.push({ type: 'base_favour', value: 1 });
-                effects.push({ type: 'rolls_penalty', value: -1 });
-                break;
-            case 'cornucopia':
-                effects.push({ type: 'interest_cap', value: 1 });
-                break;
-            case 'titans_grip':
-                effects.push({ type: 'max_held', value: 2 });
-                break;
-            default:
-                // No ongoing effects
-                break;
-        }
-        
-        return effects;
-    }
-
-    // Check if this boon affects dice rolling
-    affectsDiceRoll() {
-        return ['aegis_shield', 'fate_spinner', 'probability_god'].includes(this.id);
-    }
-
-    // Apply dice roll effects (prng param kept for API compatibility; uses _getPrng() internally)
-    applyDiceRollEffect(dice, gameState, prng) {
-        const rng = this._getPrng() || prng;
-        if (!rng) return;
-
-        switch (this.id) {
-            case 'aegis_shield':
-                // Duplicate first held die
-                const firstHeld = gameState.held.findIndex(h => h);
-                if (firstHeld !== -1 && gameState.held.filter(h => h).length === 1) {
-                    const heldDie = dice[firstHeld];
-                    dice.forEach((die, index) => {
-                        if (!gameState.held[index] && die.face === 0) {
-                            die.face = heldDie.face;
-                            return; // Exit the forEach early
-                        }
-                    });
-                }
-                break;
-                
-            case 'probability_god':
-                dice.forEach(die => {
-                    if (rng.random() < 0.5) {
-                        while (die.face !== 6 && rng.random() < 0.8) {
-                            die.roll(rng);
-                        }
-                    }
-                });
-                break;
-                
-            default:
-                // No dice roll effects
-                break;
-        }
-    }
-
-    // Get description with current state
-    getDetailedDescription() {
-        let desc = this.effect;
-        
-        if (this.timesTriggered > 0) {
-            desc += ` (Triggered ${this.timesTriggered} times, +${this.totalValue} value)`;
-        }
-        
-        if (!this.isActive) {
-            desc += ' [DISABLED]';
-        }
-        
-        return desc;
-    }
-
-    // Check synergy with other boons
-    synergizesWith(otherCard) {
-        if (!(otherCard instanceof Boon)) return false;
-        
-        // God-based synergies
-        if (this.god && otherCard.god && this.god === otherCard.god) {
-            return true;
-        }
-        
-        // Effect-based synergies
-        const synergies = {
-            'high_roller': ['lions_mane'], // Both benefit from 6s
-            'warrior_rage': ['god_killer'], // Both boost of-a-kind hands
-            'golden_fleece': ['chaos_primordial'], // High pip synergy
-        };
-        
-        return synergies[this.id]?.includes(otherCard.id) || 
-               synergies[otherCard.id]?.includes(this.id);
-    }
-
-    // Get the current favour value this boon provides (for display on card)
     getCurrentFavourValue(gameState) {
-        if (!gameState) return 0;
-        
-        switch (this.id) {
-            case 'mt_olympus':
-                // +100 Favour per worship used
-                const worshipCount = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
-                return worshipCount * 100;
-                
-            case 'prometheus_gift':
-                // +300 Favour to all hands
-                return 300;
-                
-            case 'forge_of_hephaestus':
-                // +50 Favour per unused reroll (max 150)
-                const unusedRerolls = gameState.rollsLeft || 0;
-                return Math.min(Math.max(0, unusedRerolls) * 50, 150);
-                
-            case 'hestias_hearth':
-                // +300 Favour if all dice are odd or even
-                if (gameState.dice && gameState.dice.length > 0) {
-                    const allFaces = gameState.dice.map(d => d.getEffectiveFace());
-                    const allOdd = allFaces.every(face => face % 2 === 1);
-                    const allEven = allFaces.every(face => face % 2 === 0);
-                    return (allOdd || allEven) ? 300 : 0;
-                }
-                return 0;
-                
-            default:
-                return 0;
-        }
+        return BoonDisplayStats.currentFavour(this, gameState);
     }
 
-    /**
-     * Balatro-style dynamic stat display - Returns array of stats to show on card
-     * @param {Object} gameState - Current game state
-     * @returns {Array<{value: string, type: string}>} Array of stats to display
-     * @example
-     * // Returns: [{ value: "+20 Pips", type: "pips" }, { value: "x3", type: "favour" }]
-     */
     getDynamicDisplayStats(gameState) {
-        if (!gameState) return [];
-        
-        const stats = [];
-        
-        // Check dynamic stats tracking (the_heretic uses live gameState in its own case)
-        if (this.id !== 'the_heretic' && this.dynamicStats.pips > 0) {
-            stats.push({ value: `+${this.dynamicStats.pips}`, type: 'pips' });
-        }
-        
-        if (this.id !== 'mt_olympus' && this.dynamicStats.favour > 0) {
-            const f = this.dynamicStats.favour;
-            stats.push({ value: (window.NumberFormat ? `+${window.NumberFormat.favourContrib(f)}` : `+${f / 100}`), type: 'favour' });
-        } else if (this.id !== 'mt_olympus') {
-            const favour = this.getCurrentFavourValue(gameState);
-            if (favour > 0) {
-                stats.push({ value: (window.NumberFormat ? `+${window.NumberFormat.favourContrib(favour)}` : `+${favour / 100}`), type: 'favour' });
-            }
-        }
-        
-        if (this.dynamicStats.gold > 0) {
-            stats.push({ value: `+${this.dynamicStats.gold}g`, type: 'gold' });
-        }
-        
-        if (this.dynamicStats.other) {
-            stats.push({ value: this.dynamicStats.other, type: 'other' });
-        }
-        
-        // Boon-specific live stats
-        switch (this.id) {
-            case 'mt_olympus': {
-                const worshipUsed = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
-                if (worshipUsed > 0) {
-                    stats.push({ value: `+${worshipUsed} Favour`, type: 'favour' });
-                }
-                break;
-            }
-            case 'golden_touch':
-                stats.push({ value: '1 per 3g', type: 'other' });
-                break;
-            case 'the_heretic': {
-                const hereticStacks = gameState.hereticStacks || 0;
-                if (hereticStacks > 0) {
-                    stats.push({ value: `+${hereticStacks}`, type: 'pips' });
-                    stats.push({ value: '🚫 No Worship', type: 'other' });
-                } else {
-                    stats.push({ value: 'Reset', type: 'other' });
-                }
-                break;
-            }
-            case 'proteus_disguise': {
-                const boons = gameState.boons || [];
-                const idx = boons.findIndex(j => j === this);
-                const leftBoon = idx > 0 ? boons[idx - 1] : null;
-                stats.push({ value: leftBoon ? `→${leftBoon.name}` : 'No target', type: 'other' });
-                break;
-            }
-        }
-        
-        return stats;
-    }
-
-    // Static method to create boon from game data
-    static fromData(data) {
-        return new Boon(data);
+        return BoonDisplayStats.live(this, gameState);
     }
 }

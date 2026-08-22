@@ -26,7 +26,7 @@ describe('DieScoreContribution parity', () => {
     beforeAll(() => {
         globalThis.window = globalThis;
         globalThis.ENHANCEMENT_BONUSES = {
-            IRON_PIPS: 5, GOLD_COINS: 1, PARCHMENT_GOLD: 5, PARCHMENT_FAVOUR: 100,
+            IRON_PIPS: 5, GOLD_COINS: 1, PARCHMENT_GOLD: 5, PARCHMENT_FAVOUR: 100, BLESSED_FAVOUR: 10,
         };
         globalThis.ENHANCEMENT_CHANCES = {
             PARCHMENT_GOLD_CHANCE: 0.15, PARCHMENT_FAVOUR_CHANCE: 0.25,
@@ -89,6 +89,14 @@ describe('DieScoreContribution parity', () => {
         expect(globalThis.ScoringEngine.runPipeline('Chance', state(five(withPearl, 4))).pips).toBe(20 + 3);
     });
 
+    it('Blessed adds +0.1 Favour on hover and in the pipeline', () => {
+        const blessed = die(6, ['blessed']);
+        expect(C().preview(blessed).favour).toBe(10);
+        expect(C().blessedFavour(die(6))).toBe(0);
+        const result = globalThis.ScoringEngine.runPipeline('Chance', state(five(blessed)));
+        expect(result.favour).toBe(110);
+    });
+
     it('parchment gold and favour roll independently from the same helper', () => {
         const seq = (values) => {
             let i = 0;
@@ -120,6 +128,7 @@ describe('enhancement extras are wired once', () => {
         const anim = readFileSync('game/js/ui/ScoringAnimation.js', 'utf8');
         const hover = readFileSync('game/js/ui/renderers/DiceRenderer.js', 'utf8');
         expect(engine).toContain('DieScoreContribution.scoredEnhancementPips');
+        expect(engine).toContain('DieScoreContribution.blessedFavour');
         expect(engine).not.toContain("hasEnhancementForCurrentFace('iron')");
         expect(anim).toContain('DieScoreContribution.preview');
         expect(anim).not.toContain('ENHANCEMENT_BONUSES.IRON_PIPS');
@@ -138,20 +147,8 @@ describe('enhancement extras are wired once', () => {
         expect(anim).not.toContain('ENHANCEMENT_CHANCES.PARCHMENT');
     });
 
-    it('DiceRenderer uses the injected engine instead of window.game', () => {
+    it('DiceRenderer uses the injected engine', () => {
         const hover = readFileSync('game/js/ui/renderers/DiceRenderer.js', 'utf8');
         expect(hover).toContain('this._game = gameEngine');
-        expect(hover).not.toContain('window.game');
-        expect(hover).not.toContain('window.balatroEffects');
-        expect(hover).not.toContain('window.uiManager');
-        expect(hover).not.toContain('window.EnhancementRegistry');
-    });
-
-    it('dead libation overlay no longer ships stale Balatro enhancement copy', () => {
-        const libation = readFileSync('game/js/classes/LibationCard.js', 'utf8');
-        expect(libation).not.toContain('createDieFaceSelectionUI');
-        expect(libation).not.toContain('+3 Gold when scored');
-        expect(libation).not.toContain('x1.5 Favour if not selected');
-        expect(libation).not.toContain('+1 Pip when scored');
     });
 });

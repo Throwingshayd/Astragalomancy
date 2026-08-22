@@ -113,8 +113,6 @@ class GameEngine {
                 "Pandora's Box": 0
             },
             
-            // Enhancements and effects
-            enhancementMap: {},
             tempPips: 0,
             tempFavour: 0,
             
@@ -137,33 +135,17 @@ class GameEngine {
             /** Merchant Arrival: 0.75 = 25% off; default 1.0 */
             shopPriceMultiplier: 1,
             
-            // Special effects and abilities
-            diceEffects: {},
-            pipsBonuses: {},
-            rerollAbilities: {},
-            diceSubstitutions: {},
-            abilities: {},
-            doubleScoringAllowed: [],
             pantheonDevotion: {},
             devotionCapacity: {},
             categoryGodBinding: {},
             categoryScoringOverride: {},
-            goldPerDie: {},
             forcedDiceValues: {},
-            triggerEffects: {},
-            globalBonuses: {},
-            winConditions: {},
-            yahtzeeEffects: {},
-            prophecyEffects: {},
-            flexibleScoring: {},
-            diceTransformations: {},
             
             // Capacity limits (maxHeld not in GAME_BALANCE)
             maxHeld: 5,
             
             // Bonus Yahtzee system
             bonusYahtzees: 0,
-            rolledBonusYahtzees: 0,
             yahtzeesRolledThisRun: 0,
             upperBonusAwarded: false,
             lowerBonusAwarded: false,
@@ -186,7 +168,6 @@ class GameEngine {
     }
 
     setupEventListeners() {
-        // This will be called after DOM elements are available
         this.domReady = false;
     }
 
@@ -209,10 +190,6 @@ class GameEngine {
             goldDisplay: document.getElementById('goldDisplay'),
             totalScore: document.getElementById('totalScore'),
             
-            // Boss blind info
-            bossBlindName: document.getElementById('bossBlindName'),
-            bossBlindEffect: document.getElementById('bossBlindEffect'),
-            
             // Scorecard
             scorecardRows: document.querySelectorAll('.score-row'),
             
@@ -223,15 +200,10 @@ class GameEngine {
             
             // Shop
             shopStage: document.getElementById('shopStage'),
-            libationOverlay: document.getElementById('libationOverlay'),
-            pantheonTotalOverlay: document.getElementById('pantheonTotalOverlay'),
-            pantheonOverlayContent: document.getElementById('pantheonOverlayContent'),
             
             // Shop views
             shopDefaultView: document.getElementById('shopDefaultView'),
             packOpeningView: document.getElementById('packOpeningView'),
-            // Libation selection
-            libationChoices: document.getElementById('libationChoices'),
             
             // Messages
             messagePopup: document.getElementById('message-popup')
@@ -489,27 +461,18 @@ class GameEngine {
                         if (!held[index]) die.roll(this.prng, maxFace);
                     });
                 }
-            } else if (this.state.forcedDiceValues?.allThrees && this.state.rollsLeft === 2) {
-                this.state.dice.forEach(die => die.setFace(3));
             } else {
                 const maxFace = this.getMaxDieFace();
                 this.state.dice.forEach((die, index) => {
-                    if (!held[index]) {
-                        die.roll(this.prng, maxFace);
-                        if (this.state.diceTransformations?.onesBecomeSixes && die.face === 1) die.setFace(6);
-                    }
+                    if (!held[index]) die.roll(this.prng, maxFace);
                 });
             }
             }
             this.state.dice.forEach((die, index) => die.processMotherOfPearl(this.state.dice, index, this.prng));
-            this.state.boons.forEach(boon => {
-                if (boon.affectsDiceRoll?.()) boon.applyDiceRollEffect(this.state.dice, this.state, this.prng);
-            });
         }
         
         const doPostPhysicsRoll = () => {
             this.dom.diceRollZone?.closest('.center-game-area')?.classList?.remove('dice-rolling');
-            this.checkTriggerEffects();
             this.previewUnlockBonusCategoriesOnRoll();
 
             const counts = {};
@@ -653,33 +616,6 @@ class GameEngine {
         return die?.face ?? die?.currentFace ?? fallback;
     }
 
-    checkTriggerEffects() {
-        // Check for four fours effect
-        if (this.state.triggerEffects.fourFoursReroll) {
-            const fourCount = this.state.dice.filter(die => die.getEffectiveFace() === 4).length;
-            if (fourCount >= 4) {
-                this.showMessage("Earthquake Lord: Rerolling all dice!");
-                this.state.dice.forEach(die => die.roll(this.prng));
-                this.state.held.fill(false);
-            }
-        }
-        
-        // Check for gold per die effects
-        if (Object.keys(this.state.goldPerDie).length > 0) {
-            let goldGained = 0;
-            this.state.dice.forEach(die => {
-                const faceValue = die.getEffectiveFace();
-                if (this.state.goldPerDie[faceValue]) {
-                    goldGained += this.state.goldPerDie[faceValue];
-                }
-            });
-            if (goldGained > 0) {
-                this.updateGoldAnimated(goldGained, "dice effects");
-                this.showMessage(`Gained ${goldGained} gold from dice!`);
-            }
-        }
-    }
-
     // Bonus Yahtzee unlocks 7s/8s/9s on roll — 2nd/3rd/4th Yahtzee rolled unlocks 7s/8s/9s.
     // No need to score in Yahtzee slot; just rolling five of a kind counts.
     previewUnlockBonusCategoriesOnRoll() {
@@ -690,7 +626,6 @@ class GameEngine {
 
         this.state.yahtzeesRolledThisRun = (this.state.yahtzeesRolledThisRun || 0) + 1;
         this.state.bonusYahtzees = Math.min(3, this.state.yahtzeesRolledThisRun - 1);
-        this.state.rolledBonusYahtzees = 0;
         if (this.state.bonusYahtzees > 0) {
             this.unlockBonusCategories();
             this.showMessage(`Bonus Heureka! (${this.state.bonusYahtzees} total)`, 3000);
@@ -825,9 +760,6 @@ class GameEngine {
         this.state.tempPips = 0;
         this.state.tempFavour = 0;
         
-        // Check win conditions
-        this.checkWinConditions();
-        
         this.cancelScore();
         this.isScoring = false;
         if (this.canSave()) this.saveGame();
@@ -923,8 +855,6 @@ class GameEngine {
                 break;
         }
 
-        // Worship pipsBonuses (twos/sixes) - shown when hovering any card for consistency
-        // Actually user asked for boons - skip worship for now
         return result;
     }
 
@@ -1311,7 +1241,7 @@ class GameEngine {
     /**
      * Get the pips and Favour associated with the current worship level
      * @param {string} category
-     * @returns {{ pips: number, mult: number }}
+     * @returns {{ pips: number, favour: number }}
      */
     getCategoryLevelBonuses(category) {
         const god = this.getGodForCategory(category);
@@ -1323,8 +1253,8 @@ class GameEngine {
         const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[pipCategory]) || 0;
         const pips = basePips + (level * (pipsPerLevel || 0));
         const perLevel = typeof WORSHIP_FAVOUR_PER_LEVEL !== 'undefined' ? WORSHIP_FAVOUR_PER_LEVEL : 25;
-        const mult = (typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100) + level * perLevel;
-        return { pips, mult };
+        const favour = (typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100) + level * perLevel * (this.state.worshipLevelFavourScale ?? 1);
+        return { pips, favour };
     }
 
     getGodForCategory(category) {
@@ -1458,35 +1388,6 @@ class GameEngine {
         TrialCompletion.finishAnteAndOpenShop(this, opts);
     }
 
-    checkWinConditions() {
-        // Check for twelve sixes win condition
-        if (this.state.winConditions.twelveSixes) {
-            const totalSixes = Object.entries(this.state.scorecard)
-                .filter(([category, score]) => category === 'Sixes' && score > 0)
-                .reduce((total, [_, score]) => total + Math.floor(score / 6), 0);
-            
-            if (totalSixes >= 12) {
-                this.state.gameOver = true;
-                
-                // Show Balatro-style victory screen
-                this.showGameOverScreen(true, { reason: 'twelve_sixes' });
-                
-                this.dataManager.updateStats({
-                    won: true,
-                    score: this.state.totalScore,
-                    ante: this.state.ante,
-                    goldEarned: this.state.gold
-                });
-            }
-        }
-        
-        // Check for Yahtzee effects
-        if (this.state.yahtzeeEffects.increaseFavour && this.state.pendingCategory === 'Yahtzee') {
-            this.state.baseFavour += (typeof BASE_FAVOUR !== 'undefined' ? BASE_FAVOUR : 100);
-            this.showMessage("Zeus' blessing increases your Base Favour!");
-        }
-    }
-
     /** Recompute artifact-derived stats. Safe to call repeatedly — see ArtifactEffects. */
     applyArtifactEffects() {
         ArtifactEffects.apply(this.state);
@@ -1580,13 +1481,10 @@ class GameEngine {
         this.ensureLiveScore()?.showInterestThenOpenShop(opts);
     }
 
-    // Shop methods (will be expanded in next file)
     openShop() {
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('shop_open', { gold: this.state.gold, turn: this.state.turn, ante: this.state.ante });
         }
-        // Interest is now awarded BEFORE shop opens (in showInterestThenOpenShop)
-        // This method just opens the shop UI
         if (this.shopManager) {
             this.shopManager.openShop(this.state, this);
         }
@@ -1600,7 +1498,6 @@ class GameEngine {
         if (this.shopManager) {
             this.shopManager.closeShop(this);
         } else if (this.uiManager) {
-            // Fallback to direct UIManager call
             this.uiManager.closeShop();
         } else {
             Logger.error('No shop manager available to close shop');
@@ -1645,86 +1542,16 @@ class GameEngine {
         return true;
     }
 
-    /**
-     * Serialize state for save — ensure boons, artifacts, consumables, dice, worshipLevels
-     * and all critical mechanics are plain objects (guaranteed to persist).
-     * @param {Object} state - Live game state
-     * @returns {Object} Plain object safe for JSON.stringify
-     */
-    serializeStateForSave(state) {
-        const toPlain = (obj) => (obj && typeof obj.toJSON === 'function' ? obj.toJSON() : obj);
-        return {
-            ...state,
-            dice: Array.isArray(state.dice)
-                ? state.dice.map((d, i) => toPlain(d) || { currentFace: 0, dieId: i + 1 })
-                : [],
-            boons: Array.isArray(state.boons)
-                ? state.boons.map(c => toPlain(c)).filter(Boolean)
-                : [],
-            artifacts: Array.isArray(state.artifacts)
-                ? state.artifacts.map(c => toPlain(c)).filter(Boolean)
-                : [],
-            consumables: Array.isArray(state.consumables)
-                ? state.consumables.map(c => toPlain(c)).filter(Boolean)
-                : [],
-            worshipLevels: state.worshipLevels && typeof state.worshipLevels === 'object'
-                ? { ...state.worshipLevels }
-                : {},
-            libationPours: state.libationPours && typeof state.libationPours === 'object'
-                ? { ...state.libationPours }
-                : {},
-            scorecard: state.scorecard && typeof state.scorecard === 'object' ? { ...state.scorecard } : {},
-            pantheonDevotion: state.pantheonDevotion && typeof state.pantheonDevotion === 'object'
-                ? { ...state.pantheonDevotion }
-                : {},
-            devotionCapacity: state.devotionCapacity && typeof state.devotionCapacity === 'object'
-                ? { ...state.devotionCapacity }
-                : {},
-            categoryGodBinding: state.categoryGodBinding && typeof state.categoryGodBinding === 'object'
-                ? { ...state.categoryGodBinding }
-                : {},
-            categoryScoringOverride: state.categoryScoringOverride && typeof state.categoryScoringOverride === 'object'
-                ? { ...state.categoryScoringOverride }
-                : {},
-            enhancementMap: state.enhancementMap && typeof state.enhancementMap === 'object' ? { ...state.enhancementMap } : {},
-            unlockedCategories: state.unlockedCategories && typeof state.unlockedCategories === 'object'
-                ? { ...state.unlockedCategories }
-                : { 'Sevens': false, 'Eights': false, 'Nines': false, "Pandora's Box": false }
-        };
+    static get DEFAULT_WORSHIP_LEVELS() {
+        return GamePersistence.DEFAULT_WORSHIP_LEVELS;
     }
 
-    /**
-     * Save the current game state to localStorage
-     * @returns {boolean} True if save was successful
-     */
+    serializeStateForSave(state) {
+        return GamePersistence.serialize(state);
+    }
+
     saveGame() {
-        if (!this.canSave()) {
-            Logger.warn('Save aborted: Game not in safe state');
-            return false;
-        }
-        
-        if (this.dataManager) {
-            try {
-                this.updateResumePhase();
-                const state = this.state;
-                const serialized = this.serializeStateForSave(state);
-                const payload = {
-                    gameState: serialized,
-                    prngState: this.prng?.getState?.() ?? null,
-                    resumePhase: state.resumePhase ?? 'play'
-                };
-                this.dataManager.saveGame(payload);
-                Logger.info('Game saved successfully');
-                return true;
-            } catch (error) {
-                Logger.error('Save failed:', error);
-                this.showMessage('Failed to save game!', 3000);
-                return false;
-            }
-        } else {
-            Logger.error('DataManager not available');
-            return false;
-        }
+        return GamePersistence.save(this);
     }
 
     /**
@@ -1737,158 +1564,8 @@ class GameEngine {
         this.state.resumePhase = inShop ? 'shop' : 'play';
     }
 
-    /**
-     * Rehydrate plain objects from save into Die/Card instances (Balatro: Card:load, CardArea:load)
-     * @param {Object} plain - Raw state from JSON.parse
-     * @returns {Object} State with class instances restored
-     */
-    /** Default worship god keys for fallback when loading old saves */
-    static get DEFAULT_WORSHIP_LEVELS() {
-        return {
-            'Artemis': 0, 'Aphrodite': 0, 'Morpheus': 0, 'Hera': 0,
-            'Athena': 0, 'Heracles': 0, 'Hephaestus': 0, 'Ares': 0,
-            'Dionysus': 0, 'Hermes': 0, 'Apollo': 0, 'Zeus': 0, 'Nyx': 0,
-            'The Pleiades': 0, 'Poseidon': 0, 'The Nine Muses': 0,
-            "Pandora's Box": 0
-        };
-    }
-
     rehydrateState(plain, prngState = null) {
-        if (!plain) return plain;
-        const state = { ...plain };
-
-        // Restore PRNG
-        const seed = state.seed || 'CONTINUED';
-        this.prng = new SeededRNG(seed);
-        if (prngState && this.prng?.setState) {
-            this.prng.setState(prngState);
-        }
-
-        // Worship levels — ensure object with all gods (merge saved into defaults)
-        const defaultWorship = GameEngine.DEFAULT_WORSHIP_LEVELS;
-        const incomingWorship = state.worshipLevels && typeof state.worshipLevels === 'object'
-            ? { ...state.worshipLevels }
-            : {};
-        if (incomingWorship.Percephone !== undefined) {
-            incomingWorship.Aphrodite = (incomingWorship.Aphrodite ?? 0) + (incomingWorship.Percephone ?? 0);
-            delete incomingWorship.Percephone;
-        }
-        state.worshipLevels = { ...defaultWorship, ...incomingWorship };
-
-        if (!state.libationPours || typeof state.libationPours !== 'object') state.libationPours = {};
-
-        if (state.lastWorshipGod === 'Persephone') state.lastWorshipGod = 'Aphrodite';
-
-        // Scorecard, enhancementMap, unlockedCategories — ensure objects
-        state.scorecard = state.scorecard && typeof state.scorecard === 'object' ? state.scorecard : {};
-        state.pantheonDevotion = state.pantheonDevotion && typeof state.pantheonDevotion === 'object'
-            ? state.pantheonDevotion
-            : {};
-        state.devotionCapacity = state.devotionCapacity && typeof state.devotionCapacity === 'object'
-            ? state.devotionCapacity
-            : {};
-        state.categoryGodBinding = state.categoryGodBinding && typeof state.categoryGodBinding === 'object'
-            ? state.categoryGodBinding
-            : {};
-        state.categoryScoringOverride = state.categoryScoringOverride && typeof state.categoryScoringOverride === 'object'
-            ? state.categoryScoringOverride
-            : {};
-        state.enhancementMap = state.enhancementMap && typeof state.enhancementMap === 'object' ? state.enhancementMap : {};
-        state.unlockedCategories = state.unlockedCategories && typeof state.unlockedCategories === 'object'
-            ? { 'Sevens': false, 'Eights': false, 'Nines': false, "Pandora's Box": false, ...state.unlockedCategories }
-            : { 'Sevens': false, 'Eights': false, 'Nines': false, "Pandora's Box": false };
-
-        // Bonus Yahtzee: derive yahtzeesRolledThisRun from bonusYahtzees for old saves
-        state.yahtzeesRolledThisRun = state.yahtzeesRolledThisRun ?? (state.bonusYahtzees || 0) + 1;
-
-        // held, packs — ensure arrays (held length is synced to dice after rehydrate)
-        state.held = Array.isArray(state.held) ? state.held : [];
-        state.eyeFloorRank = Number.isFinite(state.eyeFloorRank) ? state.eyeFloorRank : -1;
-        state.packs = Array.isArray(state.packs) ? state.packs : [];
-
-        // Effect maps and abilities — ensure objects
-        state.diceEffects = state.diceEffects && typeof state.diceEffects === 'object' ? state.diceEffects : {};
-        state.pipsBonuses = state.pipsBonuses && typeof state.pipsBonuses === 'object' ? state.pipsBonuses : {};
-        state.abilities = state.abilities && typeof state.abilities === 'object' ? state.abilities : {};
-        state.globalBonuses = state.globalBonuses && typeof state.globalBonuses === 'object' ? state.globalBonuses : {};
-
-        // Dice: plain objects → Die instances
-        state.dice = Array.isArray(state.dice) ? state.dice : [];
-        state.dice = state.dice.map((d, i) => {
-            const die = new Die(i + 1);
-            if (d && typeof die.fromJSON === 'function') die.fromJSON(d);
-            return die;
-        });
-        if (state.dice.length < 5) {
-            while (state.dice.length < 5) {
-                state.dice.push(new Die(state.dice.length + 1));
-            }
-        }
-        if (typeof ArtifactDice !== 'undefined') ArtifactDice.syncHeld(state);
-
-        // Boons: plain objects → Boon instances
-        state.boons = Array.isArray(state.boons) ? state.boons : [];
-        state.boons = state.boons.map((saved) => {
-            if (!saved || !saved.id) return null;
-            const data = CardData?.boons?.find(j => j.id === saved.id) ?? null;
-            if (!data) {
-                Logger.warn(`Rehydrate: Boon "${saved.id}" not found in CardData`);
-                return null;
-            }
-            const boon = new Boon(data);
-            if (typeof boon.fromJSON === 'function') boon.fromJSON(saved);
-            return boon;
-        }).filter(Boolean);
-
-        // Artifacts: plain objects → Artifact instances
-        state.artifacts = Array.isArray(state.artifacts) ? state.artifacts : [];
-        state.artifacts = state.artifacts.map((saved) => {
-            if (!saved || !saved.id) return null;
-            let data = null;
-            if (CardData?.artifacts) {
-                for (const pair of Object.values(CardData.artifacts)) {
-                    if (pair?.base?.id === saved.id || pair?.upgraded?.id === saved.id) {
-                        data = (pair.base?.id === saved.id ? pair.base : pair.upgraded) || pair.base;
-                        break;
-                    }
-                }
-            }
-            if (!data) {
-                Logger.warn(`Rehydrate: Artifact "${saved.id}" not found`);
-                return null;
-            }
-            const artifact = new Artifact(data);
-            if (typeof artifact.fromJSON === 'function') artifact.fromJSON(saved);
-            return artifact;
-        }).filter(Boolean);
-
-        // Consumables: LibationCard or WorshipCard
-        state.consumables = Array.isArray(state.consumables) ? state.consumables : [];
-        const legacyWorshipId = {
-            worship_persephone: 'worship_aphrodite',
-            persephone_2: 'aphrodite_2',
-            persephone_3: 'aphrodite_3'
-        };
-        state.consumables = state.consumables.map((saved) => {
-            if (!saved || !saved.id) return null;
-            const resolvedId = legacyWorshipId[saved.id] || saved.id;
-            const savedResolved = resolvedId !== saved.id ? { ...saved, id: resolvedId } : saved;
-            const type = savedResolved.type || 'libation';
-            let data = (type === 'worship' && CardData?.worship)
-                ? CardData.worship.find(c => c.id === resolvedId)
-                : (CardData?.libations ? CardData.libations.find(c => c.id === resolvedId) : null);
-            if (!data && CardData?.worship) data = CardData.worship.find(c => c.id === resolvedId);
-            if (!data) {
-                Logger.warn(`Rehydrate: consumable "${saved.id}" not found`);
-                return null;
-            }
-            const isWorship = CardData.worship?.some(w => w.id === resolvedId);
-            const card = isWorship ? new WorshipCard(data) : new LibationCard(data);
-            if (typeof card.fromJSON === 'function') card.fromJSON(savedResolved);
-            return card;
-        }).filter(Boolean);
-
-        return state;
+        return GamePersistence.rehydrate(this, plain, prngState);
     }
 
     /**
