@@ -1,6 +1,6 @@
 /**
- * Zeus (Yahtzee) is five of a kind. Heureka is six of a kind and unlocks when rolled.
- * Extra Long Straight is a run of six and unlocks when rolled.
+ * Hades (Yahtzee) is five of a kind. Zeus (Heureka) is six of a kind and unlocks when rolled.
+ * Iris (Extra Long Straight) is a run of six and unlocks when rolled.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, beforeAll } from 'vitest';
@@ -39,7 +39,7 @@ describe('Heureka unlock-on-roll', () => {
         return acc;
     }, {});
 
-    it('scores five of a kind on the Zeus row, not Heureka', () => {
+    it('scores five of a kind on the Hades row, not Heureka', () => {
         const H = globalThis.HandEvaluator;
         const ctx = { unlockedCategories: { Heureka: true } };
         expect(H.evaluate('Yahtzee', five, counts(five), ctx).isValid).toBe(true);

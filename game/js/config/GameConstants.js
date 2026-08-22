@@ -114,11 +114,12 @@ const ENHANCEMENT_CHANCES = {
  * @const {Object.<string,string>}
  */
 const GOD_TO_CATEGORY = {
-    'Ones': 'Artemis', 'Twos': 'Aphrodite', 'Threes': 'Morpheus',
-    'Fours': 'Hera', 'Fives': 'Athena', 'Sixes': 'Heracles',
+    'Ones': 'Artemis', 'Twos': 'Aphrodite', 'Threes': 'Hecate',
+    'Fours': 'Hera', 'Fives': 'Athena', 'Sixes': 'Demeter',
     'Sevens': 'The Pleiades', 'Eights': 'Poseidon', 'Nines': 'The Nine Muses',
     'Three of a Kind': 'Hephaestus', 'Four of a Kind': 'Ares', 'Full House': 'Dionysus',
-    'Small Straight': 'Hermes', 'Large Straight': 'Apollo', 'Yahtzee': 'Zeus', 'Chance': 'Nyx',
+    'Small Straight': 'Hermes', 'Large Straight': 'Apollo',
+    'Extra Long Straight': 'Iris', 'Yahtzee': 'Hades', 'Heureka': 'Zeus', 'Chance': 'Nyx',
     "Pandora's Box": "Pandora's Box"
 };
 
@@ -131,17 +132,19 @@ const GOD_METADATA = {
     // Upper Sanctum (Ones through Sixes)
     'Artemis': { gender: 'female', domain: 'hunt', category: 'Ones' },
     'Aphrodite': { gender: 'female', domain: 'love/beauty', category: 'Twos' },
-    'Morpheus': { gender: 'male', domain: 'dreams', category: 'Threes' },
+    'Hecate': { gender: 'female', domain: 'crossroads', category: 'Threes' },
     'Hera': { gender: 'female', domain: 'marriage', category: 'Fours' },
     'Athena': { gender: 'female', domain: 'wisdom', category: 'Fives' },
-    'Heracles': { gender: 'male', domain: 'strength', category: 'Sixes' },
+    'Demeter': { gender: 'female', domain: 'harvest', category: 'Sixes' },
     // Lower Sanctum (Combinations)
     'Hephaestus': { gender: 'male', domain: 'forge', category: 'Three of a Kind' },
     'Ares': { gender: 'male', domain: 'war', category: 'Four of a Kind' },
     'Dionysus': { gender: 'male', domain: 'wine', category: 'Full House' },
     'Hermes': { gender: 'male', domain: 'travel', category: 'Small Straight' },
     'Apollo': { gender: 'male', domain: 'sun', category: 'Large Straight' },
-    'Zeus': { gender: 'male', domain: 'sky', category: 'Yahtzee' },
+    'Iris': { gender: 'female', domain: 'rainbow', category: 'Extra Long Straight' },
+    'Hades': { gender: 'male', domain: 'underworld', category: 'Yahtzee' },
+    'Zeus': { gender: 'male', domain: 'sky', category: 'Heureka', note: 'Hypsistos / Most High — six of a kind' },
     'Nyx': { gender: 'female', domain: 'night', category: 'Chance' },
     // High Sanctum (Bonus Categories)
     'The Pleiades': { gender: 'female', domain: 'stars', category: 'Sevens', note: 'Seven sisters' },

@@ -6,10 +6,11 @@
 const ScorecardRenderer = {
     _pantheonLabels(slotCategory, gameState) {
         const godMapping = {
-            'Ones': 'Artemis', 'Twos': 'Aphrodite', 'Threes': 'Morpheus', 'Fours': 'Hera',
-            'Fives': 'Athena', 'Sixes': 'Heracles', 'Three of a Kind': 'Hephaestus',
+            'Ones': 'Artemis', 'Twos': 'Aphrodite', 'Threes': 'Hecate', 'Fours': 'Hera',
+            'Fives': 'Athena', 'Sixes': 'Demeter', 'Three of a Kind': 'Hephaestus',
             'Four of a Kind': 'Ares', 'Full House': 'Dionysus', 'Small Straight': 'Hermes',
-            'Large Straight': 'Apollo', 'Yahtzee': 'Zeus', 'Chance': 'Nyx',
+            'Large Straight': 'Apollo', 'Extra Long Straight': 'Iris', 'Yahtzee': 'Hades',
+            'Heureka': 'Zeus', 'Chance': 'Nyx',
             'Sevens': 'The Pleiades', 'Eights': 'Poseidon', 'Nines': 'The Nine Muses',
         };
         const evalCat = typeof DevotionUtils !== 'undefined'

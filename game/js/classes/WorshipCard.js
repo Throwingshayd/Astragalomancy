@@ -64,9 +64,9 @@ class WorshipCard extends Card {
         const hasCycle = gameState.boons?.some(j => j.id === 'cycle_of_seasons');
         if (hasCycle && game?.prng) {
             // Build list of available gods (excluding current and locked categories)
-            const baseGods = ['Artemis', 'Aphrodite', 'Morpheus', 'Hera', 'Athena', 
-                             'Heracles', 'Hephaestus', 'Ares', 'Dionysus', 'Hermes', 
-                             'Apollo', 'Zeus', 'Nyx'];
+            const baseGods = ['Artemis', 'Aphrodite', 'Hecate', 'Hera', 'Athena',
+                             'Demeter', 'Hephaestus', 'Ares', 'Dionysus', 'Hermes',
+                             'Apollo', 'Iris', 'Hades', 'Zeus', 'Nyx'];
             
             // Add 7/8/9 gods only if unlocked
             const availableGods = [...baseGods];

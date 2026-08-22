@@ -11,9 +11,9 @@
 const BASE_SCORES = {
     SMALL_STRAIGHT: 30,
     LARGE_STRAIGHT: 40,
-    YAHTZEE: 50,  // Five of a Kind (Zeus)
-    HEUREKA: 80,  // Six of a kind — unlocks when rolled
-    EXTRA_LONG_STRAIGHT: 60,
+    YAHTZEE: 50,  // Five of a Kind (Hades)
+    HEUREKA: 80,  // Six of a kind (Zeus Hypsistos) — unlocks when rolled
+    EXTRA_LONG_STRAIGHT: 60,  // Iris — unlocks when rolled
 };
 
 /**
@@ -75,8 +75,8 @@ const CATEGORY_PIPS_PER_LEVEL = {
  * @const {Object}
  */
 const SCORING_THRESHOLDS = {
-    YAHTZEE_REQUIRED: 5,        // Five of a Kind (Zeus)
-    HEUREKA_REQUIRED: 6,        // Heureka — unlocks the tile when rolled
+    YAHTZEE_REQUIRED: 5,        // Five of a Kind (Hades)
+    HEUREKA_REQUIRED: 6,        // Heureka (Zeus) — unlocks the tile when rolled
     FOUR_OF_KIND_REQUIRED: 4,
     THREE_OF_KIND_REQUIRED: 3,
     FULL_HOUSE_THREE: 3,

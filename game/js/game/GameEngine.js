@@ -106,11 +106,11 @@ class GameEngine {
             
             // Worship system (gods from GOD_TO_CATEGORY / GOD_METADATA)
             worshipLevels: {
-                'Artemis': 0, 'Aphrodite': 0, 'Morpheus': 0, 'Hera': 0,
-                'Athena': 0, 'Heracles': 0, 'Hephaestus': 0, 'Ares': 0,
-                'Dionysus': 0, 'Hermes': 0, 'Apollo': 0, 'Zeus': 0, 'Nyx': 0,
-                'The Pleiades': 0, 'Poseidon': 0, 'The Nine Muses': 0,
-                "Pandora's Box": 0
+                'Artemis': 0, 'Aphrodite': 0, 'Hecate': 0, 'Hera': 0,
+                'Athena': 0, 'Demeter': 0, 'Hephaestus': 0, 'Ares': 0,
+                'Dionysus': 0, 'Hermes': 0, 'Apollo': 0, 'Iris': 0, 'Hades': 0,
+                'Zeus': 0, 'Nyx': 0, 'The Pleiades': 0, 'Poseidon': 0,
+                'The Nine Muses': 0, "Pandora's Box": 0
             },
             
             tempPips: 0,

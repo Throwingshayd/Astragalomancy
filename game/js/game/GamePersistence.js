@@ -3,11 +3,43 @@
 
 const GamePersistence = {
     DEFAULT_WORSHIP_LEVELS: {
-        'Artemis': 0, 'Aphrodite': 0, 'Morpheus': 0, 'Hera': 0,
-        'Athena': 0, 'Heracles': 0, 'Hephaestus': 0, 'Ares': 0,
-        'Dionysus': 0, 'Hermes': 0, 'Apollo': 0, 'Zeus': 0, 'Nyx': 0,
+        'Artemis': 0, 'Aphrodite': 0, 'Hecate': 0, 'Hera': 0,
+        'Athena': 0, 'Demeter': 0, 'Hephaestus': 0, 'Ares': 0,
+        'Dionysus': 0, 'Hermes': 0, 'Apollo': 0, 'Iris': 0, 'Hades': 0,
+        'Zeus': 0, 'Nyx': 0,
         'The Pleiades': 0, 'Poseidon': 0, 'The Nine Muses': 0,
         "Pandora's Box": 0
+    },
+
+    /** Legacy pantheon / blessing ids from older saves. */
+    LEGACY_WORSHIP_GODS: {
+        Morpheus: 'Hecate',
+        Heracles: 'Demeter',
+    },
+
+    LEGACY_WORSHIP_CARD_IDS: {
+        worship_morpheus: 'worship_hecate',
+        worship_heracles: 'worship_demeter',
+        worship_persephone: 'worship_aphrodite',
+    },
+
+    migrateWorshipLevels(incoming) {
+        const out = { ...incoming };
+        for (const [from, to] of Object.entries(this.LEGACY_WORSHIP_GODS)) {
+            if (out[from] != null) {
+                out[to] = Math.max(out[to] || 0, out[from] || 0);
+                delete out[from];
+            }
+        }
+        return out;
+    },
+
+    migrateGodName(name) {
+        return this.LEGACY_WORSHIP_GODS[name] || name;
+    },
+
+    migrateWorshipCardId(id) {
+        return this.LEGACY_WORSHIP_CARD_IDS[id] || id;
     },
 
     serialize(state) {
@@ -101,9 +133,17 @@ const GamePersistence = {
 
         const defaultWorship = this.DEFAULT_WORSHIP_LEVELS;
         const incomingWorship = state.worshipLevels && typeof state.worshipLevels === 'object'
-            ? { ...state.worshipLevels }
+            ? this.migrateWorshipLevels(state.worshipLevels)
             : {};
         state.worshipLevels = { ...defaultWorship, ...incomingWorship };
+
+        if (state.categoryGodBinding && typeof state.categoryGodBinding === 'object') {
+            const rebound = {};
+            for (const [slot, god] of Object.entries(state.categoryGodBinding)) {
+                rebound[slot] = this.migrateGodName(god);
+            }
+            state.categoryGodBinding = rebound;
+        }
 
         if (!state.libationPours || typeof state.libationPours !== 'object') state.libationPours = {};
 
@@ -195,18 +235,19 @@ const GamePersistence = {
         state.consumables = Array.isArray(state.consumables) ? state.consumables : [];
         state.consumables = state.consumables.map((saved) => {
             if (!saved || !saved.id) return null;
+            const resolvedId = this.migrateWorshipCardId(saved.id);
             const type = saved.type || 'libation';
             let data = (type === 'worship' && CardData?.worship)
-                ? CardData.worship.find(c => c.id === saved.id)
-                : (CardData?.libations ? CardData.libations.find(c => c.id === saved.id) : null);
-            if (!data && CardData?.worship) data = CardData.worship.find(c => c.id === saved.id);
+                ? CardData.worship.find(c => c.id === resolvedId)
+                : (CardData?.libations ? CardData.libations.find(c => c.id === resolvedId) : null);
+            if (!data && CardData?.worship) data = CardData.worship.find(c => c.id === resolvedId);
             if (!data) {
                 Logger.warn(`Rehydrate: consumable "${saved.id}" not found`);
                 return null;
             }
-            const isWorship = CardData.worship?.some(w => w.id === saved.id);
+            const isWorship = CardData.worship?.some(w => w.id === resolvedId);
             const card = isWorship ? new WorshipCard(data) : new LibationCard(data);
-            if (typeof card.fromJSON === 'function') card.fromJSON(saved);
+            if (typeof card.fromJSON === 'function') card.fromJSON({ ...saved, id: resolvedId });
             return card;
         }).filter(Boolean);
 
