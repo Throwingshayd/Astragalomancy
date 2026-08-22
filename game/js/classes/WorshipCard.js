@@ -41,13 +41,13 @@ class WorshipCard extends Card {
     }
 
     // Apply the worship effect
-    applyWorship(gameState) {
+    applyWorship(gameState, game = null) {
         if (typeof BlindDirector !== 'undefined' && BlindDirector.blocksWorship(gameState)) return false;
         if (!this.canUse()) return false;
 
         switch (this.worshipType) {
             case 'level':
-                this.levelUpWorship(gameState);
+                this.levelUpWorship(gameState, game);
                 break;
             case 'bonus':
                 this.applyBonusEffect(gameState);
@@ -63,7 +63,7 @@ class WorshipCard extends Card {
             if (heretic) {
                 gameState.hereticStacks = 0;
                 heretic.dynamicStats = { ...heretic.dynamicStats, pips: 0, other: 'Reset' };
-                window.game?.showMessage?.("The Heretic: Stacks reset by worship!");
+                game?.showMessage?.("The Heretic: Stacks reset by worship!");
             }
         }
         
@@ -72,7 +72,7 @@ class WorshipCard extends Card {
         
         // Cycle of Seasons: spread worship to another god
         const hasCycle = gameState.boons?.some(j => j.id === 'cycle_of_seasons');
-        if (hasCycle) {
+        if (hasCycle && game?.prng) {
             // Build list of available gods (excluding current and locked categories)
             const baseGods = ['Artemis', 'Aphrodite', 'Morpheus', 'Hera', 'Athena', 
                              'Heracles', 'Hephaestus', 'Ares', 'Dionysus', 'Hermes', 
@@ -87,11 +87,10 @@ class WorshipCard extends Card {
             
             // Pick different god - use seeded RNG
             const otherGods = availableGods.filter(g => g !== this.god);
-            const engine = window.game;
-            const randomGod = otherGods[Math.floor(engine.prng.random() * otherGods.length)];
+            const randomGod = otherGods[Math.floor(game.prng.random() * otherGods.length)];
             
             gameState.worshipLevels[randomGod] = (gameState.worshipLevels[randomGod] || 0) + 1;
-            window.game?.showMessage?.(`🌸 Cycle of Seasons: ${randomGod} also gains +1 worship!`, 3000);
+            game.showMessage?.(`🌸 Cycle of Seasons: ${randomGod} also gains +1 worship!`, 3000);
         }
 
         this.use();
@@ -99,13 +98,13 @@ class WorshipCard extends Card {
     }
 
     // Standard level up worship
-    levelUpWorship(gameState) {
+    levelUpWorship(gameState, game = null) {
         gameState.worshipLevels[this.god] = (gameState.worshipLevels[this.god] || 0) + this.worshipValue;
         
         // Apply any additional effects based on specific cards
         this.applyCardSpecificEffects(gameState);
         
-        window.game?.showMessage?.(`${this.god} worship increased to level ${gameState.worshipLevels[this.god]}!`);
+        game?.showMessage?.(`${this.god} worship increased to level ${gameState.worshipLevels[this.god]}!`);
     }
 
     // Apply bonus effects (temporary boosts)

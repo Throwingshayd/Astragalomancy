@@ -52,21 +52,21 @@ const PlayAreaRenderer = {
     },
 
     updateConsumableUI(dom, gameState, gameEngine, uiManager) {
-        this.renderConsumableRail(dom.worshipSlots, gameState, 'worship', uiManager);
-        this.renderConsumableRail(dom.libationSlots, gameState, 'libation', uiManager);
+        this.renderConsumableRail(dom.worshipSlots, gameState, 'worship', uiManager, gameEngine);
+        this.renderConsumableRail(dom.libationSlots, gameState, 'libation', uiManager, gameEngine);
     },
 
     /**
      * Blessings and libations live in one `state.consumables` array but hold
      * separate rails, so each container draws only its own kind.
      */
-    renderConsumableRail(container, gameState, kind, uiManager) {
+    renderConsumableRail(container, gameState, kind, uiManager, gameEngine) {
         if (!container) { Logger.warn(`${kind} slots element not found`); return; }
         container.innerHTML = '';
         ConsumableSlots.held(gameState, kind).forEach((card) => {
             uiManager.appendInventoryCard(card, container, {});
         });
-        uiManager.bindConsumableHorizonDrag(container);
+        uiManager.bindConsumableHorizonDrag(container, gameEngine);
     }
 };
 

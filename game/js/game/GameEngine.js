@@ -760,13 +760,10 @@ class GameEngine {
         
         if (isValid) {
             finalScore = typeof SafeMath !== 'undefined'
-                ? SafeMath.safeMultiply(pips, favour)
-                : Math.floor(pips * favour);
+                ? SafeMath.safeScore(pips, favour)
+                : Math.floor(pips * favour / 100);
             
-            // BALATRO-STYLE ANIMATED SCORING
-            // Show pips × favour breakdown, count up, particles, enhanced shake
             this.animateScoreUpdate(category, pips, favour, finalScore, targetCategory, () => {
-                // Callback after animation completes
                 this.finalizeScoring(category, pips, favour, finalScore, targetCategory);
             });
             
@@ -1283,7 +1280,13 @@ class GameEngine {
             }
         }
 
+        const parchmentFortunes = (isActualScoring && isValid)
+            ? DieScoreContribution.resolveParchment(this.state.dice, this.prng)
+            : [];
+        parchmentFortunes.forEach((f) => { favour += f.favour; });
+
         if (isActualScoring && isValid) {
+            this.lastParchmentFortunes = parchmentFortunes;
             this.state.dice.forEach((die, index) => {
                 const currentFaceData = die.faces?.[die.currentFace];
                 if (currentFaceData?.enhancements?.size > 0) {
@@ -1293,26 +1296,13 @@ class GameEngine {
                     this.updateGoldAnimated(ENHANCEMENT_BONUSES.GOLD_COINS, 'gold enhancement');
                     this.showMessage?.('Gold enhancement: +1 Gold!');
                 }
-                if (die.hasEnhancementForCurrentFace?.('parchment')) {
-                    const parchmentRoll = this.prng.random();
-                    if (parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE) {
-                        this.updateGoldAnimated(ENHANCEMENT_BONUSES.PARCHMENT_GOLD, 'parchment');
-                        this.showMessage?.(`Parchment fortune: +${ENHANCEMENT_BONUSES.PARCHMENT_GOLD} Gold!`);
-                    }
-                }
             });
-        }
-
-        if (isValid) {
-            this.state.dice.forEach((die) => {
-                if (die.hasEnhancementForCurrentFace?.('parchment')) {
-                    const parchmentRoll = this.prng.random();
-                    if (parchmentRoll >= ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE
-                        && parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE + ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
-                        favour += ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR;
-                        if (isActualScoring) this.showMessage?.('Parchment blessing: +100 Favour!');
-                    }
+            parchmentFortunes.forEach((f) => {
+                if (f.gold) {
+                    this.updateGoldAnimated(f.gold, 'parchment');
+                    this.showMessage?.(`Parchment fortune: +${f.gold} Gold!`);
                 }
+                if (f.favour) this.showMessage?.('Parchment blessing: +1 Favour!');
             });
         }
 
@@ -1934,17 +1924,17 @@ class GameEngine {
     formatFavour(favour) {
         return (this.numberFormat
             ? this.numberFormat.favour(favour, { prefix: false })
-            : String(Number(favour) || 100));
+            : String((Number(favour) || 100) / 100));
     }
 
     /**
      * Format favour contribution for display – shows actual value (0.5, 1.5, etc.).
-     * Used when showing what a boon added (e.g. "+50 Favour" in popup or live score).
-     * @param {number} favour - Favour contribution value
-     * @returns {string} Formatted favour string (preserves decimals)
+     * Used when showing what a boon added (e.g. "+0.5 Favour" in popup or live score).
+     * @param {number} favour - Engine Favour (hundredths)
+     * @returns {string} Player-facing Favour (naked = 1)
      */
     formatFavourContrib(favour) {
-        return (this.numberFormat ? this.numberFormat.favourContrib(favour) : String(Number(favour) || 0));
+        return (this.numberFormat ? this.numberFormat.favourContrib(favour) : String((Number(favour) || 0) / 100));
     }
 
     /**

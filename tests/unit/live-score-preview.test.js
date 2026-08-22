@@ -125,20 +125,18 @@ describe('Live score preview hover', () => {
 
     it('InfoBarRenderer keeps offering hover instead of trial remaining', () => {
         const el = makeNode();
-        const prevGame = globalThis.window.game;
-        globalThis.window.game = {
+        const engine = {
             ensureLiveScore: () => ({
                 entryHintMessage: () => null,
                 hoverOfferingMessage: () => 'Twos offered to Dionysus',
             }),
         };
-        globalThis.window.NumberFormat = { display: String };
         globalThis.InfoBarRenderer.updateTrialBanner(
             { trialDisplay: el },
             { ante: 4, totalScore: 550, scoreThreshold: 600 },
+            engine,
         );
         expect(el.textContent).toBe('Twos offered to Dionysus');
-        globalThis.window.game = prevGame;
     });
 
     it('contribution chip slides in, then absorbs into the number instead of popping out', () => {

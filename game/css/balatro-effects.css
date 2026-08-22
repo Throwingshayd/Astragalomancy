@@ -37,11 +37,7 @@
 .die.cw-tex-gold::after,
 .die.cw-tex-parchment::after,
 .die.cw-tex-pearl::after,
-.die.cw-tex-mirror::after,
-.die.cw-tex-lucky::after,
-.die.cw-tex-cursed::after,
-.die.cw-tex-divine::after,
-.die.cw-tex-chaos::after {
+.die.cw-tex-mirror::after {
     content: '';
     position: absolute;
     inset: 0;

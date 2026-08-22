@@ -145,36 +145,12 @@ const ScoringEngine = {
         }
 
         if (isValid && state.dice) {
-            const upperSection = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes', 'Sevens', 'Eights', 'Nines'];
             state.dice.forEach((die, i) => {
-                if (die && die.hasEnhancementForCurrentFace) {
-                    if (die.hasEnhancementForCurrentFace('iron')) {
-                        pips += (typeof ENHANCEMENT_BONUSES !== 'undefined' ? ENHANCEMENT_BONUSES.IRON_PIPS : 5);
-                    }
-                    if (die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) {
-                        pips += die.motherOfPearlBonus;
-                    }
-                    // Mirror (Balatro Red Seal): die scores twice, including enhancements
-                    if (die.hasEnhancementForCurrentFace('mirror')) {
-                        const faceVal = faces[i] || 0;
-                        const contributes = !upperSection.includes(category) ||
-                            (typeof CATEGORY_TO_NUMBER !== 'undefined' && faceVal === CATEGORY_TO_NUMBER[category]);
-                        if (contributes) {
-                            pips += faceVal;
-                            if (die.hasEnhancementForCurrentFace('iron')) {
-                                pips += (typeof ENHANCEMENT_BONUSES !== 'undefined' ? ENHANCEMENT_BONUSES.IRON_PIPS : 5);
-                            }
-                            if (die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) {
-                                pips += die.motherOfPearlBonus;
-                            }
-                        }
-                    }
-                    // Wild: getEffectiveFace() already returns wildValue, so basePips includes it - no extra pips
-                }
+                pips += DieScoreContribution.scoredEnhancementPips(die, faces[i] || 0, category);
             });
         }
 
-        // Single pipeline: finalScore = pips × favour. Boons add pips, add Favour, or multiply Favour.
+        // Score = pips × (favour/100). Boons add pips, add Favour, or multiply Favour.
         let eventData = { category, pips, favour, isValid };
         const boons = state.boons || [];
 
@@ -210,8 +186,8 @@ const ScoringEngine = {
         favour = clampFinite(favour, favourFloor, favourBase);
 
         const finalScore = typeof SafeMath !== 'undefined'
-            ? SafeMath.safeMultiply(pips, favour)
-            : Math.max(0, Math.min(Math.floor(pips * favour), MAX));
+            ? SafeMath.safeScore(pips, favour)
+            : Math.max(0, Math.min(Math.floor(pips * favour / 100), MAX));
 
         return {
             pips,

@@ -24,6 +24,7 @@ describe('The Sixth Astragalus — extra die whose faces start as 1s', () => {
         // eslint-disable-next-line no-eval
         eval(dieSrc);
         loadScript('game/js/game/ArtifactDice.js', 'ArtifactDice');
+        loadScript('game/js/engine/DieScoreContribution.js', 'DieScoreContribution');
         loadScript('game/js/engine/ScoringEngine.js', 'ScoringEngine');
     });
 

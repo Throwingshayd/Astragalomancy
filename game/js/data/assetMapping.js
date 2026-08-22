@@ -174,13 +174,12 @@ const AssetMapping = {
     // Die Face Enhancement Assets
     // NOTE: Enhancement visuals are now handled by CSS tinting instead of image assets
     enhancements: {
-        'parchment': null, // Now handled by CSS: .enh-parchment
-        'iron': null, // Now handled by CSS: .enh-iron (1.5x favour if not selected)
-        'gold': null, // Now handled by CSS: .enh-gold
-        'mother_of_pearl': null, // Now handled by CSS: .enh-mother_of_pearl
-        'mirror': null, // Now handled by CSS: .enh-mirror
+        'parchment': null, // CSS: .cw-tex-parchment
+        'iron': null, // CSS: .cw-tex-clockwork
+        'gold': null, // CSS: .cw-tex-gold
+        'mother_of_pearl': null, // CSS: .cw-tex-pearl
+        'mirror': null, // CSS: .cw-tex-mirror
         'wild': null, // Tooltip only — no die-face tint
-        'cursed': null,
         'sevens': null, // Spritesheet frame 7
         'eights': null, // Spritesheet frame 8
         'nines': null // Spritesheet frame 9

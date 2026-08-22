@@ -198,7 +198,8 @@ class UIManager {
         if (!this.isInitialized) return;
         
         if (!this.dom.diceContainer || !this.dom.rollButton) return;
-        
+        this._gameEngine = gameEngine;
+
         this.updateInfoUI(gameState, gameEngine);
         this.updateDiceUI(gameState, gameEngine);
         this.updateScorecardUI(gameState, gameEngine);
@@ -226,8 +227,8 @@ class UIManager {
         btn.disabled = !canDepart;
     }
 
-    updateInfoUI(gameState, _gameEngine) {
-        InfoBarRenderer.updateInfoUI(this.dom, gameState);
+    updateInfoUI(gameState, gameEngine) {
+        InfoBarRenderer.updateInfoUI(this.dom, gameState, gameEngine);
     }
 
     updateBlindUI(gameState, gameEngine) {
@@ -270,9 +271,9 @@ class UIManager {
         }
     }
 
-    bindConsumableHorizonDrag(container) {
+    bindConsumableHorizonDrag(container, gameEngine) {
         if (typeof ConsumableDrag !== 'undefined') {
-            ConsumableDrag.bind(container, this);
+            ConsumableDrag.bind(container, this, gameEngine);
         }
     }
 
@@ -414,7 +415,7 @@ class UIManager {
             }
             message = success ? `Libation activated: ${card.name}!` : "Failed to activate libation.";
         } else if (card instanceof WorshipCard) {
-            success = card.applyWorship(gameState);
+            success = card.applyWorship(gameState, gameEngine);
             message = success ? `Worship applied: ${card.name}!` : 'Failed to apply worship.';
         } else {
             success = card.use ? card.use() : false;

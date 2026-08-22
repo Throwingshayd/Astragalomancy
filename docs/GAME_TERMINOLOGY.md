@@ -52,14 +52,14 @@ Handled in `game/js/utils/dataManager.js` (collection) and `game/js/game/GameEng
 
 ## Score: Pips × Favour
 
-Final score is **Pips × Favour** (Balatro chips × mult). There is no third hidden multiplier.
+Final score is **Pips × player Favour**. Engine Favour is stored as hundredths (100 = ×1) so worship +25 is +0.25 without a decimal multiplier. There is no third hidden multiplier.
 
 | Player sees | Engine does |
 |-------------|-------------|
 | **+N Pips** | `result.pips += N` |
-| **+N Favour** | `result.favour += N` (adds to the 100-based multiplier) |
+| **+N Favour** | `result.favour += N × 100` (adds to the hundredths multiplier) |
 | **×N Favour** | `result.favour *= N` (multiplies the multiplier) |
 
-Favour starts at **100** (naked hand). Worship is **+25 Favour** per level, so one Offer reads as **125**. Score is still Pips × Favour — a 20-pip Chance at 125 Favour is 2,500.
+Favour starts at **1** (naked hand). Worship is **+0.25 Favour** per level, so one Offer reads as **×1.25**. Score is Pips × that number — a 20-pip Chance at 1.25 Favour is 25.
 
-The HUD Favour total is the live multiplier (`100`, `125`, `300`). Additive boons show **+N**; multiplicative boons show **×N**. Never write `+×Favour` or `favourMult` in copy or scoring.
+The HUD Favour total is the live multiplier (`1`, `1.25`, `3`). Additive boons show **+N**; multiplicative boons show **×N**. Never write `+×Favour` or `favourMult` in copy or scoring.

@@ -26,8 +26,8 @@ const GAME_BALANCE = {
     // Progression
     MAX_TURNS_PER_ANTE: 13,
     STARTING_ANTE: 1,
-    STARTING_SCORE_THRESHOLD: 20000,
-    THRESHOLD_INCREASE_PER_ANTE: 10000,
+    STARTING_SCORE_THRESHOLD: 200,
+    THRESHOLD_INCREASE_PER_ANTE: 100,
     
     // Economy - Balatro-inspired
     SHOP_REROLL_COST: 4,  // Increased from 2 - rerolls are now expensive!
@@ -104,7 +104,7 @@ const RARITY_WEIGHTS = {
  * @const {Object}
  */
 const ENHANCEMENT_CHANCES = {
-    PARCHMENT_FAVOUR_CHANCE: 0.25,   // 25% for +100 Favour
+    PARCHMENT_FAVOUR_CHANCE: 0.25,   // 25% for +1 Favour
     PARCHMENT_GOLD_CHANCE: 0.15      // 15% for +5 gold
 };
 

@@ -4,9 +4,12 @@
  */
 
 const ConsumableDrag = {
-    bind(container, ui) {
-        if (!container || container._consumableHorizonDragBound) return;
+    bind(container, ui, gameEngine) {
+        if (!container) return;
+        if (gameEngine) container._gameEngine = gameEngine;
+        if (container._consumableHorizonDragBound) return;
         container._consumableHorizonDragBound = true;
+        const currentEngine = () => container._gameEngine || ui._gameEngine;
         const DRAG_THRESHOLD = 16;
         const getZones = () => ({
             worship: document.getElementById('consumableZoneWorship'),
@@ -136,9 +139,9 @@ const ConsumableDrag = {
             st.main?.classList.add('consumable-drag-active');
             if (isWorship) {
                 st.main?.classList.add('drag-type-worship');
-                if (!worshipBlockedNow(window.game?.state)) {
+                if (!worshipBlockedNow(currentEngine()?.state)) {
                     if (card.devotionAscended) {
-                        markAllPantheonTargets(window.game?.state);
+                        markAllPantheonTargets(currentEngine()?.state);
                     } else {
                         markWorshipTargetChips(getWorshipCategory(card));
                     }
@@ -368,7 +371,7 @@ const ConsumableDrag = {
                     els.libation.classList.remove('zone-hot');
                 }
                 if (live.isDieEnhancerLibation) {
-                    const gameState = window.game?.state;
+                    const gameState = currentEngine()?.state;
                     const dieEl = findDieUnderPointer(live.pendingX, live.pendingY, live.cardEl);
                     const overValidDie = !!(
                         dieEl
@@ -390,7 +393,7 @@ const ConsumableDrag = {
                 const isWorshipCard = typeof WorshipCard !== 'undefined'
                     && live.card instanceof WorshipCard;
                 if (isWorshipCard) {
-                    const gameState = window.game?.state;
+                    const gameState = currentEngine()?.state;
                     const chipEl = findWorshipChipUnderPointer(
                         live.pendingX, live.pendingY, live.card, gameState, live.cardEl
                     );
@@ -418,7 +421,7 @@ const ConsumableDrag = {
             if (!cardEl || !container.contains(cardEl)) return;
             const id = cardEl.dataset.id;
             if (!id) return;
-            const game = window.game;
+            const game = currentEngine();
             const gameState = game?.state;
             if (!game || !gameState) return;
             const card = findCardModel(id, gameState);
@@ -449,7 +452,7 @@ const ConsumableDrag = {
                 st.rafId = 0;
             }
             container._consumableDrag = null;
-            const game = window.game;
+            const game = currentEngine();
             const gameState = game?.state;
             const gameEngine = game;
             if (!st.dragging) {

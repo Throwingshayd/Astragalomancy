@@ -281,40 +281,14 @@ class ScoringAnimation {
      */
     getDiceContributions(category) {
         const contributions = [];
-        const num = CATEGORY_TO_NUMBER[category];
-        
         this.engine.state.dice.forEach((die, index) => {
-            const face = die.getEffectiveFace();
-            let totalPips = 0;
-            
-            // For upper sanctum, only count matching dice
-            if (num && face === num) {
-                totalPips = face;
-            }
-            // For lower sanctum, count all dice
-            else if (!num && face > 0) {
-                totalPips = face;
-            }
-            
-            if (totalPips > 0) {
-                // Add iron bonus to total (combined into single popup)
-                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('iron')) {
-                    totalPips += ENHANCEMENT_BONUSES.IRON_PIPS;
-                }
-                // Add Mother of Pearl bonus to total
-                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus) {
-                    totalPips += die.motherOfPearlBonus;
-                }
-                
-                const contrib = { pips: totalPips, dieIndex: index, source: 'die' };
-                // Gold enhancement: show +1G on die when scored
-                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('gold')) {
-                    contrib.gold = ENHANCEMENT_BONUSES.GOLD_COINS;
-                }
+            const preview = DieScoreContribution.preview(die, category);
+            if (preview.pips > 0 || preview.gold) {
+                const contrib = { pips: preview.pips, dieIndex: index, source: 'die' };
+                if (preview.gold) contrib.gold = preview.gold;
                 contributions.push(contrib);
             }
         });
-        
         return contributions;
     }
     
@@ -329,25 +303,20 @@ class ScoringAnimation {
     getBoonContributions(category, basePips, baseFavour) {
         const contributions = [];
         
-        // Add enhancement favour bonuses first (from parchment)
-        this.engine.state.dice.forEach((die, index) => {
-            if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('parchment')) {
-                const parchmentRoll = this.engine.prng.random();
-                if (parchmentRoll >= ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE && 
-                    parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE + ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
-                    // 25% chance for +1 favour
-                    contributions.push({
-                        boonId: `parchment_${index}`,
-                        boonName: 'Parchment',
-                        pips: 0,
-                        favour: ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR,
-                        source: 'enhancement',
-                        dieIndex: index,
-                        dieIndices: [index],
-                        favourLabel: '+100 Favour'
-                    });
-                }
-            }
+        // Add parchment Favour from the score we already resolved (do not roll again)
+        const parchmentFortunes = this.engine.lastParchmentFortunes || [];
+        parchmentFortunes.forEach((f) => {
+            if (!f.favour) return;
+            contributions.push({
+                boonId: `parchment_${f.dieIndex}`,
+                boonName: 'Parchment',
+                pips: 0,
+                favour: f.favour,
+                source: 'enhancement',
+                dieIndex: f.dieIndex,
+                dieIndices: [f.dieIndex],
+                favourLabel: '+1 Favour',
+            });
         });
         
         // Simulate scoring with each boon individually to see contribution
@@ -372,7 +341,7 @@ class ScoringAnimation {
                 // Pegasus Flight: +0.5 Favour popup on dice that contributed
                 if (boon.id === 'pegasus_flight' && resultData._pegasusDieIndices?.length) {
                     contrib.dieIndices = resultData._pegasusDieIndices;
-                    contrib.favourLabel = '+50 Favour';
+                    contrib.favourLabel = '+0.5 Favour';
                 }
                 if (boon.id === 'carillon_of_the_muses' && baseFavour > 0
                     && Math.abs((resultData.favour / baseFavour) - 2.5) < 0.01) {

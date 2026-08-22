@@ -295,7 +295,7 @@ const BOON_EFFECTS = {
     
     JOURNEY_OF_PERSEUS: {
         PIPS_PER_100_SCORE: 10,
-        SCORE_THRESHOLD: 10000
+        SCORE_THRESHOLD: 100
     }
 };
 

@@ -40,10 +40,11 @@ function offerLine(god, category) {
         return `Offer on ${row}: +1 sanctum bonus level`;
     }
     const pips = CATEGORY_PIPS_PER_LEVEL[category] || 0;
+    const favShown = WORSHIP_FAVOUR_PER_LEVEL / 100;
     if (pips > 0) {
-        return `Offer on ${row}: +1 level (+${pips} pips & +${WORSHIP_FAVOUR_PER_LEVEL} Favour per level)`;
+        return `Offer on ${row}: +1 level (+${pips} pips & +${favShown} Favour per level)`;
     }
-    return `Offer on ${row}: +1 level (+${WORSHIP_FAVOUR_PER_LEVEL} Favour per level)`;
+    return `Offer on ${row}: +1 level (+${favShown} Favour per level)`;
 }
 
 function heldLine(god, category) {

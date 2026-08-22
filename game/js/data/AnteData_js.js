@@ -1,21 +1,21 @@
 /* exported AnteData, getAnteData */
 // AnteData.js - Trial names and the score curve.
 // Boss blinds are NOT here: BlindDirector rolls one per trial from its own catalog.
-// Favour is 100-based (Pips × Favour), so the old 200-base curve is ×100.
+// Score is pips × (favour/100), so a 20-pip naked hand is 20. Curve is the original 200-base.
 
 const AnteData = [
-    { name: "The Fool", scoreThreshold: 20000 },
-    { name: "The Magician", scoreThreshold: 30000 },
-    { name: "The High Priestess", scoreThreshold: 40000 },
-    { name: "The Empress", scoreThreshold: 60000 },
-    { name: "The Emperor", scoreThreshold: 83000 },
-    { name: "The Hierophant", scoreThreshold: 113000 },
-    { name: "The Chariot", scoreThreshold: 153000 },
-    { name: "Strength", scoreThreshold: 207000 },
-    { name: "The Hermit", scoreThreshold: 280000 },
-    { name: "Wheel of Fortune", scoreThreshold: 380000 },
-    { name: "Justice", scoreThreshold: 513000 },
-    { name: "The Hanged Man", scoreThreshold: 700000 }
+    { name: "The Fool", scoreThreshold: 200 },
+    { name: "The Magician", scoreThreshold: 300 },
+    { name: "The High Priestess", scoreThreshold: 400 },
+    { name: "The Empress", scoreThreshold: 600 },
+    { name: "The Emperor", scoreThreshold: 830 },
+    { name: "The Hierophant", scoreThreshold: 1130 },
+    { name: "The Chariot", scoreThreshold: 1530 },
+    { name: "Strength", scoreThreshold: 2070 },
+    { name: "The Hermit", scoreThreshold: 2800 },
+    { name: "Wheel of Fortune", scoreThreshold: 3800 },
+    { name: "Justice", scoreThreshold: 5130 },
+    { name: "The Hanged Man", scoreThreshold: 7000 }
 ];
 
 // Helper function to get ante data by index

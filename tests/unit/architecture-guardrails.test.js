@@ -13,9 +13,9 @@ import { describe, expect, it } from 'vitest';
  * the same regression fail `npm test` instead of relying on anyone re-reading a doc.
  */
 const CEILINGS = {
-    // Ratcheted down 2026-08 when the artifact effect hub moved out to game/ArtifactEffects.js.
-    'game/js/game/GameEngine.js': { lines: 1960, windowRefs: 10 },
-    'game/js/classes/Boon.js': { lines: 1096, windowRefs: 16 },
+    // Ratcheted down 2026-08 when parchment fortune moved into DieScoreContribution.
+    'game/js/game/GameEngine.js': { lines: 1950, windowRefs: 10 },
+    'game/js/classes/Boon.js': { lines: 1048, windowRefs: 16 },
     // Ratcheted down 2026-08 with the sundial_plus free-reroll branch.
     'game/js/ui/ShopUI.js': { lines: 862, windowRefs: 7 },
     // Ratcheted down 2026-08 when tooltip body HTML moved out to ui/TooltipContent.js.

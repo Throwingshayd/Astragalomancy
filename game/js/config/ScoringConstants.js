@@ -30,8 +30,8 @@ const LOWER_SECTION_BONUSES = {
 };
 
 /**
- * Favour is a 100-based integer multiplier (Balatro Mult).
- * Score = Pips × Favour. Base 100 is a naked ×1.00; worship +25 is ×125.
+ * Favour is stored as hundredths so the engine stays on integers:
+ * 100 = player ×1, worship +25 = +0.25. Score = Pips × (Favour / 100).
  * +Favour adds; ×Favour multiplies. Never store a third favourMult layer.
  */
 const BASE_FAVOUR = 100;
@@ -85,7 +85,7 @@ const SCORING_THRESHOLDS = {
 const ENHANCEMENT_BONUSES = {
     IRON_PIPS: 5,           // Clockwork (formerly Iron) adds +5 pips when scored
     GOLD_COINS: 1,          // Gold adds +1 gold when scored
-    PARCHMENT_FAVOUR: 100,  // Parchment can add +100 Favour
+    PARCHMENT_FAVOUR: 100,  // Engine hundredths; player sees +1 Favour
     PARCHMENT_GOLD: 5,      // Parchment can add +5 gold (reduced from 15)
     // Wild and Mother of Pearl now work differently - no fixed bonuses
 };

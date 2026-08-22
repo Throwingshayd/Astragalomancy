@@ -135,7 +135,7 @@ const BlindDirector = {
         const curve = (typeof getAnteData === 'function'
             ? getAnteData(ante - 1)
             : (typeof AnteData !== 'undefined' ? AnteData[ante - 1] : null))
-            || { name: 'The Fool', scoreThreshold: 20000 };
+            || { name: 'The Fool', scoreThreshold: 200 };
         let blindId = 'none';
         if (this.blindsEnabled() && ante > 1) {
             blindId = this.isShowdownAnte(ante)

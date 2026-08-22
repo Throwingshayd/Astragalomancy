@@ -48,7 +48,7 @@ const ScorecardRenderer = {
     },
 
     updateScorecardUI(dom, gameState, gameEngine, uiManager) {
-        const engine = gameEngine || window.game;
+        const engine = gameEngine;
         const scorecardEl = document.getElementById('scorecard');
         if (engine?.state?.eucharistTargetingMode && scorecardEl) scorecardEl.classList.add('eucharist-targeting');
         else if (scorecardEl) scorecardEl.classList.remove('eucharist-targeting');
@@ -122,14 +122,14 @@ const ScorecardRenderer = {
             } else {
                 row.classList.remove('used', 'devotion-rescorable', 'pantheon-scored');
                 scoreDisplay.textContent = '';
-                if (gameState.hasRolled && window.game && (canRescore || !scored)) {
+                if (gameState.hasRolled && engine && (canRescore || !scored)) {
                     let showGreen;
                     if (highlightCache[category] !== undefined) showGreen = highlightCache[category];
                     else {
                         const evalCategory = typeof DevotionUtils !== 'undefined'
                             ? DevotionUtils.getEvalCategory(gameState, category)
                             : category;
-                        const { pips, favour, isValid } = window.game.calculateScore(category);
+                        const { pips, favour, isValid } = engine.calculateScore(category);
                         const hasPoints = isValid && (pips || 0) * (favour || 0) > 0;
                         const faceValue = typeof CATEGORY_TO_NUMBER !== 'undefined'
                             ? CATEGORY_TO_NUMBER[evalCategory]

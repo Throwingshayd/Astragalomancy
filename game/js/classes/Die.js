@@ -348,7 +348,8 @@ class Die {
 
     // Get enhancement description (Balatro-style: used in nested tooltips)
     getEnhancementDescription(enhancement) {
-        const def = window.EnhancementRegistry?.get?.(enhancement);
+        const reg = (typeof EnhancementRegistry !== 'undefined') ? EnhancementRegistry : null;
+        const def = reg?.get?.(enhancement);
         if (!def) return 'Unknown enhancement';
         return def.tooltipDesc || [def.oneLiner, def.triggerLine].filter(Boolean).join(' — ');
     }

@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "1.6.0"
+version = "0.8.0"
 description = "Astragalomancy — desktop shell"
 authors = ["Astragalomancy"]
 license = ""

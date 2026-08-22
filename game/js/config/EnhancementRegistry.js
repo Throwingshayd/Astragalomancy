@@ -42,9 +42,9 @@ const EnhancementRegistry = {
         parchment: {
             id: 'parchment',
             displayName: 'Parchment',
-            oneLiner: '25% +100 Favour • 15% +5 Gold',
+            oneLiner: '25% +1 Favour • 15% +5 Gold',
             triggerLine: 'When scored',
-            tooltipDesc: 'When scored: 25% +100 Favour, 15% +5 Gold.',
+            tooltipDesc: 'When scored: 25% +1 Favour, 15% +5 Gold.',
             ui: { chipColor: '#c9a36a', textureClass: 'cw-tex-parchment' }
         },
         iron: {
@@ -86,38 +86,6 @@ const EnhancementRegistry = {
             triggerLine: 'When scored',
             tooltipDesc: 'When scored: counts twice (incl. other effects).',
             ui: { chipColor: '#e9e7ff', textureClass: 'cw-tex-mirror' }
-        },
-        lucky: {
-            id: 'lucky',
-            displayName: 'Lucky',
-            oneLiner: '20% counts as 6',
-            triggerLine: 'When scored',
-            tooltipDesc: 'When scored: 20% chance to count as 6.',
-            ui: { chipColor: '#7dd3fc', textureClass: 'cw-tex-lucky' }
-        },
-        cursed: {
-            id: 'cursed',
-            displayName: 'Cursed',
-            oneLiner: '−1 value (min 1)',
-            triggerLine: 'When scored',
-            tooltipDesc: 'When scored: −1 value (minimum 1).',
-            ui: { chipColor: '#f87171', textureClass: 'cw-tex-cursed' }
-        },
-        divine: {
-            id: 'divine',
-            displayName: 'Divine',
-            oneLiner: 'Always 6',
-            triggerLine: 'When scored',
-            tooltipDesc: 'When scored: always counts as 6.',
-            ui: { chipColor: '#fde68a', textureClass: 'cw-tex-divine' }
-        },
-        chaos: {
-            id: 'chaos',
-            displayName: 'Chaos',
-            oneLiner: 'Random on roll',
-            triggerLine: 'On roll',
-            tooltipDesc: 'On roll: random shift between −1 and +2.',
-            ui: { chipColor: '#fb7185', textureClass: 'cw-tex-chaos' }
         },
     }
 };

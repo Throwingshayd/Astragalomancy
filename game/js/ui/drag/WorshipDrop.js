@@ -137,7 +137,7 @@ const WorshipDrop = {
         const category = chip.getAttribute('data-category');
         const applied = card.devotionAscended
             ? card.applyAscendedConsecration(state, category)
-            : card.applyWorship(state);
+            : card.applyWorship(state, engine);
         if (!applied) {
             engine?.showMessage?.('That offering was refused.');
             return true;

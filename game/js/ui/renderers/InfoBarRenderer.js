@@ -228,11 +228,11 @@ const InfoBarRenderer = {
         return base;
     },
 
-    updateTrialBanner(dom, gameState) {
+    updateTrialBanner(dom, gameState, gameEngine) {
         const el = dom.trialDisplay || document.getElementById('trialDisplay');
         if (!el) return;
         // Entry hover tutorial owns this slot until the first cast (ante 1 / turn 1).
-        const live = window.game?.ensureLiveScore?.();
+        const live = gameEngine?.ensureLiveScore?.();
         const hint = live?.entryHintMessage?.();
         const hover = live?.hoverOfferingMessage?.();
         const text = hint != null ? hint : (hover != null ? hover : this.formatTrialBanner(gameState));
@@ -240,9 +240,13 @@ const InfoBarRenderer = {
         el.setAttribute('aria-label', text);
     },
 
-    updateInfoUI(dom, gameState) {
-        const fmt = (n) => (window.NumberFormat ? window.NumberFormat.display(n) : String(n));
-        this.updateTrialBanner(dom, gameState);
+    updateInfoUI(dom, gameState, gameEngine) {
+        const fmt = (n) => {
+            const nf = gameEngine?.numberFormat
+                || ((typeof NumberFormat !== 'undefined') ? NumberFormat : null);
+            return nf ? nf.display(n) : String(n);
+        };
+        this.updateTrialBanner(dom, gameState, gameEngine);
         if (dom.rollsLeft) dom.rollsLeft.textContent = fmt(gameState.rollsLeft);
         if (dom.goldDisplay) dom.goldDisplay.textContent = fmt(gameState.gold);
         if (dom.totalScore) dom.totalScore.textContent = fmt(gameState.totalScore);

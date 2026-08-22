@@ -10,16 +10,18 @@ describe('NumberFormat favour / mult display', () => {
         eval(src);
     });
 
-    it('shows ×125 not ×1.25 for a worshipped row', () => {
-        expect(globalThis.NumberFormat.favour(125)).toBe('×125');
-        expect(globalThis.NumberFormat.favour(100 + 25)).toBe('×125');
+    it('shows ×1.25 not ×125 for a worshipped row', () => {
+        expect(globalThis.NumberFormat.favour(125)).toBe('×1.25');
+        expect(globalThis.NumberFormat.favour(100 + 25)).toBe('×1.25');
+        expect(globalThis.NumberFormat.favour(100)).toBe('×1');
     });
 
-    it('formats integer Favour with × prefix', () => {
-        expect(globalThis.NumberFormat.favour(200)).toBe('×200');
+    it('formats integer Favour with × prefix on the player scale', () => {
+        expect(globalThis.NumberFormat.favour(200)).toBe('×2');
     });
 
     it('contrib keeps additive Favour without ×', () => {
-        expect(globalThis.NumberFormat.favourContrib(25)).toBe('25');
+        expect(globalThis.NumberFormat.favourContrib(25)).toBe('0.25');
+        expect(globalThis.NumberFormat.favourContrib(200)).toBe('2');
     });
 });

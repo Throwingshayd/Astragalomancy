@@ -36,6 +36,20 @@ function safeMultiply(a, b) {
 }
 
 /**
+ * Final score: pips × (favour / 100). Engine Favour is hundredths so 100 = ×1
+ * and worship +25 is +0.25, without storing a decimal multiplier.
+ */
+function safeScore(pips, favour) {
+    const na = Number(pips);
+    const nb = Number(favour);
+    if (Number.isNaN(na) || Number.isNaN(nb)) return 0;
+    const scale = (typeof BASE_FAVOUR !== 'undefined' && BASE_FAVOUR) ? BASE_FAVOUR : 100;
+    const product = na * nb;
+    if (product >= MAX_SAFE_INT) return MAX_SAFE_INT;
+    return clampScore(product / scale);
+}
+
+/**
  * Safe add with overflow clamp
  * @param {number} a
  * @param {number} b
@@ -49,6 +63,6 @@ function safeAdd(a, b) {
     return clampScore(na + nb);
 }
 
-const SafeMath = { clampScore, safeMultiply, safeAdd, MAX_SAFE_INT };
+const SafeMath = { clampScore, safeMultiply, safeScore, safeAdd, MAX_SAFE_INT };
 
 if (typeof window !== 'undefined') window.SafeMath = SafeMath;

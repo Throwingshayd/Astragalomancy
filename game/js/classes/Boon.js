@@ -320,7 +320,7 @@ class Boon extends Card {
                     }
                     this.symmetryFavour += 50;
                     
-                    engine?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +50 Favour!`, 4000);
+                    engine?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +0.5 Favour!`, 4000);
                     Logger.info(`Symmetry triggered! Pattern: [${symmetryValues.join('-')}], Total favour: ${this.symmetryFavour}`);
                 }
                 break;
@@ -991,11 +991,11 @@ class Boon extends Card {
         
         if (this.id !== 'mt_olympus' && this.dynamicStats.favour > 0) {
             const f = this.dynamicStats.favour;
-            stats.push({ value: (window.NumberFormat ? `+${window.NumberFormat.favourContrib(f)}` : `+${f}`), type: 'favour' });
+            stats.push({ value: (window.NumberFormat ? `+${window.NumberFormat.favourContrib(f)}` : `+${f / 100}`), type: 'favour' });
         } else if (this.id !== 'mt_olympus') {
             const favour = this.getCurrentFavourValue(gameState);
             if (favour > 0) {
-                stats.push({ value: (window.NumberFormat ? `+${window.NumberFormat.favourContrib(favour)}` : `+${favour}`), type: 'favour' });
+                stats.push({ value: (window.NumberFormat ? `+${window.NumberFormat.favourContrib(favour)}` : `+${favour / 100}`), type: 'favour' });
             }
         }
         
@@ -1007,55 +1007,19 @@ class Boon extends Card {
             stats.push({ value: this.dynamicStats.other, type: 'other' });
         }
         
-        // Boon-specific dynamic displays (examples from your creative ideas)
+        // Boon-specific live stats
         switch (this.id) {
-            case 'mt_olympus':
-                // Live counter: current favour bonus from worship cards used this run
+            case 'mt_olympus': {
                 const worshipUsed = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
                 if (worshipUsed > 0) {
-                    stats.push({ value: `+${worshipUsed * 100} Favour`, type: 'favour' });
+                    stats.push({ value: `+${worshipUsed} Favour`, type: 'favour' });
                 }
                 break;
-            case 'experience_points':
-                // Example: "Experience Points" boon that gains pips per 100 score
-                const totalScore = Object.values(gameState.scorecard || {})
-                    .filter(v => typeof v === 'number')
-                    .reduce((sum, v) => sum + v, 0);
-                const gainedPips = Math.floor(totalScore / 100) * 10;
-                if (gainedPips > 0) {
-                    stats.push({ value: `+${gainedPips}`, type: 'pips' });
-                }
-                break;
-                
-            case 'lucky_sevens':
-                // Example: Shows count of 7s rolled this game
-                const sevenCount = this.timesTriggered || 0;
-                if (sevenCount > 0) {
-                    stats.push({ value: `${sevenCount} 7s`, type: 'other' });
-                }
-                break;
-                
-            case 'interest_accumulator':
-                // Example: Shows gold earned from interest
-                const goldEarned = this.dynamicStats.gold || 0;
-                if (goldEarned > 0) {
-                    stats.push({ value: `+${goldEarned}g`, type: 'gold' });
-                }
-                break;
-                
-            case 'charge_based_boon':
-                // Example: Shows charges (e.g., "3/5")
-                if (this.maxUses > 0) {
-                    stats.push({ value: `${this.usesLeft}/${this.maxUses}`, type: 'other' });
-                }
-                break;
-                
+            }
             case 'golden_touch':
-                // Interest rate: 1 per 3g (vs 1 per 5g base)
                 stats.push({ value: '1 per 3g', type: 'other' });
                 break;
-            case 'the_heretic':
-                // Live pip counter: current stacks (resets at ante end or when worship used)
+            case 'the_heretic': {
                 const hereticStacks = gameState.hereticStacks || 0;
                 if (hereticStacks > 0) {
                     stats.push({ value: `+${hereticStacks}`, type: 'pips' });
@@ -1064,17 +1028,14 @@ class Boon extends Card {
                     stats.push({ value: 'Reset', type: 'other' });
                 }
                 break;
-            case 'proteus_disguise':
-                // Blueprint-style: show boon to the left
+            }
+            case 'proteus_disguise': {
                 const boons = gameState.boons || [];
                 const idx = boons.findIndex(j => j === this);
                 const leftBoon = idx > 0 ? boons[idx - 1] : null;
-                if (leftBoon) {
-                    stats.push({ value: `→${leftBoon.name}`, type: 'other' });
-                } else {
-                    stats.push({ value: 'No target', type: 'other' });
-                }
+                stats.push({ value: leftBoon ? `→${leftBoon.name}` : 'No target', type: 'other' });
                 break;
+            }
         }
         
         return stats;

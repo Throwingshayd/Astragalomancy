@@ -30,7 +30,7 @@ globalThis.getAnteData = getAnteData;`;
     it('ante 1 is always No Blind and keeps the 200 threshold', () => {
         const plan = globalThis.BlindDirector.planAnte({ ante: 1 }, prng(0.9));
         expect(plan.blindId).toBe('none');
-        expect(plan.scoreThreshold).toBe(20000);
+        expect(plan.scoreThreshold).toBe(200);
         expect(plan.name).toBe('The Fool');
     });
 
@@ -38,7 +38,7 @@ globalThis.getAnteData = getAnteData;`;
         const plan = globalThis.BlindDirector.planAnte({ ante: 4, lastBlindId: 'none' }, prng(0));
         expect(plan.blindId).not.toBe('none');
         expect(globalThis.BlindDirector.playableIds).toContain(plan.blindId);
-        expect(plan.scoreThreshold).toBe(60000);
+        expect(plan.scoreThreshold).toBe(600);
         expect(plan.name).toBe('The Empress');
     });
 
@@ -60,14 +60,14 @@ globalThis.getAnteData = getAnteData;`;
         const roll = (penaltyIdx + 0.01) / ids.length;
         const plan = globalThis.BlindDirector.planAnte({ ante: 4, lastBlindId: 'none' }, prng(roll));
         expect(plan.blindId).toBe('score_penalty');
-        expect(plan.scoreThreshold).toBe(90000);
+        expect(plan.scoreThreshold).toBe(900);
     });
 
     it('DEBUG_FLAGS disables assignment to none', () => {
         globalThis.DEBUG_FLAGS.BOSS_BLINDS_DISABLED = true;
         const plan = globalThis.BlindDirector.planAnte({ ante: 8, lastBlindId: 'none' }, prng(0.5));
         expect(plan.blindId).toBe('none');
-        expect(plan.scoreThreshold).toBe(207000);
+        expect(plan.scoreThreshold).toBe(2070);
         globalThis.DEBUG_FLAGS.BOSS_BLINDS_DISABLED = false;
     });
 
@@ -152,7 +152,7 @@ globalThis.getAnteData = getAnteData;`;
         const finale = globalThis.BlindDirector.planAnte({ ante: 12, lastBlindId: 'hook_yank' }, prng(0));
         expect(finale.blindId).toBe('the_eye');
         expect(finale.blindName).toBe('The Eye');
-        expect(finale.scoreThreshold).toBe(700000);
+        expect(finale.scoreThreshold).toBe(7000);
         const mid = globalThis.BlindDirector.planAnte({ ante: 4, lastBlindId: 'none' }, prng(0));
         expect(mid.blindId).not.toBe('the_eye');
 

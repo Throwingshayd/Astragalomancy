@@ -51,6 +51,7 @@ describe('ScoringEngine.runPipeline stays finite under runaway boons', () => {
         };
         globalThis.GOD_TO_CATEGORY = {};
         loadScript('game/js/engine/SafeMath.js', 'SafeMath');
+        loadScript('game/js/engine/DieScoreContribution.js', 'DieScoreContribution');
         loadScript('game/js/engine/HandEvaluator.js', 'HandEvaluator');
         loadScript('game/js/engine/ScoringEngine.js', 'ScoringEngine');
     });
@@ -70,11 +71,11 @@ describe('ScoringEngine.runPipeline stays finite under runaway boons', () => {
     const run = (boons) => globalThis.ScoringEngine.runPipeline('Chance', baseState(boons));
     const MAX = () => globalThis.SafeMath.MAX_SAFE_INT;
 
-    it('scores a clean hand as pips × favour', () => {
+    it('scores a clean hand as pips × (favour/100)', () => {
         const r = run([]);
         expect(r.pips).toBe(20);
         expect(r.favour).toBe(100);
-        expect(r.finalScore).toBe(2000);
+        expect(r.finalScore).toBe(20);
         expect(r).not.toHaveProperty('favourMult');
     });
 
@@ -82,7 +83,7 @@ describe('ScoringEngine.runPipeline stays finite under runaway boons', () => {
         const r = run([boon((d) => { d.favour *= 2.5; return d; })]);
         expect(r.pips).toBe(20);
         expect(r.favour).toBe(250);
-        expect(r.finalScore).toBe(5000);
+        expect(r.finalScore).toBe(50);
     });
 
     it('Infinity favour clamps to a finite MAX score (not 0 or NaN)', () => {
@@ -96,7 +97,7 @@ describe('ScoringEngine.runPipeline stays finite under runaway boons', () => {
         const r = run([boon((d) => { d.favour = NaN; return d; })]);
         expect(Number.isNaN(r.favour)).toBe(false);
         expect(Number.isNaN(r.finalScore)).toBe(false);
-        expect(r.finalScore).toBe(2000);
+        expect(r.finalScore).toBe(20);
     });
 
     it('Infinity pips clamps rather than overflowing to 0', () => {
@@ -108,7 +109,7 @@ describe('ScoringEngine.runPipeline stays finite under runaway boons', () => {
     it('negative favour is held at the 10 floor', () => {
         const r = run([boon((d) => { d.favour = -100; return d; })]);
         expect(r.favour).toBe(10);
-        expect(r.finalScore).toBe(200);
+        expect(r.finalScore).toBe(2);
     });
 
     it('stacked ×Favour boons stay finite and clamped', () => {

@@ -20,6 +20,7 @@ describe('ScoringEngine.buildContext shape', () => {
     beforeAll(() => {
         globalThis.DEBUG_FLAGS = { BOSS_BLINDS_DISABLED: false };
         loadScript('game/js/game/BlindDirector.js', 'BlindDirector');
+        loadScript('game/js/engine/DieScoreContribution.js', 'DieScoreContribution');
         loadScript('game/js/engine/ScoringEngine.js', 'ScoringEngine');
     });
 

@@ -5,13 +5,17 @@
 
 const DiceRenderer = {
     getEnhancementDisplayName(enh) {
-        return window.EnhancementRegistry?.displayName?.(enh) || enh;
+        return this._registry()?.displayName?.(enh) || enh;
+    },
+
+    _registry() {
+        return (typeof EnhancementRegistry !== 'undefined') ? EnhancementRegistry : null;
     },
 
     _syncEnhancementTexture(dieEl, enhancementId) {
-        const classes = window.EnhancementRegistry?.textureClasses?.() || [];
+        const classes = this._registry()?.textureClasses?.() || [];
         classes.forEach((c) => dieEl.classList.remove(c));
-        const textureClass = window.EnhancementRegistry?.ui?.(enhancementId)?.textureClass;
+        const textureClass = this._registry()?.ui?.(enhancementId)?.textureClass;
         if (textureClass) dieEl.classList.add(textureClass);
     },
 
@@ -33,27 +37,16 @@ const DiceRenderer = {
 
         // Only expose face/enhancement detail after roll — dice shuffle across slots on first roll.
         if (rolled && currentFace > 0) {
-            const effective = die.getEffectiveFace();
-            payload.effective = effective;
-
-            // When-scored preview (matches ScoringAnimation die popups).
-            let pips = effective > 0 ? effective : 0;
-            if (pips > 0 && die.hasEnhancementForCurrentFace?.('iron')) {
-                pips += (typeof ENHANCEMENT_BONUSES !== 'undefined' ? ENHANCEMENT_BONUSES.IRON_PIPS : 5);
-            }
-            if (pips > 0 && die.hasEnhancementForCurrentFace?.('mother_of_pearl') && die.motherOfPearlBonus) {
-                pips += die.motherOfPearlBonus;
-            }
-            payload.pips = pips > 0 ? pips : null;
-            if (die.hasEnhancementForCurrentFace?.('gold')) {
-                payload.gold = typeof ENHANCEMENT_BONUSES !== 'undefined' ? ENHANCEMENT_BONUSES.GOLD_COINS : 1;
-            }
+            const preview = DieScoreContribution.preview(die);
+            payload.effective = preview.face;
+            payload.pips = preview.pips > 0 ? preview.pips : null;
+            payload.gold = preview.gold || null;
 
             const currentEnh = die.faces[currentFace]
                 ? Array.from(die.faces[currentFace].enhancements)
                 : [];
             payload.enhancements = currentEnh.map((id) => {
-                const def = window.EnhancementRegistry?.get?.(id);
+                const def = this._registry()?.get?.(id);
                 return {
                     id,
                     name: def?.displayName || this.getEnhancementDisplayName(id),
@@ -73,13 +66,13 @@ const DiceRenderer = {
             if (!dieEl || !container.contains(dieEl)) return;
             const index = parseInt(dieEl.dataset.dieIndex, 10);
             if (Number.isNaN(index)) return;
-            const game = window.game;
+            const game = this._game;
             if (!game) return;
             const targeting = game.state.libationTargetingMode;
             if (targeting) {
-                window.balatroEffects?.hideAllTooltips();
+                game.effects?.hideAllTooltips();
                 const { libation } = targeting;
-                const applied = window.uiManager?.applyLibationEnhancementToDie?.(
+                const applied = game.uiManager?.applyLibationEnhancementToDie?.(
                     libation,
                     index,
                     game.state,
@@ -99,10 +92,10 @@ const DiceRenderer = {
         if (!dieEl || dieEl._unrolledHintBound) return;
         dieEl._unrolledHintBound = true;
         dieEl.addEventListener('mouseenter', () => {
-            window.game?.ensureLiveScore?.()?.onUnrolledDieHover?.(index);
+            this._game?.ensureLiveScore?.()?.onUnrolledDieHover?.(index);
         });
         dieEl.addEventListener('mouseleave', () => {
-            window.game?.ensureLiveScore?.()?.onUnrolledDieLeave?.(index);
+            this._game?.ensureLiveScore?.()?.onUnrolledDieLeave?.(index);
         });
     },
 
@@ -182,18 +175,18 @@ const DiceRenderer = {
 
         const tooltipData = this.buildDieTooltipData(die, index, gameState, currentFace);
         dieEl.setAttribute('data-tooltip', JSON.stringify(tooltipData));
-        window.balatroEffects?.refreshHostTooltip?.(dieEl);
+        this._game?.effects?.refreshHostTooltip?.(dieEl);
         this._syncBadges(dieEl, die, index, gameState, currentFace, hasEnhancementsOnCurrentFace);
     },
 
     updateDiceUI(dom, gameState, gameEngine) {
         if (!dom.diceContainer) { Logger.warn('Dice container not found'); return; }
-        const engine = gameEngine || window.game;
+        this._game = gameEngine;
         const container = dom.diceContainer;
 
         this.bindDiceClick(container);
 
-        const targetingMode = engine?.state?.libationTargetingMode;
+        const targetingMode = gameEngine?.state?.libationTargetingMode;
         container.classList.toggle('libation-targeting', !!targetingMode);
 
         const count = gameState.dice.length;

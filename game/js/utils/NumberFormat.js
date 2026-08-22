@@ -73,16 +73,22 @@ const NumberFormat = {
         return rounded.toFixed(2).replace(/\.?0+$/, '');
     },
 
+    /** Engine Favour is hundredths (100 = ×1). */
+    _playerFavour(n) {
+        const scale = (typeof BASE_FAVOUR !== 'undefined' && BASE_FAVOUR) ? BASE_FAVOUR : 100;
+        return Number(n) / scale;
+    },
+
     /**
-     * Favour / mult total (Balatro-style × prefix).
+     * Favour / mult total (Balatro-style × prefix). Engine 100 → ×1, 125 → ×1.25.
      * @param {number} n
      * @param {{ prefix?: boolean }} [opts]
      */
     favour(n, opts = {}) {
-        const v = Number(n);
+        const v = this._playerFavour(n);
         const withPrefix = opts.prefix !== false;
-        if (!Number.isFinite(v) || v <= 0) return withPrefix ? '×100' : '100';
-        if (Math.abs(v) < 10 && Math.abs(v - Math.trunc(v)) > 1e-9) {
+        if (!Number.isFinite(v) || v <= 0) return withPrefix ? '×1' : '1';
+        if (Math.abs(v - Math.trunc(v)) > 1e-9 && Math.abs(v) < 1e4) {
             const s = this._formatMultDecimal(v);
             return withPrefix ? `×${s}` : s;
         }
@@ -90,9 +96,9 @@ const NumberFormat = {
         return withPrefix ? `×${intStr}` : intStr;
     },
 
-    /** Additive Favour chip e.g. +25 (no × — plus is already shown). */
+    /** Additive Favour chip from engine hundredths. 25 → 0.25, 200 → 2. */
     favourContrib(n) {
-        const v = Number(n);
+        const v = this._playerFavour(n);
         if (!Number.isFinite(v) || v <= 0) return '0';
         if (Math.abs(v - Math.trunc(v)) < 1e-9) return this.contrib(v);
         return this._formatMultDecimal(v);
