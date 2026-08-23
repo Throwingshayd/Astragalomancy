@@ -28,12 +28,14 @@ Fill `{SCENE}` only. Blessing moulding is fixed (purple / gold).
 
 ## Scenes
 
+Match Athena’s layout: **central emblem on Ionic capital**, left relic, right relic, dithered glow disc, navy starfield.
+
 | File | God | Scene cue |
 |---|---|---|
-| `worship hecate.png` | Hecate | Three lit torches bound at a stone three-way crossroads, triple-ring key, black hound with gold collar, pale moon glow disc, indigo night |
-| `worship demeter.png` | Demeter | Golden wheat sheaf with crimson ribbon on Ionic pedestal, sickle left, pomegranate + poppy right, warm harvest-gold glow disc |
-| `worship iris.png` | Iris | Rainbow arc behind a winged golden herald staff (no Hermes snakes), winged messenger sandals at base, pale sky-blue/violet glow disc |
-| `worship hades.png` | Hades | Dark-gold bident on black stone dais, helm of darkness, red pomegranate, Cerberus silhouette, cold bone-white glow disc |
+| `worship hecate.png` | Hecate | Three bound flaming torches (centre), triple-loop iron key (left), black hound with gold collar (right), cool moon glow |
+| `worship demeter.png` | Demeter | Crimson-tied wheat sheaf (centre), sickle (left), pomegranate + poppy (right), warm gold glow |
+| `worship iris.png` | Iris | Dominant rainbow gateway arch (centre), winged herald rod without snakes (left), prism/light drop (right), violet-blue glow |
+| `worship hades.png` | Hades | Two-pronged bronze bident (centre), helm of darkness (left), split pomegranate (right), faint Cerberus silhouette, cold bone glow |
 
 ## Landing
 
