@@ -13,7 +13,7 @@ Research + sense-check for scorecard gods. Player terms: **Pips**, **Favour**, *
 ```text
 Ones              Artemis
 Twos              Aphrodite
-Threes            Hecate          (triple / three-way crossroads)
+Threes            Hecate          (triple share: earth, sea, sky)
 Fours             Hera
 Fives             Athena
 Sixes             Demeter         (harvest / full standard die)
@@ -25,13 +25,13 @@ Small Straight    Hermes          (short road)
 Large Straight    Apollo          (ordered course)
 Extra Long Straight  Iris         (rainbow / long arc)
 Five of a Kind    Hades           (internal key: Yahtzee)
-Heureka           Zeus            (six of a kind — Hypsistos / Most High)
+Heureka           Zeus            (six of a kind — Most High)
 Chance            Nyx
 
 Sevens            The Pleiades
 Eights            Poseidon
 Nines             The Nine Muses
-Pandora's Box     Pandora's Box
+Pandora's Jar     Pandora's Jar
 ```
 
 ### Cosmology
@@ -57,7 +57,7 @@ Path ladder: **Hermes → Apollo → Iris**.
 
 | Seat | Rejected | Why |
 |------|----------|-----|
-| Heureka | Prometheus | “Beyond Zeus” titan; displaced by Zeus Hypsistos |
+| Heureka | Prometheus | “Beyond Zeus” titan; displaced by Zeus Most High |
 | Heureka | Metis / Nike / Hestia | Weaker discovery or unity reads |
 | ELS | Hades | Kept for sovereign 5oak instead |
 | ELS | Persephone / Oceanus / Helios | Soft or clashes with Demeter/Apollo |
@@ -69,7 +69,7 @@ Path ladder: **Hermes → Apollo → Iris**.
 
 All **Twelve** are on the scorecard (Demeter on Sixes).
 
-**Named exceptions (not Twelve):** Hecate, Hades, Iris, Nyx, The Pleiades, The Nine Muses, Pandora's Box.
+**Named exceptions (not Twelve):** Hecate, Hades, Iris, Nyx, The Pleiades, The Nine Muses, Pandora's Jar.
 
 ---
 
@@ -79,7 +79,7 @@ All **Twelve** are on the scorecard (Demeter on Sixes).
 |-----|-----|-----------|--------|-----|-------------------|
 | Artemis | Ones | Y | hunt | Ok→Strong | Actaeon; Niobe; Callisto; virgin huntress |
 | Aphrodite | Twos | Y | love/beauty | Strong | Foam birth; Adonis; Ares; Judgement of Paris |
-| Hecate | Threes | N | crossroads | Strong | Triple form; triodos; aids Demeter’s search |
+| Hecate | Threes | N | three realms | Strong | Perses × Asteria; honour in earth, sea, and sky |
 | Hera | Fours | Y | marriage | Ok | Io; persecutes Heracles; golden apple |
 | Athena | Fives | Y | wisdom | Ok→Strong | Birth from Zeus; Arachne; Odysseus; Parthenon |
 | Demeter | Sixes | Y | harvest | Strong | Persephone; Eleusis; famine / seasons |
@@ -87,15 +87,15 @@ All **Twelve** are on the scorecard (Demeter on Sixes).
 | Ares | 4oak | Y | war | Strong | Aphrodite affair; Aloadae; Troy (often mocked) |
 | Dionysus | Full House | Y | wine | Strong | Semele; pirates→dolphins; Pentheus; Ariadne |
 | Hermes | Sm Straight | Y | travel | Strong | Cattle theft; Argus; psychopomp; Odyssey escort |
-| Apollo | Lg Straight | Y | sun | Strong | Delphi; Daphne; Marsyas; Niobe; Trojan plague |
+| Apollo | Lg Straight | Y | oracle | Strong | Delphi; Niobe; Trojan plague |
 | Iris | ELS | N | rainbow/messages | Strong | Rainbow bridge; Hera’s herald; joins realms |
 | Hades | 5oak | N | underworld | Strong | Persephone; Orpheus; brother-king of the dead |
-| Zeus | Heureka | Y | sky | Strong | Titanomachy; Hypsistos; Semele; decrees at Troy |
+| Zeus | Heureka | Y | sky | Strong | Titanomachy; Semele; decrees at Troy |
 | Nyx | Chance | N | night | Strong | Primordial night; mother of Sleep/Death/Fates (Hesiod) |
 | Pleiades | Sevens | N | stars | Strong | Seven sisters; Atlas’ daughters |
 | Poseidon | Eights | Y | sea | Ok | Athens contest; Odysseus curse; earth-shaker |
 | Nine Muses | Nines | N | arts | Strong | Calliope…Urania; memory / inspiration |
-| Pandora's Box | Pandora | N | mystery | Strong | Sealed evils / hope; Hephaestus–Hermes gift myth |
+| Pandora's Jar | Pandora | N | mystery | Strong | Sealed evils / hope; pithos (jar), not a box |
 
 ---
 
@@ -118,19 +118,19 @@ All **Twelve** are on the scorecard (Demeter on Sixes).
 
 | Figure | Domains | Stories | Status |
 |--------|---------|---------|--------|
-| Zeus | sky, kingship, oaths, thunder | Kronos overthrow; Semele; Europa; Hypsistos | `pantheon` Heureka |
+| Zeus | sky, kingship, oaths, thunder | Kronos overthrow; Semele; Europa; Most High | `pantheon` Heureka |
 | Hera | marriage, queenship | Io; Heracles; Judgement of Paris | `pantheon` Fours |
 | Poseidon | sea, earthquakes, horses | Athens contest; Odysseus | `pantheon` Eights |
 | Demeter | grain, seasons | Persephone; Eleusis | `pantheon` Sixes (+ Harvest boon) |
 | Athena | wisdom, crafts, strategic war | Arachne; Odysseus | `pantheon` Fives |
-| Apollo | light, prophecy, music, plague/heal | Delphi; Daphne; Marsyas | `pantheon` Lg Straight |
+| Apollo | light, prophecy, music, plague/heal | Delphi; Niobe; Iliad plague | `pantheon` Lg Straight |
 | Artemis | hunt, wilderness, childbirth | Actaeon; Hippolytus | `pantheon` Ones |
 | Ares | brutal war | Aphrodite; Aloadae | `pantheon` 4oak |
 | Aphrodite | love, beauty | Adonis; Paris | `pantheon` Twos |
 | Hermes | travel, thieves, heralds, commerce | Argus; psychopomp | `pantheon` Sm Straight |
 | Hephaestus | forge, fire, craft | Exile; net; Pandora | `pantheon` 3oak |
 | Dionysus | wine, ecstasy, theatre | Pentheus; Ariadne | `pantheon` Full House |
-| Hestia | hearth, civic fire | Yields seat to Dionysus in some lists | `flavor` Hestia's Hearth |
+| Hestia | hearth, civic fire | First-swallowed child of Kronos; hearth honour | `flavor` Hestia's Hearth |
 
 ---
 
@@ -140,7 +140,7 @@ All **Twelve** are on the scorecard (Demeter on Sixes).
 |--------|---------|---------|--------|
 | Hades | underworld, hidden wealth | Persephone; Orpheus; Heracles’ descent | `pantheon` 5oak |
 | Persephone | spring / queen of dead | Abduction; pomegranate; return | legacy id only → Aphrodite Twos |
-| Hecate | crossroads, witchcraft, night keys | Triple form; Demeter’s search | `pantheon` Threes |
+| Hecate | three realms (earth, sea, sky) | Theogony honour; later torch-bearer | `pantheon` Threes |
 | Charon | ferry of dead | Coin for passage | `flavor` Charon's Ferry Fare |
 | Thanatos / Hypnos | death / sleep | Twins; Sarpedon | `absent` |
 | Erinyes | vengeance | Orestes | `absent` |
@@ -155,7 +155,7 @@ All **Twelve** are on the scorecard (Demeter on Sixes).
 | Chaos | void | Theogony opening | `flavor` Chaos Primordial / packs |
 | Gaia / Uranus | earth / sky | Titans; castration | `absent` |
 | Nyx | night | Mother of many powers | `pantheon` Chance |
-| Kronos | time, devouring | Swallows children | `flavor` Hourglass |
+| Kronos | devouring | Swallows children (not Chronos / Time) | `flavor` Hourglass |
 | Rhea | motherhood | Saves Zeus | `absent` |
 | Prometheus | foresight, fire-theft | Fire; Caucasus | `flavor` (rejected for Heureka) |
 | Atlas | sky-bearing | Titanomachy | `absent` |
@@ -179,7 +179,7 @@ All **Twelve** are on the scorecard (Demeter on Sixes).
 | Asclepius | medicine | `absent` |
 | Nemesis / Eris / Eros / Nike | retribution / strife / desire / victory | `absent` |
 | Ganymede / Pythia | cupbearer / oracle | `flavor` |
-| Pleiades / Muses / Pandora's Box | stars / arts / mystery | `pantheon` |
+| Pleiades / Muses / Pandora's Jar | stars / arts / mystery | `pantheon` |
 
 ---
 
@@ -191,7 +191,7 @@ Odysseus, Achilles, Perseus, Theseus, Orpheus, Jason; Medusa, Hydra, Cerberus, T
 
 ## F. Historical colour (short)
 
-Homeric cult → classical city patrons (Athens/Athena, etc.). Mystery cults (Eleusis, Dionysian). The “Olympian twelve” was never one fixed list (Hestia ↔ Dionysus). Astragalomancy may keep number-locked groups (Pleiades, Muses) and chthonic peers (Hades, Hecate, Nyx) without claiming textbook purity.
+Homeric cult → classical city patrons (Athens/Athena, etc.). Mystery cults (Eleusis, Dionysian). Cult lists of twelve Olympians vary (sometimes Hestia, sometimes Dionysus) — a list problem, not a yielding myth. Astragalomancy may keep number-locked groups (Pleiades, Muses) and chthonic peers (Hades, Hecate, Nyx) without claiming textbook purity.
 
 ---
 

@@ -1,4 +1,4 @@
-/* global GAME_BALANCE, BOON_EFFECTS, Logger, CATEGORY_TO_NUMBER, GodUtils */
+/* global GAME_BALANCE, BOON_EFFECTS, Logger, CATEGORY_TO_NUMBER, GodUtils, SeatBoonHandlers */
 /* exported BoonTimingHandlers */
 
 /**
@@ -512,33 +512,6 @@ const BoonTimingHandlers = {
                 }
                 break;
             
-            case 'nyxian_seduction':
-                // Chance category: +69 Pips, seduce (reduce) random god's favour
-                if (result.category === 'Chance') {
-                    result.pips += 69;
-                    
-                    // Pick a random god to seduce (75% male preference)
-                    const maleGods = ['Ares', 'Apollo', 'Zeus', 'Hermes', 'Hades',
-                                     'Hephaestus', 'Dionysus'];
-                    const femaleGods = ['Artemis', 'Aphrodite', 'Hera', 'Athena', 'Nyx'];
-                    
-                    // Add unlocked gods
-                    if (gameState.unlockedCategories?.Eights) maleGods.push('Poseidon');
-                    if (gameState.unlockedCategories?.Sevens) femaleGods.push('The Pleiades');
-                    if (gameState.unlockedCategories?.Nines) femaleGods.push('The Nine Muses');
-                    
-                    // 75% male, 25% female - use seeded RNG
-                    const targetPool = boon._getPrng()?.random() < 0.75 ? maleGods : femaleGods;
-                    const seducedGod = targetPool[boon._randomInt(targetPool.length)];
-                    
-                    // Reduce their worship level
-                    if (gameState.worshipLevels[seducedGod] > 0) {
-                        gameState.worshipLevels[seducedGod] -= 1;
-                        engine?.showMessage?.(`💋 Nyxian Seduction: +69 Pips, ${seducedGod} worship -1!`, 3000);
-                    }
-                }
-                break;
-            
             case 'gold_standard':
                 // Threshold payoff: stay rich and every offering is amplified (×Favour).
                 if ((gameState.gold || 0) >= 20) {
@@ -590,9 +563,9 @@ const BoonTimingHandlers = {
                 break;
 
             default:
-                // Unknown boon effect - log for debugging but don't break the game
-                Logger.warn(`Unknown boon effect: ${boon.id} - this boon may not function correctly`);
-                // Return unchanged result to prevent game-breaking
+                if (typeof SeatBoonHandlers === 'undefined' || !SeatBoonHandlers.beforeScore(boon, gameState, result, engine)) {
+                    Logger.warn(`Unknown boon effect: ${boon.id} - this boon may not function correctly`);
+                }
                 break;
         }
     }

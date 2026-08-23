@@ -83,6 +83,23 @@ describe('The Sixth Astragalus — extra die whose faces start as 1s', () => {
         }
     });
 
+    it('grants the sixth die the first time Five of a Kind is rolled', () => {
+        loadScript('game/js/game/CategoryUnlock.js', 'CategoryUnlock');
+        const state = { dice: fiveDice(), held: Array(5).fill(false), artifacts: [] };
+        const engine = {
+            state,
+            applyArtifactEffects() { ArtifactDice.ensure(this.state); },
+            showMessage() {},
+            updateAllUI() {},
+        };
+        expect(globalThis.CategoryUnlock.grantSixthAstragalus(engine)).toBe(true);
+        expect(ArtifactDice.owns(state, ArtifactDice.ID)).toBe(true);
+        expect(state.dice).toHaveLength(6);
+        expect(globalThis.CategoryUnlock.grantSixthAstragalus(engine)).toBe(false);
+        expect(state.artifacts.filter((a) => a.id === ArtifactDice.ID)).toHaveLength(1);
+        expect(state.dice).toHaveLength(6);
+    });
+
     it('does not add a sixth die without the artifact', () => {
         const state = { dice: fiveDice(), held: Array(5).fill(false), artifacts: [] };
         ArtifactDice.ensure(state);
@@ -112,6 +129,13 @@ describe('Sixth Astragalus wiring', () => {
         const libation = readFileSync('game/js/classes/LibationCard.js', 'utf8');
         expect(data).toContain('artifact_sixth_astragalus');
         expect(data).toContain('The Sixth Astragalus');
+        expect(data).toContain('Opens from The Jar');
+        const unlock = readFileSync('game/js/game/CategoryUnlock.js', 'utf8');
+        const latch = readFileSync('game/js/game/PandoraLatch.js', 'utf8');
+        const shop = readFileSync('game/js/engine/ShopStockGenerator.js', 'utf8');
+        expect(unlock).toContain('grantSixthAstragalus(engine)');
+        expect(latch).toContain('grantSixthAstragalus');
+        expect(shop).toContain("pair.base?.id === 'artifact_sixth_astragalus'");
         // The grant moved out of GameEngine when the effect hub was extracted.
         expect(effects).toContain('ArtifactDice.ensure(state)');
         expect(engine).toContain('ArtifactDice.expectedCount(this.state)');

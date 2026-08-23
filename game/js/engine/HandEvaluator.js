@@ -99,9 +99,9 @@ HandEvaluator.CATEGORY_HANDLERS['Four of a Kind'] = (faces, counts, { boons }) =
 HandEvaluator.CATEGORY_HANDLERS['Full House'] = (faces, counts, { boons }) => {
     const has3 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_THREE);
     const has2 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_TWO);
-    const hasDionysus = boons.some(j => j.id === 'dionysus_revelry');
+    const hasHeraYoke = boons.some(j => j.id === 'yoke_of_hera');
     const pairCount = Object.values(counts).filter(c => c === 2).length;
-    if (!((has3 && has2) || (hasDionysus && pairCount >= 2))) return { pips: 0, isValid: false };
+    if (!((has3 && has2) || (hasHeraYoke && pairCount >= 2))) return { pips: 0, isValid: false };
     return { pips: faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Full House'], isValid: true };
 };
 

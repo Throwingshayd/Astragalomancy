@@ -1,3 +1,4 @@
+/* global PlayerTitles */
 /**
  * Boss blinds — random assignment + live rules.
  * Thresholds stay on the AnteData curve; only the blind is rolled (run prng).
@@ -54,7 +55,7 @@ const SCORE_LADDER = [
     'Three of a Kind', 'Small Straight', 'Full House',
     'Four of a Kind', 'Large Straight', 'Extra Long Straight', 'Yahtzee',
     'Heureka',
-    'Chance', "Pandora's Box",
+    'Chance', "Pandora's Jar",
 ];
 
 const SHOWDOWN_BLIND_ID = 'the_eye';
@@ -306,7 +307,7 @@ const BlindDirector = {
     },
 
     categoryLabel(category) {
-        if (category === 'Yahtzee') return 'Five of a Kind';
+        if (typeof PlayerTitles !== 'undefined') return PlayerTitles.display(category) || 'that offering';
         return category || 'that offering';
     },
 

@@ -345,6 +345,9 @@ class Boon extends Card {
                 this.dynamicStats.other = scratchCount > 0 ? `💀${scratchCount}/3` : `${this.marathonPips}/42`;
                 break;
         }
+        if (typeof SeatBoonHandlers !== 'undefined') {
+            SeatBoonHandlers.afterRoll(this, gameState, engine);
+        }
         return result;
     }
     
@@ -377,6 +380,9 @@ class Boon extends Card {
     // Balatro-inspired timing effect methods
     applyAfterScoreEffect(gameState, result, game = null) {
         const engine = game || window.game;
+        if (typeof SeatBoonHandlers !== 'undefined') {
+            SeatBoonHandlers.afterScore(this, gameState, result, engine);
+        }
         switch (this.id) {
             case 'charons_ferry_fare':
                 // Gain +1 Gold after scoring any hand (does not trigger on a scratch)
@@ -391,11 +397,6 @@ class Boon extends Card {
                 break;
 
             // === NEW BOONS - After Score ===
-            case 'dionysus_revelry':
-                // Dionysus' Revelry handled in scoring logic - allows 2 pairs to score as Full House
-                // No after_score effect needed
-                break;
-            
             case 'gamblers_charm':
                 // 50% chance +2 Gold, 50% chance lose 1 gold
                 if (this._getPrng(game)?.random() < 0.5) {
@@ -591,7 +592,9 @@ class Boon extends Card {
                 engine?.showMessage?.("Reflection of Narcissus: -2 rolls (boons doubled)!");
                 break;
         }
-        // No return value needed for turn_start effects
+        if (typeof SeatBoonHandlers !== 'undefined') {
+            SeatBoonHandlers.turnStart(this, gameState, engine);
+        }
     }
 
     applyTurnEndEffect(gameState, result, game = null) {
@@ -732,34 +735,32 @@ class Boon extends Card {
                 gameState.hadOtherBoonsThisAnte = false;
                 break;
             
-            case 'betrayal_by_paris':
+            case 'judgement_of_paris':
                 // Destroy a random Boon at end of Ante, gain +10 Gold
                 if (gameState.boons && gameState.boons.length > 1) {
-                    // Don't destroy Betrayal by Paris itself
-                    const otherBoons = gameState.boons.filter(j => j.id !== 'betrayal_by_paris');
+                    const otherBoons = gameState.boons.filter(j => j.id !== 'judgement_of_paris');
                     
                     if (otherBoons.length > 0) {
                         const randomIndex = this._randomInt(otherBoons.length, game);
                         const destroyed = otherBoons[randomIndex];
                         
-                        // Remove from main array
                         const mainIndex = gameState.boons.findIndex(j => j.id === destroyed.id);
                         if (mainIndex !== -1) {
                             gameState.boons.splice(mainIndex, 1);
-                            if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Betrayal by Paris");
+                            if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Judgement of Paris");
                             else gameState.gold += 10;
-                            engine?.showMessage?.(`💔 Betrayal by Paris: ${destroyed.name} destroyed! +10 Gold`, 4000);
-                            Logger.info(`Betrayal by Paris destroyed ${destroyed.name}, gained 10 gold`);
+                            engine?.showMessage?.(`Judgement of Paris: ${destroyed.name} unseated! +10 Gold`, 4000);
+                            Logger.info(`Judgement of Paris destroyed ${destroyed.name}, gained 10 gold`);
                         }
                     } else {
-                        if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Betrayal by Paris");
+                        if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Judgement of Paris");
                         else gameState.gold += 10;
-                        engine?.showMessage?.("Betrayal by Paris: No one left to betray! +10 Gold", 3000);
+                        engine?.showMessage?.("Judgement of Paris: no other boon to unseat. +10 Gold", 3000);
                     }
                 } else {
-                    if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Betrayal by Paris");
+                    if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Judgement of Paris");
                     else gameState.gold += 10;
-                    engine?.showMessage?.("Betrayal by Paris: No one left to betray! +10 Gold", 3000);
+                    engine?.showMessage?.("Judgement of Paris: no other boon to unseat. +10 Gold", 3000);
                 }
                 break;
         }

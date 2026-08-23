@@ -204,11 +204,11 @@ describe('ArtifactEffects', () => {
         ];
 
         const worshipState = {
-            artifacts: [{ id: 'artifact_the_auspices' }],
+            artifacts: [{ id: 'artifact_bird_omens' }],
             worshipLevels: { Zeus: 1, Athena: 4 },
         };
         expect(e.guaranteedPackCard(worshipState, 'worship', worshipPool).id).toBe('worship_athena');
-        expect(e.guaranteedPackCard({ artifacts: [{ id: 'artifact_the_auspices' }] }, 'worship', worshipPool)).toBeNull();
+        expect(e.guaranteedPackCard({ artifacts: [{ id: 'artifact_bird_omens' }] }, 'worship', worshipPool)).toBeNull();
 
         const pourState = {
             artifacts: [{ id: 'artifact_ganymedes_cup' }],
@@ -269,6 +269,16 @@ describe('one artifact per trial', () => {
         const nextTrial = gen._generateArtifacts(state, firstInPool());
         expect(nextTrial).toHaveLength(1);
         expect(nextTrial[0].id).not.toBe(offered[0].id);
+    });
+
+    it('never shops The Sixth or Seventh Astragalus (The Jar grants them)', () => {
+        const gen = globalThis.ShopStockGenerator;
+        const locked = gen.eligibleArtifactPool({ artifacts: [] });
+        expect(locked.some((a) => a.id === 'artifact_sixth_astragalus')).toBe(false);
+        expect(locked.some((a) => a.id === 'artifact_seventh_astragalus')).toBe(false);
+        const earned = gen.eligibleArtifactPool({ artifacts: [{ id: 'artifact_sixth_astragalus' }] });
+        expect(earned.some((a) => a.id === 'artifact_sixth_astragalus')).toBe(false);
+        expect(earned.some((a) => a.id === 'artifact_seventh_astragalus')).toBe(false);
     });
 
     it('offers an upgrade only once its base is owned', () => {

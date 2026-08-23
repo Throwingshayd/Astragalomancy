@@ -593,16 +593,11 @@ const ConsumableDrag = {
             const eucharistRowCategory = worshipRowCategory;
 
             const tryEucharistOnScoreRow = () => {
-                if (!eucharistRowCategory || !gameEngine || card.id !== 'the_eucharist' || !isLibation) return false;
+                if (!eucharistRowCategory || !gameEngine || card.id !== 'sponde' || !isLibation) return false;
                 const god = typeof GOD_TO_CATEGORY !== 'undefined' ? GOD_TO_CATEGORY[eucharistRowCategory] : null;
                 if (!god) {
                     endDrag(st, false);
-                    gameEngine.showMessage?.('The Eucharist: Choose a scoring row tied to a god.');
-                    return true;
-                }
-                if (god === "Pandora's Box" && !gameState.unlockedCategories?.["Pandora's Box"]) {
-                    endDrag(st, false);
-                    gameEngine.showMessage?.("The Eucharist: Pandora's Box is not unlocked.");
+                    gameEngine.showMessage?.('Sponde: Choose a scoring row tied to a god.');
                     return true;
                 }
                 const finishingPending = pendingEuch?.libation === card;
@@ -612,10 +607,10 @@ const ConsumableDrag = {
                     return true;
                 }
                 if (!finishingPending) {
-                    const godsAvail = Object.keys(gameState.worshipLevels || {}).filter((g) => g !== "Pandora's Box");
+                    const godsAvail = Object.keys(gameState.worshipLevels || {}).filter((g) => g !== "Pandora's Jar");
                     if (godsAvail.length === 0) {
                         endDrag(st, false);
-                        gameEngine.showMessage?.('The Eucharist: No gods available to worship!');
+                        gameEngine.showMessage?.('Sponde: No gods available to worship!');
                         return true;
                     }
                 }
@@ -633,7 +628,7 @@ const ConsumableDrag = {
             if (pendingEuch?.libation === card && isLibation && tryEucharistOnScoreRow()) {
                 return;
             }
-            if (!pendingEuch && isLibation && card.id === 'the_eucharist' && tryEucharistOnScoreRow()) {
+            if (!pendingEuch && isLibation && card.id === 'sponde' && tryEucharistOnScoreRow()) {
                 return;
             }
 

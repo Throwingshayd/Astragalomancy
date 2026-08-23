@@ -78,6 +78,11 @@ describe('continuity regulator', () => {
         expect(byId('medusas_gaze').effect).toContain('+0.5 Favour');
         expect(byId('pegasus_flight').effect).toContain('+0.5 Favour');
         expect(byId('carillon_of_the_muses').effect).toContain('×2.5 Favour');
+        expect(byId('silver_bow_of_artemis').effect).toContain('first Cast');
+        expect(byId('yoke_of_hera').effect).toContain('The Feast');
+        expect(byId('the_lots_of_zeus').effect).toContain('Heureka');
+        expect(byId('asphodel_of_hades').effect).toContain('The House');
+        expect(byId('trident_of_poseidon').effect).toContain('every 8 times');
 
         const handlers = readFileSync('game/js/classes/boonTimingHandlers.js', 'utf8');
         expect(handlers).toContain('result.pips += gamblerBonus');
@@ -101,6 +106,7 @@ describe('continuity regulator', () => {
         };
         expect(art('artifact_telescope').effect).toBe('Double the Favour gained from worship levels.');
         expect(art('artifact_hecatomb').effect).toBe('Selling a Boon pays its full shop cost.');
+        expect(art('artifact_sixth_astragalus').effect).toContain('The Jar');
         expect(art('artifact_seventh_astragalus').effect).toContain('Wild');
         expect(art('artifact_pythias_indulgence').effect).toContain('Cast the Bones once');
         expect(art('artifact_tyches_grace').effect).toBe('+4 Gold at the start of each Trial.');

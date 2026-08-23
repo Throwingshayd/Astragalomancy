@@ -158,10 +158,10 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Dice showing 2 pairs can be scored as Full House.",
+            effect: "When you score The Feast, gain a random Libation. This boon gains +4 Pips when you drink a Libation.",
             god: "Dionysus",
-            description: "The god of revelry bends the rules for celebration.",
-            timing: {}  // Special - modifies scoring logic
+            description: "The krater is the hand; the sip is the god.",
+            timing: { before_score: true, after_score: true }
         },
         { 
             id: "apollos_oracle", 
@@ -337,7 +337,7 @@ const CardData = {
             cost: 3, 
             sellValue: 1, 
             effect: "Each die showing a 1 when you score grants +0.5 Favour.",
-            description: "The father of monsters, born from the lowest depths.",
+            description: "Gaia's youngest, born of Tartarus.",
             god: "Typhon",
             timing: { after_roll: true, before_score: true }
         },
@@ -449,7 +449,7 @@ const CardData = {
             cost: 5, 
             sellValue: 1, 
             effect: "After your final roll, all dice showing 2 or 4 become 3s.",
-            description: "The god of dreams shapes your final reality.",
+            description: "The tribe of Dreams flattens the last roll.",
             god: "Morpheus",
             timing: { after_roll: true }
         },
@@ -491,7 +491,7 @@ const CardData = {
             cost: 5, 
             sellValue: 1, 
             effect: "At end of Trial, gold ×1.5 (rounded down).",
-            description: "The horn of plenty - wealth multiplies for the patient.",
+            description: "Whoever meets him, him he makes rich.",
             god: "Ploutos",
             timing: { ante_end: true }
         },
@@ -517,13 +517,13 @@ const CardData = {
             timing: { ante_end: true }
         },
         { 
-            id: "betrayal_by_paris", 
-            name: "Betrayal by Paris", 
+            id: "judgement_of_paris", 
+            name: "Judgement of Paris", 
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
             effect: "Destroy a random Boon at end of each Trial, gain +10 Gold.",
-            description: "The betrayer of Troy - your boons fear you.",
+            description: "For the fairest — one is chosen, the rest pay.",
             god: "Paris",
             timing: { ante_end: true }
         },
@@ -569,13 +569,13 @@ const CardData = {
             timing: {} // Special - modifies scoring logic
         },
         { 
-            id: "nyxian_seduction", 
-            name: "Nyxian Seduction", 
+            id: "night_of_nyx", 
+            name: "Night of Nyx", 
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Chance category gives +69 Pips, reduce a random god's favour by 1 level (male gods preferred).",
-            description: "Seductive night - weakens male gods through temptation.",
+            effect: "Chance category gives +69 Pips, reduce a random god's worship by 1 level.",
+            description: "Night that even Zeus will not offend.",
             god: "Nyx",
             timing: { before_score: true }
         },
@@ -621,6 +621,193 @@ const CardData = {
             description: "The hero's journey - power accumulates with achievement.",
             god: "Perseus",
             timing: { before_score: true }
+        },
+        {
+            id: "silver_bow_of_artemis",
+            name: "Silver Bow of Artemis",
+            rarity: "rustic",
+            cost: 3,
+            sellValue: 1,
+            effect: "Scoring Ones on the first Cast of the turn: +15 Pips.",
+            description: "She hits on the first shot.",
+            god: "Artemis",
+            timing: { before_score: true }
+        },
+        {
+            id: "girdle_of_aphrodite",
+            name: "Girdle of Aphrodite",
+            rarity: "rustic",
+            cost: 3,
+            sellValue: 1,
+            effect: "+2 Pips per neighbouring pair of 2s, on any score.",
+            description: "Desire sits side by side.",
+            god: "Aphrodite",
+            timing: { before_score: true }
+        },
+        {
+            id: "triple_torch_of_hecate",
+            name: "Triple Torch of Hecate",
+            rarity: "rustic",
+            cost: 3,
+            sellValue: 1,
+            effect: "+9 Pips if at least three 3s are showing (any score).",
+            description: "Honour in three realms — three 3s is the rite.",
+            god: "Hecate",
+            timing: { before_score: true }
+        },
+        {
+            id: "yoke_of_hera",
+            name: "Yoke of Hera",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "Two pair can be scored as The Feast.",
+            description: "Two couples become a household.",
+            god: "Hera",
+            timing: {}
+        },
+        {
+            id: "mist_of_ithaca",
+            name: "Mist of Ithaca",
+            rarity: "rustic",
+            cost: 3,
+            sellValue: 1,
+            effect: "Scoring Fives while Sixes is empty: +15 Pips.",
+            description: "The shore, and the house still ahead.",
+            god: "Athena",
+            timing: { before_score: true }
+        },
+        {
+            id: "pomegranate_of_persephone",
+            name: "Pomegranate of Persephone",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "Even Trials: scoring Sixes +12 Pips. Odd Trials: scoring Sixes +6 Gold.",
+            description: "Six seeds — she belongs to two realms.",
+            god: "Demeter",
+            timing: { before_score: true, after_score: true }
+        },
+        {
+            id: "spoils_of_ares",
+            name: "Spoils of Ares",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "+0.5 Favour and +4 Gold when you score The Spoils.",
+            description: "Loot the field.",
+            god: "Ares",
+            timing: { before_score: true, after_score: true }
+        },
+        {
+            id: "caduceus_of_hermes",
+            name: "Caduceus of Hermes",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "+3 Gold when you score a Straight.",
+            description: "Walk the road, lift a fee.",
+            god: "Hermes",
+            timing: { after_score: true }
+        },
+        {
+            id: "anvil_of_hephaestus",
+            name: "Anvil of Hephaestus",
+            rarity: "rustic",
+            cost: 3,
+            sellValue: 1,
+            effect: "This boon gains +2 Pips if 3 dice are the same.",
+            description: "Every strike leaves the iron hotter.",
+            god: "Hephaestus",
+            timing: { before_score: true }
+        },
+        {
+            id: "pythian_course",
+            name: "Pythian Course",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "When you score The Long Course as 2-3-4-5-6, gain a random Blessing.",
+            description: "The course that climbs. Not the low run.",
+            god: "Apollo",
+            timing: { after_score: true }
+        },
+        {
+            id: "spectrum_of_iris",
+            name: "Spectrum of Iris",
+            rarity: "epic",
+            cost: 8,
+            sellValue: 2,
+            effect: "When you score The Spectrum, +1 level to every lower pantheon row.",
+            description: "The arc joins the houses.",
+            god: "Iris",
+            timing: { after_score: true }
+        },
+        {
+            id: "asphodel_of_hades",
+            name: "Asphodel of Hades",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "+4 Pips per filled scorecard row when you score The House.",
+            description: "The shades are many.",
+            god: "Hades",
+            timing: { before_score: true }
+        },
+        {
+            id: "the_lots_of_zeus",
+            name: "The Lots of Zeus",
+            rarity: "epic",
+            cost: 8,
+            sellValue: 2,
+            effect: "When you score Heureka, +1 level to Heureka, The House, and Eights.",
+            description: "Sky, sea, and the hall below.",
+            god: "Zeus",
+            timing: { after_score: true }
+        },
+        {
+            id: "veil_of_nyx",
+            name: "Veil of Nyx",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "+0.1 Favour per different face when you score Night.",
+            description: "Everything lives in the dark.",
+            god: "Nyx",
+            timing: { before_score: true }
+        },
+        {
+            id: "trident_of_poseidon",
+            name: "Trident of Poseidon",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "This boon gains +0.1 Favour every 8 times you score.",
+            description: "The eighth wave.",
+            god: "Poseidon",
+            timing: { before_score: true, after_score: true }
+        },
+        {
+            id: "seven_sisters",
+            name: "Seven Sisters",
+            rarity: "epic",
+            cost: 8,
+            sellValue: 2,
+            effect: "7s count toward Pips even when the row ignores them.",
+            description: "They appear in every house, not only their own.",
+            god: "The Pleiades",
+            timing: { before_score: true }
+        },
+        {
+            id: "nine_muses",
+            name: "Nine Muses",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "+0.5 Favour if all 5 dice are enhanced when you score.",
+            description: "They only sing together.",
+            god: "The Nine Muses",
+            timing: { before_score: true }
         }
     ],
 
@@ -632,19 +819,19 @@ const CardData = {
         { id: "worship_hera", name: "Blessing of Hera", god: "Hera", rarity: "worship", cost: 3, effect: "Offer on Fours: +1 level (+4 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Fours/Hera)." },
         { id: "worship_athena", name: "Blessing of Athena", god: "Athena", rarity: "worship", cost: 3, effect: "Offer on Fives: +1 level (+5 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Fives/Athena)." },
         { id: "worship_demeter", name: "Blessing of Demeter", god: "Demeter", rarity: "worship", cost: 3, effect: "Offer on Sixes: +1 level (+6 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Sixes/Demeter)." },
-        { id: "worship_hephaestus", name: "Blessing of Hephaestus", god: "Hephaestus", rarity: "worship", cost: 3, effect: "Offer on Three of a Kind: +1 level (+7 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Three of a Kind/Hephaestus)." },
-        { id: "worship_ares", name: "Blessing of Ares", god: "Ares", rarity: "worship", cost: 3, effect: "Offer on Four of a Kind: +1 level (+15 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Four of a Kind/Ares)." },
-        { id: "worship_dionysus", name: "Blessing of Dionysus", god: "Dionysus", rarity: "worship", cost: 3, effect: "Offer on Full House: +1 level (+12 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Full House/Dionysus)." },
-        { id: "worship_hermes", name: "Blessing of Hermes", god: "Hermes", rarity: "worship", cost: 3, effect: "Offer on Small Straight: +1 level (+10 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Small Straight/Hermes)." },
-        { id: "worship_apollo", name: "Blessing of Apollo", god: "Apollo", rarity: "worship", cost: 3, effect: "Offer on Large Straight: +1 level (+20 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Large Straight/Apollo)." },
-        { id: "worship_iris", name: "Blessing of Iris", god: "Iris", rarity: "worship", cost: 3, effect: "Offer on Extra Long Straight: +1 level (+30 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Extra Long Straight/Iris)." },
-        { id: "worship_hades", name: "Blessing of Hades", god: "Hades", rarity: "worship", cost: 3, effect: "Offer on Five of a Kind: +1 level (+25 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Five of a Kind/Hades)." },
+        { id: "worship_hephaestus", name: "Blessing of Hephaestus", god: "Hephaestus", rarity: "worship", cost: 3, effect: "Offer on The Anvil: +1 level (+7 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Anvil/Hephaestus)." },
+        { id: "worship_ares", name: "Blessing of Ares", god: "Ares", rarity: "worship", cost: 3, effect: "Offer on The Spoils: +1 level (+15 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Spoils/Ares)." },
+        { id: "worship_dionysus", name: "Blessing of Dionysus", god: "Dionysus", rarity: "worship", cost: 3, effect: "Offer on The Feast: +1 level (+12 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Feast/Dionysus)." },
+        { id: "worship_hermes", name: "Blessing of Hermes", god: "Hermes", rarity: "worship", cost: 3, effect: "Offer on The Short Road: +1 level (+10 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Short Road/Hermes)." },
+        { id: "worship_apollo", name: "Blessing of Apollo", god: "Apollo", rarity: "worship", cost: 3, effect: "Offer on The Long Course: +1 level (+20 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Long Course/Apollo)." },
+        { id: "worship_iris", name: "Blessing of Iris", god: "Iris", rarity: "worship", cost: 3, effect: "Offer on The Spectrum: +1 level (+30 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Spectrum/Iris)." },
+        { id: "worship_hades", name: "Blessing of Hades", god: "Hades", rarity: "worship", cost: 3, effect: "Offer on The House: +1 level (+25 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The House/Hades)." },
         { id: "worship_zeus", name: "Blessing of Zeus", god: "Zeus", rarity: "worship", cost: 3, effect: "Offer on Heureka: +1 level (+40 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Heureka/Zeus)." },
-        { id: "worship_nyx", name: "Blessing of Nyx", god: "Nyx", rarity: "worship", cost: 3, effect: "Offer on Chance: +1 level (+0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Chance/Nyx)." },
+        { id: "worship_nyx", name: "Blessing of Nyx", god: "Nyx", rarity: "worship", cost: 3, effect: "Offer on Night: +1 level (+0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Night/Nyx)." },
         { id: "worship_pleiades", name: "Blessing of the Pleiades", god: "The Pleiades", rarity: "worship", cost: 3, effect: "Offer on Sevens: +1 level (+7 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Sevens/The Pleiades)." },
         { id: "worship_poseidon_eights", name: "Blessing of Poseidon (Eights)", god: "Poseidon", rarity: "worship", cost: 3, effect: "Offer on Eights: +1 level (+8 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Eights/Poseidon)." },
         { id: "worship_muses", name: "Blessing of the Nine Muses", god: "The Nine Muses", rarity: "worship", cost: 3, effect: "Offer on Nines: +1 level (+9 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Nines/The Nine Muses)." },
-        { id: "worship_pandora", name: "Blessing of Pandora's Box", god: "Pandora's Box", rarity: "worship", cost: 3, effect: "Offer on Pandora's Box: +1 sanctum bonus level. Held 3 trials → Ascended (consecrate any row as Pandora's Box)." },
+        { id: "worship_pandora", name: "Blessing of Pandora's Jar", god: "Pandora's Jar", rarity: "worship", cost: 3, effect: "Offer on The Jar: +1 sanctum bonus level. Held 3 trials → Ascended (consecrate any row as The Jar/Pandora's Jar)." },
     ],
 
     libations: [
@@ -653,12 +840,12 @@ const CardData = {
         { id: "tisane_hephaestus", name: "Tisane of Hephaestus", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Clockwork.", type: "instant" },
         { id: "ambrosial_krasi", name: "Ambrosial Krasi", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Gold.", type: "instant" },
         { id: "retsina_echoes", name: "Retsina of Echoes", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Mother of Pearl (adds left/right die).", type: "instant" },
-        { id: "soma_wild", name: "Soma of the Wild", rarity: "libation", cost: 2, sellValue: 0, effect: "Add Wild to one die face. On roll: −1, 0, or +1.", type: "instant" },
+        { id: "moly", name: "Moly", rarity: "libation", cost: 2, sellValue: 0, effect: "Add Wild to one die face. On roll: −1, 0, or +1.", type: "instant" },
         { id: "blessed_nectar", name: "Blessed Nectar", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Blessed.", type: "instant" },
-        { id: "kylix_hermit", name: "Kylix of the Hermit", rarity: "libation", cost: 3, sellValue: 0, effect: "Double your gold (max gain 20).", type: "instant" },
+        { id: "kylix_wanderer", name: "Kylix of the Wanderer", rarity: "libation", cost: 3, sellValue: 0, effect: "Double your gold (max gain 20).", type: "instant" },
         { id: "elixir_lethe", name: "Elixir of Lethe", rarity: "libation", cost: 2, sellValue: 0, effect: "Reduce a die face by 1.", type: "instant" },
         { id: "chalice_helios", name: "Chalice of Helios", rarity: "libation", cost: 2, sellValue: 0, effect: "Increase a die face by 1.", type: "instant" },
-        { id: "the_eucharist", name: "The Eucharist", rarity: "libation", cost: 2, sellValue: 0, effect: "Gain +1 worship level in god of choice.", type: "instant" },
+        { id: "sponde", name: "Sponde", rarity: "libation", cost: 2, sellValue: 0, effect: "Gain +1 worship level in god of choice.", type: "instant" },
         { id: "divine_guidance", name: "Divine Guidance", rarity: "libation", cost: 2, sellValue: 0, effect: "Gain 2 random levels in any 2 scores.", type: "instant" },
     ],
 
@@ -712,7 +899,7 @@ const CardData = {
                 name: "Hermes' Bargain",
                 cost: 10,
                 effect: "All shop prices reduced by 50%.",
-                description: "The god of traders and thieves has taken an interest in your haggling.",
+                description: "The guide and thief has taken an interest in your haggling.",
                 rarity: "artifact"
             }
         },
@@ -766,8 +953,8 @@ const CardData = {
                 rarity: "artifact"
             },
             upgraded: {
-                id: "artifact_the_auspices",
-                name: "The Auspices",
+                id: "artifact_bird_omens",
+                name: "The Bird Omens",
                 cost: 10,
                 effect: "Worship Packs always contain a Blessing for your highest god.",
                 description: "Read the birds for long enough and you stop being surprised.",
@@ -797,8 +984,8 @@ const CardData = {
                 id: "artifact_sixth_astragalus",
                 name: "The Sixth Astragalus",
                 cost: 10,
-                effect: "+1 die. All of its faces start as 1s.",
-                description: "A spare knucklebone. Every face is a 1 until you drink Lethe or Helios onto it.",
+                effect: "+1 die. All of its faces start as 1s. Opens from The Jar (dash 4).",
+                description: "A spare knucklebone, called when five faces agree. Every face is a 1 until you drink Lethe or Helios onto it.",
                 rarity: "artifact"
             },
             upgraded: {

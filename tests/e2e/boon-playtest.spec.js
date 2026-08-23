@@ -485,9 +485,9 @@ test.describe('Boon Playtests', () => {
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
   });
-  test("Betrayal by Paris - destroy boon at ante end, +10 gold", async ({ page }) => {
-    await startGame(page, 'betrayal_by_paris');
-    await expect(page.locator('.boon-slots [data-card-id="betrayal_by_paris"]')).toBeVisible();
+  test("Judgement of Paris - destroy boon at ante end, +10 gold", async ({ page }) => {
+    await startGame(page, 'judgement_of_paris');
+    await expect(page.locator('.boon-slots [data-card-id="judgement_of_paris"]')).toBeVisible();
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
   });
@@ -515,9 +515,9 @@ test.describe('Boon Playtests', () => {
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
   });
-  test("Nyxian Seduction - Chance +69 pips", async ({ page }) => {
-    await startGame(page, 'nyxian_seduction');
-    await expect(page.locator('.boon-slots [data-card-id="nyxian_seduction"]')).toBeVisible();
+  test("Night of Nyx - Chance +69 pips", async ({ page }) => {
+    await startGame(page, 'night_of_nyx');
+    await expect(page.locator('.boon-slots [data-card-id="night_of_nyx"]')).toBeVisible();
     await rollAndScore(page, 'Chance');
     await expectTurn(page, 2);
   });

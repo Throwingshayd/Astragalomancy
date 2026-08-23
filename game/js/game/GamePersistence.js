@@ -1,5 +1,5 @@
 /* exported GamePersistence */
-/* global Logger, SeededRNG, Die, ArtifactDice, CardData, Boon, Artifact, WorshipCard, LibationCard */
+/* global Logger, SeededRNG, Die, ArtifactDice, CardData, Boon, Artifact, WorshipCard, LibationCard, PandoraLatch */
 
 const GamePersistence = {
     DEFAULT_WORSHIP_LEVELS: {
@@ -8,13 +8,18 @@ const GamePersistence = {
         'Dionysus': 0, 'Hermes': 0, 'Apollo': 0, 'Iris': 0, 'Hades': 0,
         'Zeus': 0, 'Nyx': 0,
         'The Pleiades': 0, 'Poseidon': 0, 'The Nine Muses': 0,
-        "Pandora's Box": 0
+        "Pandora's Jar": 0
     },
 
     /** Legacy pantheon / blessing ids from older saves. */
     LEGACY_WORSHIP_GODS: {
         Morpheus: 'Hecate',
         Heracles: 'Demeter',
+        "Pandora's Box": "Pandora's Jar",
+    },
+
+    LEGACY_CATEGORY_KEYS: {
+        "Pandora's Box": "Pandora's Jar",
     },
 
     LEGACY_WORSHIP_CARD_IDS: {
@@ -40,6 +45,17 @@ const GamePersistence = {
 
     migrateWorshipCardId(id) {
         return this.LEGACY_WORSHIP_CARD_IDS[id] || id;
+    },
+
+    migrateCategoryRecord(record, combine) {
+        if (!record || typeof record !== 'object') return record || {};
+        const out = { ...record };
+        for (const [from, to] of Object.entries(this.LEGACY_CATEGORY_KEYS)) {
+            if (!Object.prototype.hasOwnProperty.call(out, from)) continue;
+            out[to] = combine ? combine(out[to], out[from]) : (out[to] ?? out[from]);
+            delete out[from];
+        }
+        return out;
     },
 
     serialize(state) {
@@ -79,7 +95,13 @@ const GamePersistence = {
                 : {},
             unlockedCategories: state.unlockedCategories && typeof state.unlockedCategories === 'object'
                 ? { ...state.unlockedCategories }
-                : { 'Sevens': false, 'Eights': false, 'Nines': false, 'Heureka': false, 'Extra Long Straight': false, "Pandora's Box": false }
+                : { 'Sevens': false, 'Eights': false, 'Nines': false, 'Heureka': false, 'Extra Long Straight': false, "Pandora's Jar": false },
+            jarFaceMarks: state.jarFaceMarks && typeof state.jarFaceMarks === 'object'
+                ? { ...state.jarFaceMarks }
+                : { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false },
+            jarDashes: typeof state.jarDashes === 'number' ? state.jarDashes : 0,
+            pendingJarLines: Array.isArray(state.pendingJarLines) ? [...state.pendingJarLines] : [],
+            scoresThisRun: typeof state.scoresThisRun === 'number' ? state.scoresThisRun : 0
         };
         delete payload.diceEffects;
         delete payload.pipsBonuses;
@@ -140,29 +162,44 @@ const GamePersistence = {
         if (state.categoryGodBinding && typeof state.categoryGodBinding === 'object') {
             const rebound = {};
             for (const [slot, god] of Object.entries(state.categoryGodBinding)) {
-                rebound[slot] = this.migrateGodName(god);
+                const newSlot = this.LEGACY_CATEGORY_KEYS[slot] || slot;
+                rebound[newSlot] = this.migrateGodName(god);
             }
             state.categoryGodBinding = rebound;
         }
 
         if (!state.libationPours || typeof state.libationPours !== 'object') state.libationPours = {};
+        if (typeof PandoraLatch !== 'undefined') PandoraLatch.ensure(state);
+        if (typeof state.scoresThisRun !== 'number') state.scoresThisRun = 0;
 
-        state.scorecard = state.scorecard && typeof state.scorecard === 'object' ? state.scorecard : {};
-        state.pantheonDevotion = state.pantheonDevotion && typeof state.pantheonDevotion === 'object'
-            ? state.pantheonDevotion
-            : {};
-        state.devotionCapacity = state.devotionCapacity && typeof state.devotionCapacity === 'object'
-            ? state.devotionCapacity
-            : {};
+        state.scorecard = this.migrateCategoryRecord(
+            state.scorecard && typeof state.scorecard === 'object' ? state.scorecard : {}
+        );
+        state.pantheonDevotion = this.migrateCategoryRecord(
+            state.pantheonDevotion && typeof state.pantheonDevotion === 'object'
+                ? state.pantheonDevotion
+                : {}
+        );
+        state.devotionCapacity = this.migrateCategoryRecord(
+            state.devotionCapacity && typeof state.devotionCapacity === 'object'
+                ? state.devotionCapacity
+                : {}
+        );
         state.categoryGodBinding = state.categoryGodBinding && typeof state.categoryGodBinding === 'object'
             ? state.categoryGodBinding
             : {};
-        state.categoryScoringOverride = state.categoryScoringOverride && typeof state.categoryScoringOverride === 'object'
-            ? state.categoryScoringOverride
-            : {};
-        state.unlockedCategories = state.unlockedCategories && typeof state.unlockedCategories === 'object'
-            ? { 'Sevens': false, 'Eights': false, 'Nines': false, 'Heureka': false, 'Extra Long Straight': false, "Pandora's Box": false, ...state.unlockedCategories }
-            : { 'Sevens': false, 'Eights': false, 'Nines': false, 'Heureka': false, 'Extra Long Straight': false, "Pandora's Box": false };
+        state.categoryScoringOverride = this.migrateCategoryRecord(
+            state.categoryScoringOverride && typeof state.categoryScoringOverride === 'object'
+                ? state.categoryScoringOverride
+                : {}
+        );
+        state.unlockedCategories = this.migrateCategoryRecord(
+            {
+                'Sevens': false, 'Eights': false, 'Nines': false, 'Heureka': false, 'Extra Long Straight': false, "Pandora's Jar": false,
+                ...(state.unlockedCategories && typeof state.unlockedCategories === 'object' ? state.unlockedCategories : {})
+            },
+            (kept, legacy) => !!(kept || legacy)
+        );
 
         state.yahtzeesRolledThisRun = state.yahtzeesRolledThisRun ?? (state.bonusYahtzees || 0) + 1;
         state.trialArtifactId = typeof state.trialArtifactId === 'string' ? state.trialArtifactId : null;

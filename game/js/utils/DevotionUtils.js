@@ -1,3 +1,4 @@
+/* global PlayerTitles */
 /**
  * Pantheon devotion — re-scores, Roman marks, consecration overrides.
  * @module DevotionUtils
@@ -77,7 +78,8 @@ const DevotionUtils = {
     /** Display name for a pantheon slot (consecrated slots show the worship hand). */
     getDisplayCategory(state, slotCategory) {
         const evalCat = this.getEvalCategory(state, slotCategory);
-        return evalCat === 'Yahtzee' ? 'Five of a Kind' : evalCat;
+        if (typeof PlayerTitles !== 'undefined') return PlayerTitles.display(evalCat);
+        return evalCat === 'Yahtzee' ? 'The House' : evalCat;
     },
 
     isConsecratedSlot(state, slotCategory) {

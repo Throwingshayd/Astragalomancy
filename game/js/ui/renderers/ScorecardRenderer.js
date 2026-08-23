@@ -18,7 +18,9 @@ const ScorecardRenderer = {
             : slotCategory;
         const consecrated = typeof DevotionUtils !== 'undefined'
             && DevotionUtils.isConsecratedSlot(gameState, slotCategory);
-        const displayCategory = evalCat === 'Yahtzee' ? 'Five of a Kind' : evalCat;
+        const displayCategory = (typeof PlayerTitles !== 'undefined')
+            ? PlayerTitles.display(evalCat)
+            : (evalCat === 'Yahtzee' ? 'The House' : evalCat);
         const god = (consecrated && gameState.categoryGodBinding?.[slotCategory])
             || gameState.categoryGodBinding?.[slotCategory]
             || godMapping[slotCategory];
@@ -75,33 +77,25 @@ const ScorecardRenderer = {
                 }
                 row.style.removeProperty('display');
             }
-            if (category === "Pandora's Box") {
-                const isUnlocked = gameState.unlockedCategories?.["Pandora's Box"];
-                if (isUnlocked) row.classList.add('pandora-unlocked');
-                else row.classList.remove('pandora-unlocked');
-                const upperSum = ['Ones','Twos','Threes','Fours','Fives','Sixes'].reduce((sum, c) => sum + (gameState.scorecard[c] || 0), 0);
-                const upperBonus = (Math.round(upperSum) >= 63) ? 35 : 0;
-                const lowerCats = ['Three of a Kind','Small Straight','Full House','Four of a Kind','Large Straight','Yahtzee','Chance'];
-                const lowerComplete = lowerCats.every(c => {
-                    const v = gameState.scorecard[c];
-                    return v !== undefined && (typeof v === 'number' ? v > 0 : true);
-                });
-                const lowerBonus = lowerComplete ? 35 : 0;
-                const combined = upperBonus + lowerBonus;
+            if (category === "Pandora's Jar") {
                 row.classList.remove('used');
-                row.classList.toggle('pantheon-scored', combined > 0);
-                const worshipLevel = gameState.worshipLevels?.["Pandora's Box"] || 0;
+                row.style.cursor = 'default';
+                const dashes = (typeof PandoraLatch !== 'undefined')
+                    ? PandoraLatch.dashCount(gameState)
+                    : (gameState.jarDashes || 0);
+                const total = (typeof PandoraLatch !== 'undefined' && PandoraLatch.GIFTS)
+                    ? PandoraLatch.GIFTS.length
+                    : 7;
+                const marks = gameState.jarFaceMarks || {};
+                const filledFaces = [1, 2, 3, 4, 5, 6].filter((n) => marks[n]).length;
+                const worshipLevel = gameState.worshipLevels?.["Pandora's Jar"] || 0;
                 const categorySpan = row.querySelector('span');
                 if (categorySpan) {
-                    let deityText = 'Pandora';
-                    if (isUnlocked && worshipLevel > 0) {
-                        const displayLevel = worshipLevel + 1;
-                        deityText = `Pandora Lv.${displayLevel}`;
-                    }
-                    categorySpan.innerHTML = `<span class="pantheon-cat">Pandora's Box</span><span class="pantheon-deity">${deityText}</span>`;
+                    const deityText = worshipLevel > 0 ? `Pandora Lv.${worshipLevel + 1}` : 'Pandora';
+                    categorySpan.innerHTML = `<span class="pantheon-cat">The Jar</span><span class="pantheon-deity">${deityText}</span>`;
                 }
-                row.querySelector('.potential-score').textContent = combined > 0 ? String(combined) : '';
-                row.style.cursor = isUnlocked ? 'pointer' : 'default';
+                const ticks = `${'●'.repeat(dashes)}${'○'.repeat(Math.max(0, total - dashes))}`;
+                row.querySelector('.potential-score').textContent = `${ticks} ${filledFaces}/6`;
                 return;
             }
             const categorySpan = row.querySelector('span');

@@ -166,7 +166,7 @@
     "cost": 5,
     "sellValue": 1,
     "effect": "Dice showing 2 pairs can be scored as Full House.",
-    "description": "The god of revelry bends the rules for celebration.",
+    "description": "Two kinds counted as one house — the wine-rite.",
     "god": "Dionysus"
   },
   {
@@ -446,7 +446,7 @@
     "cost": 5,
     "sellValue": 1,
     "effect": "After your final roll, all dice showing 2 or 4 become 3s.",
-    "description": "The god of dreams shapes your final reality.",
+    "description": "The tribe of Dreams flattens the last roll.",
     "god": "Morpheus"
   },
   {
@@ -486,7 +486,7 @@
     "cost": 5,
     "sellValue": 1,
     "effect": "At end of Trial, gold ×1.5 (rounded down).",
-    "description": "The horn of plenty - wealth multiplies for the patient.",
+    "description": "Whoever meets him, him he makes rich.",
     "god": "Ploutos"
   },
   {
@@ -510,13 +510,13 @@
     "god": ""
   },
   {
-    "id": "betrayal_by_paris",
-    "name": "Betrayal by Paris",
+    "id": "judgement_of_paris",
+    "name": "Judgement of Paris",
     "rarity": "vibrant",
     "cost": 5,
     "sellValue": 1,
     "effect": "Destroy a random Boon at end of each Trial, gain +10 Gold.",
-    "description": "The betrayer of Troy - your boons fear you.",
+    "description": "For the fairest — one is chosen, the rest pay.",
     "god": "Paris"
   },
   {
@@ -560,13 +560,13 @@
     "god": "Hephaestus"
   },
   {
-    "id": "nyxian_seduction",
-    "name": "Nyxian Seduction",
+    "id": "night_of_nyx",
+    "name": "Night of Nyx",
     "rarity": "rustic",
     "cost": 3,
     "sellValue": 1,
-    "effect": "Chance category gives +69 Pips, reduce a random god's favour by 1 level (male gods preferred).",
-    "description": "Seductive night - weakens male gods through temptation.",
+    "effect": "Chance category gives +69 Pips, reduce a random god's worship by 1 level.",
+    "description": "Night that even Zeus will not offend.",
     "god": "Nyx"
   },
   {

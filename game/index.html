@@ -96,21 +96,21 @@
                 <!-- 1. PANTHEON FRIEZE — full-width top strip, two tiers, no scores (suspended belief) -->
                 <div class="pantheon-frieze" id="scorecard">
                     <div class="bonus-yahtzee-indicator" id="bonusYahtzeeIndicator" style="display: none;">
-                        <span class="bonus-text">Bonus Five of a Kind!</span>
+                        <span class="bonus-text">Bonus The House!</span>
                         <span class="bonus-count" id="bonusCount">0</span>
                     </div>
                     <!-- Upper tier: harder combo gods -->
                     <div class="pantheon-tier pantheon-tier-upper">
-                        <div class="score-row pantheon-chip" data-category="Chance"><span>Chance (Nyx)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Three of a Kind"><span>Three of a Kind (Hephaestus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Small Straight"><span>Small Straight (Hermes)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Full House"><span>Full House (Dionysus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Four of a Kind"><span>Four of a Kind (Ares)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Large Straight"><span>Large Straight (Apollo)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Extra Long Straight" style="display: none;"><span>Extra Long Straight (Iris)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Yahtzee"><span>Five of a Kind (Hades)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Chance"><span>Night (Nyx)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Three of a Kind"><span>The Anvil (Hephaestus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Small Straight"><span>The Short Road (Hermes)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Full House"><span>The Feast (Dionysus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Four of a Kind"><span>The Spoils (Ares)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Large Straight"><span>The Long Course (Apollo)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Extra Long Straight" style="display: none;"><span>The Spectrum (Iris)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Yahtzee"><span>The House (Hades)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Heureka" style="display: none;"><span>Heureka (Zeus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Pandora's Box"><span>Pandora's Box</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Pandora's Jar"><span>The Jar (Pandora)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                     </div>
                     <!-- Lower tier: numeric gods -->
                     <div class="pantheon-tier pantheon-tier-lower">
@@ -323,6 +323,7 @@
     <script defer src="js/config/EnhancementRegistry.js"></script>
     <script defer src="js/config/UIConstants.js"></script>
     <script defer src="js/config/BoonConstants.js"></script>
+    <script defer src="js/config/PlayerTitles.js"></script>
     <script defer src="js/data/assetMapping.js"></script>
     <script defer src="js/utils/CardDragSurface.js"></script>
     <script defer src="js/utils/PointerDragGhost.js"></script>
@@ -331,6 +332,7 @@
     <script defer src="js/data/gameData.js"></script>
     <script defer src="js/classes/Die.js"></script>
     <script defer src="js/classes/Card.js"></script>
+    <script defer src="js/game/SeatBoonHandlers.js"></script>
     <script defer src="js/classes/boonTimingHandlers.js"></script>
     <script defer src="js/classes/BoonDisplayStats.js"></script>
     <script defer src="js/classes/Boon.js"></script>
@@ -350,6 +352,7 @@
     <script defer src="js/game/GameEngineTestModes.js"></script>
     <script defer src="js/game/TrialCompletion.js"></script>
     <script defer src="js/game/CategoryUnlock.js"></script>
+    <script defer src="js/game/PandoraLatch.js"></script>
     <script defer src="js/game/BlindDirector.js"></script>
     <script defer src="js/game/ConsumableSlots.js"></script>
     <script defer src="js/game/ArtifactDice.js"></script>

@@ -180,6 +180,10 @@ const TrialCompletion = {
             WorshipCard.tickHeldDevotionTrials(engine.state, engine);
         }
 
+        if (typeof PandoraLatch !== 'undefined') {
+            PandoraLatch.announceCashout(engine);
+        }
+
         BlindDirector.prepareNextAnte(engine);
         engine.showInterestThenOpenShop(opts);
     },

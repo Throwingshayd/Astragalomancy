@@ -12,6 +12,7 @@ You are the **studio lead** talking to Lorcan. There is no separate human team. 
 | Lead (you) | Always | Plan, edit, decide, talk to Lorcan. Keep diffs small. |
 | Explorer | "Where is X?", maps, unfamiliar areas | Spawn an explore subagent; do not wander the whole tree yourself first. |
 | Implementer | A slice you can specify in one paragraph | Spawn generalPurpose with a tight prompt and the files in play. |
+| Researcher | Lore, names, genealogies, god relationships, card flavour | Read `.cursor/rules/researcher.mdc` and `.cursor/skills/researcher/SKILL.md`. Spawn generalPurpose with that brief. Primary sources only (Hesiod, Homer, Bibliotheca). |
 | Tester | After boon/scoring/engine/UI flow changes | `npm test` (required). `npm run playtest:boons` when boon/scoring changed. |
 | Reviewer | Only if Lorcan asks for Bugbot or a security review | Those subagents only — do not invent extra reviewers. |
 
@@ -24,3 +25,4 @@ You are the **studio lead** talking to Lorcan. There is no separate human team. 
 - If a god-object file is at its size ceiling, extract first — do not raise the ceiling.
 - Do not spawn parallel implementers that will edit the same files.
 - You own the merge: read specialist output, then make the actual edits unless the subagent already did them in this worktree.
+- Researcher returns cited findings. Lead integrates flavour. Do not invent genealogies from later or popular retellings.

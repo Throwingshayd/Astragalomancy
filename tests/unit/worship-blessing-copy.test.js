@@ -26,15 +26,17 @@ const { GOD_METADATA, CARD_ECONOMY } = loadExports('game/js/config/GameConstants
     'CARD_ECONOMY',
 ]);
 
+const { PlayerTitles } = loadExports('game/js/config/PlayerTitles.js', ['PlayerTitles']);
+
 const { CardData } = loadExports('game/js/data/gameData.js', ['CardData']);
 
 function displayCategory(category) {
-    return category === 'Yahtzee' ? 'Five of a Kind' : category;
+    return PlayerTitles.display(category);
 }
 
 function offerLine(god, category) {
     const row = displayCategory(category);
-    if (god === "Pandora's Box") {
+    if (god === "Pandora's Jar") {
         return `Offer on ${row}: +1 sanctum bonus level`;
     }
     const pips = CATEGORY_PIPS_PER_LEVEL[category] || 0;

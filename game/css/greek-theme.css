@@ -1478,7 +1478,7 @@
     font-size: 22px !important;
 }
 
-/* ── Live offering — pips×favour up top; message sits separately below ── */
+/* ── Live offering — trial up top; pips×favour sit just above the dice ── */
 .main-game .center-game-area .felt-play-mirror {
     position: absolute;
     left: 50%;
@@ -1513,11 +1513,11 @@
 }
 
 .main-game .center-game-area .live-score-display.felt-live {
-    top: 122px !important;
+    top: 214px !important;
     width: max-content;
     min-width: 320px;
     max-width: min(720px, calc(100% - 280px));
-    padding: 16px 36px 14px;
+    padding: 8px 36px 18px;
     box-sizing: border-box;
     border: none;
     background: none;
@@ -1527,7 +1527,7 @@
 .main-game .center-game-area .offering-message,
 .main-game .center-game-area .trial-banner {
     position: absolute;
-    top: 262px;
+    top: 122px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 22;
@@ -1590,20 +1590,20 @@
 
 .main-game .center-game-area .live-score-display.felt-live .gnosis-row,
 .main-game .center-game-area .live-score-display.felt-live .live-metric-cell {
-    min-height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 6px);
-    height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 6px);
+    min-height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 16px);
+    height: calc(var(--gnosis-num-h) + var(--gnosis-label-h) + 16px);
 }
 
 .main-game .center-game-area .live-score-display.felt-live .live-metric-cell {
     justify-content: flex-start;
-    gap: 6px;
+    gap: 16px;
 }
 
 .main-game .center-game-area .live-score-display.felt-live .pips-line,
 .main-game .center-game-area .live-score-display.felt-live .favour-line {
     min-height: var(--gnosis-num-h);
     height: var(--gnosis-num-h);
-    align-items: baseline;
+    align-items: flex-start;
 }
 
 .main-game .center-game-area .live-score-display.felt-live .gnosis-times,

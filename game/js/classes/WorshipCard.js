@@ -73,7 +73,7 @@ class WorshipCard extends Card {
             if (gameState.unlockedCategories?.Sevens) availableGods.push('The Pleiades');
             if (gameState.unlockedCategories?.Eights) availableGods.push('Poseidon');
             if (gameState.unlockedCategories?.Nines) availableGods.push('The Nine Muses');
-            if (gameState.unlockedCategories?.["Pandora's Box"]) availableGods.push("Pandora's Box");
+            if (gameState.unlockedCategories?.["Pandora's Jar"]) availableGods.push("Pandora's Jar");
             
             // Pick different god - use seeded RNG
             const otherGods = availableGods.filter(g => g !== this.god);

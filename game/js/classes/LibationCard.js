@@ -49,16 +49,16 @@ class LibationCard extends Card {
             case 'retsina_echoes':
                 this.promptForDieFaceSelection(gameState, 'mother_of_pearl', gameEngine);
                 return false;
-            case 'soma_wild':
+            case 'moly':
                 this.promptForDieFaceSelection(gameState, 'wild', gameEngine);
                 return false;
             case 'blessed_nectar':
                 this.promptForDieFaceSelection(gameState, 'blessed', gameEngine);
                 return false;
-            case 'kylix_hermit': {
+            case 'kylix_wanderer': {
                 const gain = Math.min(gameState.gold, 20);
                 gameState.gold += gain;
-                gameEngine?.showMessage?.(`Kylix of the Hermit: +${gain} gold (double, max gain 20)!`);
+                gameEngine?.showMessage?.(`Kylix of the Wanderer: +${gain} gold (double, max gain 20)!`);
                 return true;
             }
             case 'elixir_lethe':
@@ -67,12 +67,12 @@ class LibationCard extends Card {
             case 'chalice_helios':
                 this.promptForDieFaceSelection(gameState, 'permanent_increase', gameEngine);
                 return false;
-            case 'the_eucharist': {
-                const gods = Object.keys(gameState.worshipLevels || {}).filter(g => g !== "Pandora's Box");
+            case 'sponde': {
+                const gods = Object.keys(gameState.worshipLevels || {}).filter(g => g !== "Pandora's Jar");
                 if (gods.length > 0) {
                     this.enterEucharistTargetingMode(gameState, gameEngine);
                 } else {
-                    gameEngine?.showMessage?.("The Eucharist: No gods available to worship!");
+                    gameEngine?.showMessage?.("Sponde: No gods available to worship!");
                 }
                 return false;
             }
@@ -220,7 +220,7 @@ class LibationCard extends Card {
             tisane_hephaestus: 'iron',
             ambrosial_krasi: 'gold',
             retsina_echoes: 'mother_of_pearl',
-            soma_wild: 'wild',
+            moly: 'wild',
             blessed_nectar: 'blessed',
             elixir_lethe: 'permanent_reduce',
             chalice_helios: 'permanent_increase',

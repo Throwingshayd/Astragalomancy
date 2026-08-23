@@ -117,7 +117,13 @@ describe('Greek theme wiring', () => {
             /\.pantheon-chip\.used::before,[\s\S]*?filter: none;[\s\S]*?#fffdf6/,
         );
         expect(tips).toMatch(
-            /#tooltip-root \.tooltip-die-popup \{[\s\S]*?felt-parchment/,
+            /#tooltip-root \.tooltip-die-popup \{[\s\S]*?background:\s*none/,
+        );
+        expect(css).toMatch(
+            /\.main-game \.center-game-area \.live-score-display\.felt-live \{[\s\S]*?top:\s*214px/,
+        );
+        expect(css).toMatch(
+            /\.main-game \.center-game-area \.trial-banner \{[\s\S]*?top:\s*122px/,
         );
     });
 
@@ -299,7 +305,7 @@ describe('Greek theme wiring', () => {
             'Extra Long Straight',
             'Yahtzee',
             'Heureka',
-            "Pandora's Box",
+            "Pandora's Jar",
         ]);
     });
 });

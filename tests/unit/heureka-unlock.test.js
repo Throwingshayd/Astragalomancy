@@ -55,24 +55,19 @@ describe('Heureka unlock-on-roll', () => {
         expect(open.pips).toBe(18 + globalThis.LOWER_SECTION_BONUSES.Heureka);
     });
 
-    it('unlocks Heureka the first time six of a kind is rolled', () => {
+    it('does not unlock Heureka from a six-of-a-kind roll (The Jar does)', () => {
         const U = globalThis.CategoryUnlock;
         const engine = {
-            state: { unlockedCategories: {} },
+            state: { unlockedCategories: {}, yahtzeesRolledThisRun: 0 },
             showMessage() {},
             updateMaxTurns() { this.maxTurnsUpdated = true; },
         };
-        expect(U.previewHeureka(engine, counts(five))).toBe(false);
-        expect(engine.state.unlockedCategories.Heureka).toBeFalsy();
-        expect(U.previewHeureka(engine, counts(six))).toBe(true);
-        expect(engine.state.unlockedCategories.Heureka).toBe(true);
-        expect(engine.maxTurnsUpdated).toBe(true);
         expect(U.previewHeureka(engine, counts(six))).toBe(false);
+        expect(engine.state.unlockedCategories.Heureka).toBeFalsy();
     });
 
-    it('unlocks Extra Long Straight the first time a six-run is rolled', () => {
+    it('still scores Extra Long Straight once The Jar has opened it', () => {
         const H = globalThis.HandEvaluator;
-        const U = globalThis.CategoryUnlock;
         const fiveRun = [1, 2, 3, 4, 5];
         const sixRun = [1, 2, 3, 4, 5, 6];
         const ctx = { unlockedCategories: { 'Extra Long Straight': true } };
@@ -82,17 +77,6 @@ describe('Heureka unlock-on-roll', () => {
         const open = H.evaluate('Extra Long Straight', sixRun, counts(sixRun), ctx);
         expect(open.isValid).toBe(true);
         expect(open.pips).toBe(21 + globalThis.LOWER_SECTION_BONUSES['Extra Long Straight']);
-
-        const engine = {
-            state: { unlockedCategories: {} },
-            showMessage() {},
-            updateMaxTurns() { this.maxTurnsUpdated = true; },
-        };
-        expect(U.previewExtraLongStraight(engine, fiveRun)).toBe(false);
-        expect(engine.state.unlockedCategories['Extra Long Straight']).toBeFalsy();
-        expect(U.previewExtraLongStraight(engine, sixRun)).toBe(true);
-        expect(engine.state.unlockedCategories['Extra Long Straight']).toBe(true);
-        expect(U.previewExtraLongStraight(engine, sixRun)).toBe(false);
     });
 
     it('lists both roll-unlock rows', () => {

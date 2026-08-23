@@ -120,7 +120,7 @@ const GOD_TO_CATEGORY = {
     'Three of a Kind': 'Hephaestus', 'Four of a Kind': 'Ares', 'Full House': 'Dionysus',
     'Small Straight': 'Hermes', 'Large Straight': 'Apollo',
     'Extra Long Straight': 'Iris', 'Yahtzee': 'Hades', 'Heureka': 'Zeus', 'Chance': 'Nyx',
-    "Pandora's Box": "Pandora's Box"
+    "Pandora's Jar": "Pandora's Jar"
 };
 
 /**
@@ -132,7 +132,7 @@ const GOD_METADATA = {
     // Upper Sanctum (Ones through Sixes)
     'Artemis': { gender: 'female', domain: 'hunt', category: 'Ones' },
     'Aphrodite': { gender: 'female', domain: 'love/beauty', category: 'Twos' },
-    'Hecate': { gender: 'female', domain: 'crossroads', category: 'Threes' },
+    'Hecate': { gender: 'female', domain: 'three realms', category: 'Threes' },
     'Hera': { gender: 'female', domain: 'marriage', category: 'Fours' },
     'Athena': { gender: 'female', domain: 'wisdom', category: 'Fives' },
     'Demeter': { gender: 'female', domain: 'harvest', category: 'Sixes' },
@@ -141,17 +141,17 @@ const GOD_METADATA = {
     'Ares': { gender: 'male', domain: 'war', category: 'Four of a Kind' },
     'Dionysus': { gender: 'male', domain: 'wine', category: 'Full House' },
     'Hermes': { gender: 'male', domain: 'travel', category: 'Small Straight' },
-    'Apollo': { gender: 'male', domain: 'sun', category: 'Large Straight' },
+    'Apollo': { gender: 'male', domain: 'oracle', category: 'Large Straight' },
     'Iris': { gender: 'female', domain: 'rainbow', category: 'Extra Long Straight' },
     'Hades': { gender: 'male', domain: 'underworld', category: 'Yahtzee' },
-    'Zeus': { gender: 'male', domain: 'sky', category: 'Heureka', note: 'Hypsistos / Most High — six of a kind' },
+    'Zeus': { gender: 'male', domain: 'sky', category: 'Heureka', note: 'Most High — six of a kind' },
     'Nyx': { gender: 'female', domain: 'night', category: 'Chance' },
     // High Sanctum (Bonus Categories)
     'The Pleiades': { gender: 'female', domain: 'stars', category: 'Sevens', note: 'Seven sisters' },
     'Poseidon': { gender: 'male', domain: 'sea', category: 'Eights' },
     'The Nine Muses': { gender: 'female', domain: 'arts', category: 'Nines', note: 'Nine goddesses' },
-    // Pandora's Box: unlock when both upper and lower bonus awarded
-    "Pandora's Box": { gender: 'female', domain: 'mystery', category: "Pandora's Box", note: 'Combined upper+lower bonus' }
+    // Pandora's Jar: unlock when both upper and lower bonus awarded
+    "Pandora's Jar": { gender: 'female', domain: 'mystery', category: "Pandora's Jar", note: 'Combined upper+lower bonus' }
 };
 
 /**

@@ -110,7 +110,7 @@ class GameEngine {
                 'Athena': 0, 'Demeter': 0, 'Hephaestus': 0, 'Ares': 0,
                 'Dionysus': 0, 'Hermes': 0, 'Apollo': 0, 'Iris': 0, 'Hades': 0,
                 'Zeus': 0, 'Nyx': 0, 'The Pleiades': 0, 'Poseidon': 0,
-                'The Nine Muses': 0, "Pandora's Box": 0
+                'The Nine Muses': 0, "Pandora's Jar": 0
             },
             
             tempPips: 0,
@@ -154,7 +154,7 @@ class GameEngine {
                 'Eights': false,
                 'Nines': false,
                 'Heureka': false, 'Extra Long Straight': false,
-                "Pandora's Box": false
+                "Pandora's Jar": false
             },
             // Message in a Bottle: track if any other boon triggered this ante
             hadOtherBoonsThisAnte: false,
@@ -263,9 +263,9 @@ class GameEngine {
             this.dom.scorecardRows.forEach(row => {
                 const category = row.dataset.category;
                 if (!category) return;
-                if (category === "Pandora's Box") {
+                if (category === "Pandora's Jar") {
                     row.addEventListener('click', () => {
-                        if (this.state.eucharistTargetingMode && this.state.unlockedCategories?.["Pandora's Box"]) {
+                        if (this.state.eucharistTargetingMode && this.state.unlockedCategories?.["Pandora's Jar"]) {
                             this.handleEucharistSelect(category);
                         }
                     });
@@ -324,7 +324,7 @@ class GameEngine {
                 PlaytestRecorder.log('targeting_cancelled', { kind: 'eucharist' });
             }
             this.state.eucharistTargetingMode = null;
-            this.showMessage('Eucharist selection cancelled.');
+            this.showMessage('Sponde selection cancelled.');
             const scorecard = document.getElementById('scorecard');
             if (scorecard) {
                 scorecard.classList.remove('eucharist-targeting');
@@ -344,7 +344,6 @@ class GameEngine {
         this.effects?.hideAllTooltips();
         const god = typeof GOD_TO_CATEGORY !== 'undefined' ? GOD_TO_CATEGORY[category] : null;
         if (!god) return;
-        if (god === "Pandora's Box" && !this.state.unlockedCategories?.["Pandora's Box"]) return;
         this.state.worshipLevels[god] = (this.state.worshipLevels[god] || 0) + 1;
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('eucharist_used', {
@@ -358,7 +357,7 @@ class GameEngine {
         const idx = this.state.consumables.findIndex(c => c.id === mode.libation.id);
         if (idx !== -1) this.state.consumables.splice(idx, 1);
         this.state.eucharistTargetingMode = null;
-        this.showMessage(`The Eucharist: ${god} worship increased by 1!`);
+        this.showMessage(`Sponde: ${god} worship increased by 1!`);
         const scorecard = document.getElementById('scorecard');
         if (scorecard) {
             scorecard.classList.remove('eucharist-targeting');
@@ -727,12 +726,9 @@ class GameEngine {
                 state: PlaytestRecorder.captureState(this),
             });
         }
-        // Check and award Upper Sanctum bonus (Yahtzee rule):
-        // If sum of Ones..Sixes >= 63 and not yet awarded, grant +35 points
         this.checkAndAwardUpperBonus();
-        // Check and award Lower Sanctum bonus (Pandora's Box theme):
-        // If all lower categories have been scored (non-undefined), grant +35 pips once
         this.checkAndAwardLowerBonus();
+        if (typeof PandoraLatch !== 'undefined') PandoraLatch.afterScore(this, category);
         
         BlindDirector.recordScore(this.state, targetCategory || category);
         // Apply AFTER_SCORE boon effects (Balatro-inspired timing)
@@ -986,7 +982,7 @@ class GameEngine {
                 </div>
                 ${this.state.bonusYahtzees > 0 ? `
                 <div class="stat-row special">
-                    <span class="stat-label">Bonus Five of a Kind</span>
+                    <span class="stat-label">Bonus The House</span>
                     <span class="stat-value">${this.state.bonusYahtzees}</span>
                 </div>` : ''}
             </div>
@@ -1072,7 +1068,7 @@ class GameEngine {
             const bonus = this.getPandoraBoxBonusAmount();
             this.state.upperBonusAwarded = true;
             this.state.totalScore += bonus;
-            this.showMessage(`Pandora's Box (Upper) bonus: +${bonus}!`);
+            this.showMessage(`Pandora's Jar (Upper) bonus: +${bonus}!`);
             this.checkAndUnlockPandoraBox();
             if (this.domReady) {
                 this.updateAllUI();
@@ -1092,7 +1088,7 @@ class GameEngine {
             const bonus = this.getPandoraBoxBonusAmount();
             this.state.lowerBonusAwarded = true;
             this.state.totalScore += bonus;
-            this.showMessage(`Pandora's Box (Lower) bonus: +${bonus}!`);
+            this.showMessage(`Pandora's Jar (Lower) bonus: +${bonus}!`);
             this.checkAndUnlockPandoraBox();
             if (this.domReady) {
                 this.updateAllUI();
@@ -1102,16 +1098,16 @@ class GameEngine {
 
     getPandoraBoxBonusAmount() {
         const base = 35;
-        const worshipLevel = this.state.worshipLevels?.["Pandora's Box"] || 0;
+        const worshipLevel = this.state.worshipLevels?.["Pandora's Jar"] || 0;
         const hasWorshipCard = this.state.consumables?.some(c => c && c.id === 'worship_pandora');
         return base + worshipLevel + (hasWorshipCard ? 1 : 0);
     }
 
     checkAndUnlockPandoraBox() {
-        if (this.state.unlockedCategories["Pandora's Box"]) return;
+        if (this.state.unlockedCategories["Pandora's Jar"]) return;
         if (this.state.upperBonusAwarded && this.state.lowerBonusAwarded) {
-            this.state.unlockedCategories["Pandora's Box"] = true;
-            this.showMessage("Pandora's Box worship unlocked!", 4000);
+            this.state.unlockedCategories["Pandora's Jar"] = true;
+            this.showMessage("Pandora's Jar worship unlocked!", 4000);
         }
     }
 
@@ -1163,16 +1159,16 @@ class GameEngine {
 
         if (isActualScoring && isValid) {
             const hasBellows = this.state.boons?.some(j => j.id === 'bellows_of_war');
-            const hasDionysus = this.state.boons?.some(j => j.id === 'dionysus_revelry');
+            const hasHeraYoke = this.state.boons?.some(j => j.id === 'yoke_of_hera');
             if (hasBellows && ['Three of a Kind', 'Four of a Kind'].includes(category)) {
                 this.showMessage?.('Bellows of War: Virtual die added!', 2000);
             }
-            if (hasDionysus && category === 'Full House') {
+            if (hasHeraYoke && category === 'Full House') {
                 const has3 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_THREE);
                 const has2 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_TWO);
                 const pairCount = Object.values(counts).filter((c) => c === 2).length;
                 if (pairCount >= 2 && !(has3 && has2)) {
-                    this.showMessage?.("Dionysus' Revelry: 2 pairs counted as Full House!", 3000);
+                    this.showMessage?.('Yoke of Hera: two pairs counted as The Feast!', 3000);
                 }
             }
         }
@@ -1270,10 +1266,10 @@ class GameEngine {
         if (!category) return 'Offering';
         const displayCat = typeof DevotionUtils !== 'undefined'
             ? DevotionUtils.getDisplayCategory(this.state, category)
-            : (category === 'Yahtzee' ? 'Five of a Kind' : category);
+            : (category === 'Yahtzee' ? 'The House' : category);
         if (filledSlot) {
             const g = this.getGodForCategory(category);
-            const godShown = g === "Pandora's Box" ? 'Pandora' : (g || '—');
+            const godShown = g === "Pandora's Jar" ? 'Pandora' : (g || '—');
             return `${displayCat} offered to ${godShown}`;
         }
         return `Offering ${displayCat}`;

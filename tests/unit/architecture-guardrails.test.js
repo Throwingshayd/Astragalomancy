@@ -67,6 +67,9 @@ describe('architecture guardrails (ratchet, not aspiration)', () => {
         expect(html.indexOf('GamePersistence.js')).toBeLessThan(html.indexOf('GameEngine.js'));
         expect(html.indexOf('CategoryUnlock.js')).toBeGreaterThan(-1);
         expect(html.indexOf('CategoryUnlock.js')).toBeLessThan(html.indexOf('GameEngine.js'));
+        expect(html.indexOf('PandoraLatch.js')).toBeGreaterThan(-1);
+        expect(html.indexOf('PandoraLatch.js')).toBeLessThan(html.indexOf('GameEngine.js'));
+        expect(html.indexOf('PlayerTitles.js')).toBeGreaterThan(-1);
 
         const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
         expect(engine).toContain('GamePersistence.save(this)');

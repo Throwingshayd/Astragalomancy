@@ -24,7 +24,7 @@ const ShopStockGenerator = {
     },
 
     /**
-     * Filter cards by unlocked categories (Sevens, Eights, Nines, Pandora's Box).
+     * Filter cards by unlocked categories (Sevens, Eights, Nines, Pandora's Jar).
      * @param {Array} cardPool - Cards to filter
      * @param {Object} gameState - Must have unlockedCategories
      * @returns {Array}
@@ -35,7 +35,7 @@ const ShopStockGenerator = {
             'worship_pleiades': 'Sevens',
             'worship_poseidon_eights': 'Eights',
             'worship_muses': 'Nines',
-            'worship_pandora': "Pandora's Box",
+            'worship_pandora': "Pandora's Jar",
             'carillon_of_the_muses': 'Nines'
         };
         return cardPool.filter(card => {
@@ -174,6 +174,10 @@ const ShopStockGenerator = {
         const artifacts = CardData.artifacts || {};
         for (const key in artifacts) {
             const pair = artifacts[key];
+            // Sixth / Seventh Astragalus open from The Jar, not the shop.
+            if (pair.base?.id === 'artifact_sixth_astragalus') {
+                continue;
+            }
             if (!purchasedIds.has(pair.base.id)) {
                 pool.push(pair.base);
             } else if (pair.upgraded && !purchasedIds.has(pair.upgraded.id)) {
@@ -287,7 +291,7 @@ const ShopStockGenerator = {
 
     /**
      * Generate pack contents (choose-one). Hall of Heroes / Panegyris / Symposium add a
-     * fourth card; The Auspices and Ganymede's Cup pin the first slot to your most-used.
+     * fourth card; The Bird Omens and Ganymede's Cup pin the first slot to your most-used.
      * @param {Object} packData - { type: 'boon'|'worship'|'libation' }
      * @param {Object} gameState
      * @param {Object} prng

@@ -4,6 +4,13 @@ import { describe, expect, it, beforeAll } from 'vitest';
 describe('DevotionUtils pantheon devotion', () => {
     beforeAll(() => {
         globalThis.DEVOTION_BASE_CAPACITY = 1;
+        globalThis.PlayerTitles = {
+            display: (category) => ({
+                'Full House': 'The Feast',
+                Yahtzee: 'The House',
+                Chance: 'Night',
+            }[category] || category),
+        };
         globalThis.GodUtils = {
             getGodForCategory: (cat) => ({ Ones: 'Artemis', 'Small Straight': 'Hermes' }[cat] || null),
             getCategory: (god) => ({ Artemis: 'Ones', Hermes: 'Small Straight' }[god] || null),
@@ -33,7 +40,7 @@ describe('DevotionUtils pantheon devotion', () => {
         };
         globalThis.DevotionUtils.applyConsecration(state, 'Fours', 'Dionysus', 'Full House');
         expect(globalThis.DevotionUtils.getEvalCategory(state, 'Fours')).toBe('Full House');
-        expect(globalThis.DevotionUtils.getDisplayCategory(state, 'Fours')).toBe('Full House');
+        expect(globalThis.DevotionUtils.getDisplayCategory(state, 'Fours')).toBe('The Feast');
         expect(globalThis.DevotionUtils.isConsecratedSlot(state, 'Fours')).toBe(true);
         expect(globalThis.DevotionUtils.countSlotsForHand(state, 'Full House')).toBe(2);
     });

@@ -1,5 +1,6 @@
 /**
- * Extra dice granted by artifacts (The Sixth Astragalus).
+ * Extra dice from The Sixth / Seventh Astragalus.
+ * Sixth and Seventh open from The Jar latch (dashes 4 and 7).
  * Keeps GameEngine from owning count/rehydrate/save rules.
  *
  * @module game/ArtifactDice

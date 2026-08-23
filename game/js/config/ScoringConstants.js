@@ -12,7 +12,7 @@ const BASE_SCORES = {
     SMALL_STRAIGHT: 30,
     LARGE_STRAIGHT: 40,
     YAHTZEE: 50,  // Five of a Kind (Hades)
-    HEUREKA: 80,  // Six of a kind (Zeus Hypsistos) — unlocks when rolled
+    HEUREKA: 80,  // Six of a kind (Zeus Most High) — unlocks when rolled
     EXTRA_LONG_STRAIGHT: 60,  // Iris — unlocks when rolled
 };
 

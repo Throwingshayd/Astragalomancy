@@ -940,13 +940,13 @@ body::after {
 .scorecard.eucharist-targeting {
     position: relative;
 }
-.scorecard.eucharist-targeting .score-row:not([data-category="Pandora's Box"]),
+.scorecard.eucharist-targeting .score-row:not([data-category="Pandora's Jar"]),
 .scorecard.eucharist-targeting .score-row.pandora-unlocked {
     cursor: pointer;
     box-shadow: 0 0 12px rgba(138, 43, 226, 0.5);
     animation: libation-target-pulse 1.5s ease-in-out infinite;
 }
-.scorecard.eucharist-targeting .score-row:not([data-category="Pandora's Box"]):hover,
+.scorecard.eucharist-targeting .score-row:not([data-category="Pandora's Jar"]):hover,
 .scorecard.eucharist-targeting .score-row.pandora-unlocked:hover {
     box-shadow: 0 0 18px rgba(138, 43, 226, 0.8);
     transform: scale(1.02);
@@ -6835,9 +6835,9 @@ body::after {
     --felt-score-total-left: calc(var(--game-board-margin-x) + var(--game-board-contain-w) * 0.38);
     --felt-score-required-left: calc(var(--game-board-margin-x) + var(--game-board-contain-w) * 0.62);
     --felt-inner-row-top: calc(589px + (1 / 3) * var(--felt-die-size, 95px));
-    /* Felt stack: live offering above dice (see #playStage + .felt-live). */
+    /* Felt stack: trial up top, live score just above the dice. */
     --felt-game-board-offset-y: 18px;
-    --felt-live-score-top: 210px;
+    --felt-live-score-top: 214px;
     --felt-dice-padding-top: 418px;
 }
 
@@ -6977,7 +6977,7 @@ body::after {
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Small Straight"] { --px: 38%; --py: 118px; z-index: 6; }
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Large Straight"] { --px: 62%; --py: 118px; z-index: 6; }
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Chance"] { --px: 11%; --py: 146px; z-index: 5; }
-.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Pandora's Box"] { --px: 89%; --py: 158px; z-index: 5; }
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Pandora's Jar"] { --px: 89%; --py: 158px; z-index: 5; }
 /* ToK/FoK: outer lower gap midpoints (Chance shares ToK row, left of ToK) */
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Three of a Kind"] { --px: 25%; --py: 158px; z-index: 5; }
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Four of a Kind"] { --px: 75%; --py: 146px; z-index: 5; }
@@ -6999,7 +6999,7 @@ body::after {
 .pantheon-frieze .pantheon-chip[data-category="Twos"] { --chip-rot: -1.5deg; }
 .pantheon-frieze .pantheon-chip[data-category="Ones"] { --chip-rot: -2.5deg; }
 
-.pantheon-frieze .pantheon-chip[data-category="Pandora's Box"] { --chip-rot: 8deg; }
+.pantheon-frieze .pantheon-chip[data-category="Pandora's Jar"] { --chip-rot: 8deg; }
 .pantheon-frieze .pantheon-chip[data-category="Four of a Kind"] { --chip-rot: 4deg; }
 .pantheon-frieze .pantheon-chip[data-category="Large Straight"] { --chip-rot: 2deg; }
 .pantheon-frieze .pantheon-chip[data-category="Extra Long Straight"] { --chip-rot: 3deg; }
@@ -7292,12 +7292,12 @@ body::after {
 }
 
 /* Eucharist targeting on the frieze mirrors the legacy .scorecard.eucharist-targeting behaviour */
-.pantheon-frieze.eucharist-targeting .pantheon-chip:not([data-category="Pandora's Box"]),
+.pantheon-frieze.eucharist-targeting .pantheon-chip:not([data-category="Pandora's Jar"]),
 .pantheon-frieze.eucharist-targeting .pantheon-chip.pandora-unlocked {
     box-shadow: 0 0 12px rgba(138, 43, 226, 0.5);
     animation: libation-target-pulse 1.5s ease-in-out infinite;
 }
-.pantheon-frieze.eucharist-targeting .pantheon-chip:not([data-category="Pandora's Box"]):hover,
+.pantheon-frieze.eucharist-targeting .pantheon-chip:not([data-category="Pandora's Jar"]):hover,
 .pantheon-frieze.eucharist-targeting .pantheon-chip.pandora-unlocked:hover {
     box-shadow: 0 0 18px rgba(138, 43, 226, 0.8);
 }
@@ -7312,7 +7312,7 @@ body::after {
 @media (max-width: 1680px) {
     /* End caps pulled slightly past 11/89 so ToK/FoK @ 20/74 keep ≥~11% centre spacing from straights */
     .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Chance"] { --px: 9%; }
-    .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Pandora's Box"] { --px: 91%; }
+    .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Pandora's Jar"] { --px: 91%; }
     .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Three of a Kind"] { --px: 20%; }
     .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Four of a Kind"] { --px: 74%; }
     .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Small Straight"] { --px: 34%; }
@@ -7478,7 +7478,7 @@ body::after {
 .card-area-squish.card-area-vertical .card:nth-child(5) { z-index: 5; }
 
 /* ── 4. DICE STAGE LAYOUT
-   Vertical stack: live offering above dice, then Cast the Bones. */
+   Vertical stack: trial, live score above dice, then Cast the Bones. */
 .center-game-area #playStage {
     justify-content: flex-start;
     align-items: center;

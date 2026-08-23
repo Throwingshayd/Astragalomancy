@@ -20,10 +20,10 @@ const WorshipDrop = {
         return typeof WorshipCard !== 'undefined' && card instanceof WorshipCard;
     },
 
-    /** Sevens–Nines and Pandora's Box only accept worship once the row is unlocked. */
+    /** Sevens–Nines, Heureka, and The Spectrum wait for The Jar. The Jar itself always accepts Offer. */
     categoryUnlocked(category, state) {
         if (!category || !state) return false;
-        if (category === "Pandora's Box") return !!state.unlockedCategories?.["Pandora's Box"];
+        if (category === "Pandora's Jar") return true;
         if (category === 'Sevens' || category === 'Eights' || category === 'Nines'
             || category === 'Heureka' || category === 'Extra Long Straight') {
             return !!state.unlockedCategories?.[category];

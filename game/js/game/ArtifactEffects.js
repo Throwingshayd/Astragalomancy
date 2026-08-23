@@ -35,7 +35,7 @@ const ARTIFACT_CONTRIBUTIONS = {
     artifact_antimatter: (d) => { d.boonSlots += 1; },
 
     artifact_panegyris: (d) => { d.packBonus.worship += 1; },
-    artifact_the_auspices: (d) => { d.guaranteeTopWorship = true; },
+    artifact_bird_omens: (d) => { d.guaranteeTopWorship = true; },
 
     artifact_symposium: (d) => { d.packBonus.libation += 1; },
     artifact_ganymedes_cup: (d) => { d.guaranteeTopLibation = true; },
@@ -156,6 +156,11 @@ const ArtifactEffects = {
         if (!state || !libationId) return;
         if (!state.libationPours || typeof state.libationPours !== 'object') state.libationPours = {};
         state.libationPours[libationId] = (state.libationPours[libationId] || 0) + 1;
+        (state.boons || []).forEach((b) => {
+            if (b && (b.id === 'dionysus_revelry' || b.id === 'dionysian_revelry')) {
+                b.drinkPips = (b.drinkPips || 0) + 4;
+            }
+        });
     },
 
     /**

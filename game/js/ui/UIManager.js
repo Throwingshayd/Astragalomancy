@@ -1,4 +1,5 @@
 /* exported UIManager */
+/* global PlayerTitles */
 // UIManager - Handles all UI updates and interactions
 
 class UIManager {
@@ -350,8 +351,9 @@ class UIManager {
             return false;
         }
         const handCategory = card.getCategory();
-        const handLabel = handCategory === 'Yahtzee' ? 'Five of a Kind' : handCategory;
-        const slotLabel = targetCategory === 'Yahtzee' ? 'Five of a Kind' : targetCategory;
+        const titleOf = (c) => (typeof PlayerTitles !== 'undefined' ? PlayerTitles.display(c) : c);
+        const handLabel = titleOf(handCategory);
+        const slotLabel = titleOf(targetCategory);
         const duplicateCount = typeof DevotionUtils !== 'undefined'
             ? DevotionUtils.countSlotsForHand(gameState, handCategory)
             : 1;
