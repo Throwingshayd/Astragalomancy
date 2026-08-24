@@ -65,7 +65,7 @@ describe('ConsumableSlots — blessings and libations hold separate rails', () =
     });
 
     it('ignores anything that is not a consumable', () => {
-        expect(ConsumableSlots.kindOf({ id: 'midas_touch', type: 'boon' })).toBe(null);
+        expect(ConsumableSlots.kindOf({ id: 'sisyphus_boulder', type: 'boon' })).toBe(null);
         expect(ConsumableSlots.isFull(state, { type: 'boon' })).toBe(false);
     });
 });

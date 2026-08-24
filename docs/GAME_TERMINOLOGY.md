@@ -8,7 +8,7 @@ Use this when editing UI copy, docs, or talking to agents about the project.
 |------|------------|
 | **Boon** | Persistent run modifier (right bar) |
 | **Libation** | One-shot drink / item effects (left bar) |
-| **Worship** (Blessing) | Blessing of a god. **Offer** it on that god’s pantheon row for +1 worship level, or **Held** in the blessing rail until 3 trials → **Ascended** (consecrate any unlocked row as that hand/god). |
+| **Worship** (Blessing) | Blessing of a god. **Offer** it on that god’s pantheon row for +1 worship level, or **Held** through one full Trial (start to finish) → **Ascended** (consecrate any unlocked row as that hand/god). |
 | **Artifact** | Run-long passive, bought by dragging into the artifacts chest |
 
 **Libation** and **Worship** are separate card types with their own art, tooltips, and drag targets. Every blessing shares the same Offer / Held / Ascended package — only the target row and per-level pips change.

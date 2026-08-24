@@ -24,11 +24,13 @@ const BoonTimingHandlers = {
             
             
             case 'pandoras_jar':
-                // Apply permanent stacks (gained once per interval in turn_start — not here)
-                if (boon.pandoraFavourStacks > 0) {
-                    result.favour += boon.pandoraFavourStacks;
-                    boon.dynamicStats.favour = boon.pandoraFavourStacks;
-                }
+            case 'lethe_waters':
+            case 'icarus_wings':
+            case 'medusas_gaze':
+            case 'cerberus_watch':
+            case 'trojan_horse':
+            case 'typhon':
+                // Near-miss redesign — see NearMissBoonHandlers
                 break;
             
             // === CORE BOONS - Previously Missing ===
@@ -48,25 +50,8 @@ const BoonTimingHandlers = {
                 }
                 break;
             }
-            
-            case 'lethe_waters':
-                // +25 Pips flat bonus (ignoring 1-2s is cosmetic/handled elsewhere)
-                result.pips += 25;
-                engine?.showMessage?.("Lethe Waters: +25 Pips!");
-                break;
-            
-            case 'icarus_wings':
-                // +10 Pips per unused roll (in addition to break chance in turn_end)
-                const unusedRolls = gameState.rollsLeft;
-                const icarusBonus = unusedRolls * 10;
-                if (icarusBonus > 0) {
-                    result.pips += icarusBonus;
-                    boon.dynamicStats.pips = icarusBonus;
-                    engine?.showMessage?.(`Icarus' Wings: +${icarusBonus} Pips from ${unusedRolls} unused rolls!`);
-                }
-                break;
 
-            case 'the_gambler':
+            case 'the_gambler': {
                 // +10 Pips for every re-roll remaining
                 const gamblerRollsLeft = gameState.rollsLeft ?? 0;
                 const gamblerBonus = gamblerRollsLeft * 10;
@@ -76,6 +61,7 @@ const BoonTimingHandlers = {
                     engine?.showMessage?.(`The Gambler: +${gamblerBonus} Pips from ${gamblerRollsLeft} rerolls left!`);
                 }
                 break;
+            }
             
             case 'hestias_hearth':
                 // +300 Favour if all dice are odd OR all dice are even
@@ -142,16 +128,6 @@ const BoonTimingHandlers = {
                 }
                 break;
             
-            case 'medusas_gaze':
-                // Lower sanctum scores give +50 Favour
-                const lowerSanctum = ['Three of a Kind', 'Four of a Kind', 'Full House', 
-                                     'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'];
-                if (lowerSanctum.includes(result.category)) {
-                    result.favour += 50;
-                    engine?.showMessage?.("Medusa's Gaze: +0.5 Favour (lower sanctum)!");
-                }
-                break;
-            
             case 'tantalus_curse':
                 // +10 Favour for each gold, but cannot spend gold
                 const tantalusFavour = (gameState.gold || 0) * 10;
@@ -186,34 +162,10 @@ const BoonTimingHandlers = {
                 break;
             }
             
-            case 'cerberus_watch': {
-                // The first 3 dice you hold each turn gain +3 Pips each
-                const cerberusDieIndices = [];
-                (gameState.dice || []).forEach((d, i) => {
-                    if (d.held && cerberusDieIndices.length < 3) cerberusDieIndices.push(i);
-                });
-                const cerberusBonus = cerberusDieIndices.length * 3;
-                result.pips += cerberusBonus;
-                if (cerberusBonus > 0) {
-                    result._cerberusDieIndices = cerberusDieIndices;
-                    engine?.showMessage?.(`Cerberus' Watch: +${cerberusBonus} Pips for held dice!`);
-                }
-                break;
-            }
-            
             case 'apollos_oracle':
                 // Apollo's Oracle: reduce score by 20%
                 result.pips = Math.floor(result.pips * 0.8);
                 engine?.showMessage?.("Apollo's Oracle: -20% score penalty!");
-                break;
-            
-            case 'trojan_horse':
-                // After Turn 10, all Boons give ×2 effect (handled by global multiplier in applyTimingEffect)
-                // Show big activation message at turn 11
-                if (gameState.turn === 11) {
-                    engine?.showMessage?.("🐴 THE TROJAN HORSE ACTIVATES! All boons now ×2!", 5000);
-                    Logger.info("Trojan Horse activated at turn 11 - all boons now doubled!");
-                }
                 break;
             
             // === NEW BOONS - Rustic Tier ===
@@ -302,18 +254,6 @@ const BoonTimingHandlers = {
                     result.favour *= 2;
                     boon.dynamicStats.favour = '×2';
                     engine?.showMessage?.("Reckless Abandon: no dice held — ×2 Favour!");
-                }
-                break;
-            }
-            
-            case 'typhon': {
-                // Father of monsters: each 1 grants Favour, so all-1s is a reachable payoff.
-                const ones = gameState.dice.filter(die => die.face === 1).length;
-                if (ones > 0) {
-                    const typhonFavour = ones * 50;
-                    result.favour += typhonFavour;
-                    boon.dynamicStats.favour = typhonFavour;
-                    engine?.showMessage?.(`🌋 Typhon: ${ones}× 1 — +${typhonFavour / 100} Favour!`);
                 }
                 break;
             }

@@ -2,6 +2,9 @@
 // WorshipCard class - Represents worship cards that increase god favor
 
 class WorshipCard extends Card {
+    /** Quiet tooltip aside — not printed on the card face. */
+    static CONSECRATION_WHISPER = 'Hold a Trial to consecrate.';
+
     constructor(data) {
         super(data);
         this.type = 'worship';
@@ -11,19 +14,27 @@ class WorshipCard extends Card {
         this.category = this.getCategory(); // Which scorecard category this affects
         this.heldTrials = data.heldTrials || 0;
         this.devotionAscended = !!data.devotionAscended;
+        this.heldFromTrialStart = !!data.heldFromTrialStart;
     }
 
     render(isShopItem = false, isDirectSale = false, gameState = null) {
         const el = super.render(isShopItem, isDirectSale, gameState);
         if (this.devotionAscended) {
             el.classList.add('devotion-ascended');
-        } else if (this.heldTrials > 0) {
+        } else if (this.heldFromTrialStart || this.heldTrials > 0) {
             el.classList.add('devotion-holding');
-            const roman = typeof DevotionUtils !== 'undefined'
-                ? DevotionUtils.heldTrialsRoman(this.heldTrials)
-                : String(this.heldTrials);
-            el.dataset.heldTrials = roman;
+            if (this.heldTrials > 0) {
+                const roman = typeof DevotionUtils !== 'undefined'
+                    ? DevotionUtils.heldTrialsRoman(this.heldTrials)
+                    : String(this.heldTrials);
+                el.dataset.heldTrials = roman;
+            }
         }
+        try {
+            const tip = JSON.parse(el.getAttribute('data-tooltip') || '{}');
+            tip.aside = WorshipCard.CONSECRATION_WHISPER;
+            el.setAttribute('data-tooltip', JSON.stringify(tip));
+        } catch (_e) { /* keep the parent tooltip */ }
         return el;
     }
 
@@ -32,6 +43,7 @@ class WorshipCard extends Card {
             ...super.toJSON(),
             heldTrials: this.heldTrials || 0,
             devotionAscended: !!this.devotionAscended,
+            heldFromTrialStart: !!this.heldFromTrialStart,
         };
     }
 
@@ -92,13 +104,24 @@ class WorshipCard extends Card {
         game?.showMessage?.(`${this.god} worship increased to level ${gameState.worshipLevels[this.god]}!`);
     }
 
-    // Held devotion: 3 trials → Ascended (no gold while held).
-    static tickHeldDevotionTrials(gameState, gameEngine) {
+    /** Stamp blessings already in the rail when a Trial begins. */
+    static markHeldAtTrialStart(gameState) {
         if (!gameState?.consumables?.length) return;
-        const need = typeof DEVOTION_TRIALS_TO_ASCEND !== 'undefined' ? DEVOTION_TRIALS_TO_ASCEND : 3;
         for (const c of gameState.consumables) {
             if (!(c instanceof WorshipCard) || !c.canUse() || c.devotionAscended) continue;
+            c.heldFromTrialStart = true;
+        }
+    }
+
+    // Held devotion: one full Trial start→finish → Ascended (no gold while held).
+    static tickHeldDevotionTrials(gameState, gameEngine) {
+        if (!gameState?.consumables?.length) return;
+        const need = typeof DEVOTION_TRIALS_TO_ASCEND !== 'undefined' ? DEVOTION_TRIALS_TO_ASCEND : 1;
+        for (const c of gameState.consumables) {
+            if (!(c instanceof WorshipCard) || !c.canUse() || c.devotionAscended) continue;
+            if (!c.heldFromTrialStart) continue;
             c.heldTrials = (c.heldTrials || 0) + 1;
+            c.heldFromTrialStart = false;
             if (c.heldTrials >= need) {
                 c.devotionAscended = true;
                 gameEngine?.showMessage?.(

@@ -61,6 +61,9 @@ describe('architecture guardrails (ratchet, not aspiration)', () => {
 
     it('persist and boon face chips stay extracted so the god files can take the next feature', () => {
         const html = readFileSync('game/index.html', 'utf8');
+        expect(html.indexOf('SeatBoonHandlers.js')).toBeGreaterThan(-1);
+        expect(html.indexOf('NearMissBoonHandlers.js')).toBeGreaterThan(-1);
+        expect(html.indexOf('NearMissBoonHandlers.js')).toBeLessThan(html.indexOf('Boon.js'));
         expect(html.indexOf('BoonDisplayStats.js')).toBeGreaterThan(-1);
         expect(html.indexOf('BoonDisplayStats.js')).toBeLessThan(html.indexOf('Boon.js'));
         expect(html.indexOf('GamePersistence.js')).toBeGreaterThan(-1);

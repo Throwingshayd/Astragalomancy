@@ -22,7 +22,7 @@ Then `npm test` before calling the change done.
 | `#rollButton` | Cast the Bones (roll) | Continue (leave shop) |
 | `#shopContinueBtn` | hidden | Reroll (4g / Free) |
 
-Blessing tooltips: Offer = pantheon level-up; Held 3 trials → Ascended. No held gold.
+Blessing tooltips: planet-style `Level up {row}. +N Pips & +0.25 Favour.` Quiet aside: `Hold a Trial to consecrate.` One full Trial start→finish (`DEVOTION_TRIALS_TO_ASCEND`). No held gold.
 
 ## Copy rules
 

@@ -60,7 +60,7 @@ describe('DevotionUtils pantheon devotion', () => {
 
     it('formats held-trial roman counters', () => {
         expect(globalThis.DevotionUtils.heldTrialsRoman(1)).toBe('I');
-        expect(globalThis.DevotionUtils.heldTrialsRoman(2)).toBe('II');
-        expect(globalThis.DevotionUtils.heldTrialsRoman(3)).toBe('III');
+        expect(globalThis.DevotionUtils.heldTrialsRoman(2)).toBe('I');
+        expect(globalThis.DevotionUtils.heldTrialsRoman(3)).toBe('I');
     });
 });

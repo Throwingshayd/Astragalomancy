@@ -180,6 +180,14 @@ const ScoringEngine = {
         pips = clampFinite(pips, 0, 0);
         favour = clampFinite(favour, favourFloor, favourBase);
 
+        if (typeof NearMissBoonHandlers !== 'undefined') {
+            NearMissBoonHandlers.syncHorseFavourMultiplier(state);
+        }
+        const favMul = state.favourMultiplier || 1;
+        if (favMul !== 1) {
+            favour = clampFinite(favour * favMul, favourFloor, favourBase);
+        }
+
         const finalScore = typeof SafeMath !== 'undefined'
             ? SafeMath.safeScore(pips, favour)
             : Math.max(0, Math.min(Math.floor(pips * favour / 100), MAX));

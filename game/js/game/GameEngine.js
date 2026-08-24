@@ -380,6 +380,7 @@ class GameEngine {
 
     /** Start ante — BlindDirector assigns a random beatable boss (ante 1 is always clear). */
     startAnte() {
+        if (typeof NearMissBoonHandlers !== 'undefined') NearMissBoonHandlers.onTrialStart(this.state);
         BlindDirector.startAnte(this);
     }
 
@@ -426,6 +427,7 @@ class GameEngine {
      * RNG + effects, then update UI with bounce on rolled dice.
      */
     executeRoll() {
+        const isReroll = !!this.state.hasRolled;
         this.applyBoonRollEffects();
 
         this.state.rollsLeft--;
@@ -474,6 +476,11 @@ class GameEngine {
         const doPostPhysicsRoll = () => {
             this.dom.diceRollZone?.closest('.center-game-area')?.classList?.remove('dice-rolling');
             this.previewUnlockBonusCategoriesOnRoll();
+
+            const afterMeta = { isReroll, rollsLeftAfter: this.state.rollsLeft };
+            if (typeof NearMissBoonHandlers !== 'undefined') {
+                NearMissBoonHandlers.fireAfterRoll(this, afterMeta);
+            }
 
             const counts = {};
             this.state.dice.forEach((d) => {
@@ -548,8 +555,19 @@ class GameEngine {
             this.showMessage(denyHold);
             return;
         }
+        if (this.state.held[index] && typeof NearMissBoonHandlers !== 'undefined') {
+            const denyStone = NearMissBoonHandlers.denyUnhold(this.state, index);
+            if (denyStone) {
+                if (this.sound) this.sound.play('cancel', { volume: 0.5 });
+                this.showMessage(denyStone);
+                return;
+            }
+        }
         
         this.state.held[index] = !this.state.held[index];
+        if (typeof NearMissBoonHandlers !== 'undefined') {
+            NearMissBoonHandlers.onHoldToggle(this.state, index, this.state.held[index]);
+        }
         if (this.sound) this.sound.play('highlight1', { pitch: 0.95 + this.prng.random() * 0.1, volume: 0.5 });
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             const faces = this.state.dice.map((d) => this.getDieFaceValue(d, 0));
@@ -664,6 +682,10 @@ class GameEngine {
         
         let { pips, favour, isValid } = this.calculateScore(category, true);
         let finalScore = 0;
+        const scoreCat = targetCategory || category;
+        const wasUnfilled = typeof TrialCompletion !== 'undefined'
+            ? !TrialCompletion.categoryFilled(this.state, scoreCat)
+            : this.state.scorecard[scoreCat] === undefined;
 
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('score_begin', {
@@ -685,7 +707,7 @@ class GameEngine {
                 : Math.floor(pips * favour / 100);
             
             this.animateScoreUpdate(category, pips, favour, finalScore, targetCategory, () => {
-                this.finalizeScoring(category, pips, favour, finalScore, targetCategory);
+                this.finalizeScoring(category, pips, favour, finalScore, targetCategory, wasUnfilled, isValid);
             });
             
         } else {
@@ -707,7 +729,7 @@ class GameEngine {
                 this.state.scorecard[category] = 0;
             }
             // Still finalize for zero score
-            this.finalizeScoring(category, pips, favour, 0, targetCategory);
+            this.finalizeScoring(category, pips, favour, 0, targetCategory, wasUnfilled, false);
         }
     }
     
@@ -715,7 +737,7 @@ class GameEngine {
      * Finalize scoring after animation completes
      * Runs bonuses, effects, and advances turn
      */
-    finalizeScoring(category, pips, favour, finalScore, targetCategory) {
+    finalizeScoring(category, pips, favour, finalScore, targetCategory, wasUnfilled = true, isValid = finalScore > 0) {
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('score_finalized', {
                 category,
@@ -735,6 +757,18 @@ class GameEngine {
         this.state.boons.forEach(boon => {
             boon.onTimingEvent('after_score', this.state, { category, pips, favour, finalScore }, this);
         });
+
+        if (typeof NearMissBoonHandlers !== 'undefined') {
+            const scoreCat = targetCategory || category;
+            const unfilledAfter = typeof TrialCompletion !== 'undefined'
+                ? TrialCompletion.countUnfilledCategories(this.state)
+                : 0;
+            NearMissBoonHandlers.onCategoryScored(this.state, scoreCat, {
+                isValid,
+                wasUnfilled,
+                unfilledAfter,
+            }, this);
+        }
         
         // Track scores for cashout - gold awarded at round end before shop (not per-score)
         if (finalScore > 0) {
@@ -807,40 +841,10 @@ class GameEngine {
      * @returns {Array<{dieIndex: number, label: string}>} Affected dice and their bonus labels
      */
     getBoonDicePreview(boonId) {
-        const state = this.state;
-        if (!state?.dice) return [];
-        const result = [];
-        const held = state.held || [];
-
-        switch (boonId) {
-            case 'pegasus_flight':
-                // Popup only when scored — we don't have category at hover, so no preview
-                break;
-            case 'cerberus_watch':
-                state.dice.forEach((die, i) => {
-                    if (held[i] && result.length < 3) result.push({ dieIndex: i, label: '+3 pips' });
-                });
-                break;
-            case 'prime_time': {
-                const primes = [2, 3, 5];
-                if (state.unlockedCategories?.Sevens) primes.push(7);
-                state.dice
-                    .map((d, i) => ({ i, face: this.getDieFaceValue(d, 0) }))
-                    .filter(({ face }) => primes.includes(face))
-                    .forEach(({ i }) => result.push({ dieIndex: i, label: '+0.3 favour' }));
-                break;
-            }
-            case 'the_locksmith':
-                state.dice.forEach((die, i) => {
-                    const heldRolls = die.rollsHeld || 0;
-                    if (heldRolls > 0) result.push({ dieIndex: i, label: `+${heldRolls} pips` });
-                });
-                break;
-            default:
-                break;
+        if (typeof NearMissBoonHandlers !== 'undefined') {
+            return NearMissBoonHandlers.dicePreview(boonId, this.state, (d) => this.getDieFaceValue(d, 0));
         }
-
-        return result;
+        return [];
     }
 
     
@@ -1158,11 +1162,7 @@ class GameEngine {
             : {};
 
         if (isActualScoring && isValid) {
-            const hasBellows = this.state.boons?.some(j => j.id === 'bellows_of_war');
             const hasHeraYoke = this.state.boons?.some(j => j.id === 'yoke_of_hera');
-            if (hasBellows && ['Three of a Kind', 'Four of a Kind'].includes(category)) {
-                this.showMessage?.('Bellows of War: Virtual die added!', 2000);
-            }
             if (hasHeraYoke && category === 'Full House') {
                 const has3 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_THREE);
                 const has2 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_TWO);
@@ -1363,11 +1363,12 @@ class GameEngine {
     applyArtifactEffects() {
         ArtifactEffects.apply(this.state);
 
-        // Reset when the late-trial condition lapses so ×2 cannot leak into the next trial.
-        const hasTrojanHorseBoon = this.state.boons?.some(j => j.id === 'trojan_horse');
-        const trojanActive = hasTrojanHorseBoon && this.state.turn >= 11;
-        this.state.boonMultiplier = trojanActive ? 2 : 1;
-        if (trojanActive) Logger.info(`Trojan Horse BOON activated! All boons ×2 (Turn ${this.state.turn})`);
+        if (typeof NearMissBoonHandlers !== 'undefined') {
+            NearMissBoonHandlers.syncHorseFavourMultiplier(this.state);
+        } else {
+            this.state.boonMultiplier = 1;
+            this.state.favourMultiplier = 1;
+        }
     }
 
     // UI Updates (this will be called by UIManager)

@@ -195,6 +195,7 @@ const BlindDirector = {
         this.applyPlan(engine.state, plan);
         engine.state.pendingBlindPlan = null;
         engine.state.hadOtherBoonsThisAnte = false;
+        if (typeof WorshipCard !== 'undefined') WorshipCard.markHeldAtTrialStart(engine.state);
         engine.applyArtifactEffects();
         const tycheGold = ArtifactEffects.trialStartGold(engine.state);
         if (tycheGold > 0) {

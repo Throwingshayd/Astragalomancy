@@ -76,8 +76,8 @@ test.describe('Greek layout visual checks', () => {
 
         const fill = async (count) => {
             await page.evaluate((n) => {
-                const ids = ['the_gambler', 'midas_touch', 'sisyphus_boulder', 'typhon',
-                    'symmetry', 'the_merchant', 'early_bird'];
+                const ids = ['sisyphus_boulder', 'typhon', 'pandoras_jar', 'medusas_gaze',
+                    'cerberus_watch', 'anvil_of_hephaestus', 'silver_bow_of_artemis'];
                 window.game.state.boonSlots = n;
                 window.game.state.boons = ids.slice(0, n)
                     .map((id) => new Boon(CardData.boons.find((b) => b.id === id)));

@@ -305,8 +305,13 @@ describe('one artifact per trial', () => {
 });
 
 describe('Trojan Horse', () => {
-    it('sets boon multiplier from the current trial, not a leftover flag', () => {
+    it('sets Favour ×2 from Turn 10 via NearMissBoonHandlers (not all-effect boonMultiplier)', () => {
         const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
-        expect(engine).toContain('this.state.boonMultiplier = trojanActive ? 2 : 1;');
+        const near = readFileSync('game/js/game/NearMissBoonHandlers.js', 'utf8');
+        const scoring = readFileSync('game/js/engine/ScoringEngine.js', 'utf8');
+        expect(engine).toContain('NearMissBoonHandlers.syncHorseFavourMultiplier');
+        expect(near).toContain('favourMultiplier');
+        expect(near).toContain('turn || 0) >= 10');
+        expect(scoring).toContain('favourMultiplier');
     });
 });

@@ -56,44 +56,47 @@ describe('continuity regulator', () => {
         expect(cardJs).toContain('data.sellValue ?? Card.defaultSellValue');
     });
 
+    it('boon pool is crafted lore only (no gambling / Balatro leftovers)', () => {
+        expect(CardData.boons).toHaveLength(32);
+        const banned = [
+            'the_gambler', 'lucky_dice_bag', 'gamblers_charm', 'reckless_abandon',
+            'the_locksmith', 'the_merchant', 'first_blood', 'misery', 'the_zealot',
+            'mt_olympus', 'cycle_of_seasons', 'prometheus_gift', 'parmenides_die',
+        ];
+        for (const id of banned) {
+            expect(byId(id), id).toBeUndefined();
+        }
+    });
+
     it('boon tooltips match handlers', () => {
-        expect(byId('the_gambler').effect).toBe('+10 Pips for every re-roll remaining.');
-        expect(byId('misery').effect).toBe('If you have 0 gold, gain +2 Favour.');
-        expect(byId('the_zealot').effect).toBe(
-            'When you score the pantheon row of the god you most recently Offered to this Trial, gain +1 Favour.',
-        );
-        expect(byId('mt_olympus').effect).toBe(
-            'Gain +1 Favour per total worship level across the pantheon.',
-        );
-        expect(byId('forge_of_hephaestus').effect).toBe(
-            'Gain +0.5 Favour for each unused re-roll (max +1.5).',
-        );
         expect(byId('proteus_disguise').effect).toBe('Copies the effect of the Boon to its left.');
-        expect(byId('eruption_of_etna').effect).toBe(
-            "If 3+ Boons trigger on same turn, +1 Favour (stacks, doesn't reset).",
-        );
-        expect(byId('ascetics_vow').effect).toBe(
-            'If you have empty other Boon slots, gain +1 Favour for each.',
-        );
-        expect(byId('medusas_gaze').effect).toContain('+0.5 Favour');
-        expect(byId('pegasus_flight').effect).toContain('+0.5 Favour');
-        expect(byId('carillon_of_the_muses').effect).toContain('×2.5 Favour');
+        expect(byId('medusas_gaze').effect).toContain('+6 Pips per 6');
+        expect(byId('nine_muses').effect).toContain('+0.5 Favour');
         expect(byId('silver_bow_of_artemis').effect).toContain('first Cast');
         expect(byId('yoke_of_hera').effect).toContain('The Feast');
         expect(byId('the_lots_of_zeus').effect).toContain('Heureka');
         expect(byId('asphodel_of_hades').effect).toContain('The House');
         expect(byId('trident_of_poseidon').effect).toContain('every 8 times');
+        expect(byId('pandoras_jar').name).toBe('Elpis in the Jar');
+        expect(byId('pandoras_jar').effect).toContain('+10 Pips');
+        expect(byId('trojan_horse').effect).toContain('Favour is ×2');
+        expect(byId('cerberus_watch').effect).toContain('watched');
+        expect(byId('icarus_wings').effect).toContain('+0.1 Favour');
+        expect(byId('lethe_waters').name).toBe('Forgetfulness');
+        expect(byId('bellows_of_war').name).toBe('Twenty Bellows');
+        expect(byId('typhon').effect).toContain('10 ones');
+        expect(byId('the_odyssey').effect).toContain('scratch');
+        expect(byId('cornucopia_of_ploutos').name).toBe('Ploutos');
+        expect(byId('reflection_of_narcissus').effect).toContain('disabled');
+        expect(byId('sisyphus_boulder').effect).toContain('+5 Pips');
+        expect(byId('tantalus_curse').effect).toContain('cannot spend');
 
-        const handlers = readFileSync('game/js/classes/boonTimingHandlers.js', 'utf8');
-        expect(handlers).toContain('result.pips += gamblerBonus');
-        expect(handlers).toContain('result.favour += 200');
-        expect(handlers).toContain('The Zealot: +1 Favour');
-        expect(handlers).toContain('result.favour *= 2.5');
-        expect(handlers).toContain("Hydra's Heads: +3 Favour");
-        expect(handlers).toContain("Medusa's Gaze: +0.5 Favour");
+        expect(readFileSync('game/js/game/NearMissBoonHandlers.js', 'utf8')).toContain("Medusa's Gaze");
+        expect(readFileSync('game/js/classes/boonTimingHandlers.js', 'utf8')).toContain('sisyphus');
 
         const engine = readFileSync('game/js/engine/ScoringEngine.js', 'utf8');
         expect(engine).toContain('SafeMath.safeScore(pips, favour)');
+        expect(engine).toContain('favourMultiplier');
     });
 
     it('artifact copy matches the handlers', () => {

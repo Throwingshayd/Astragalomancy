@@ -136,11 +136,11 @@ const DevotionUtils = {
         return marks > 0 ? this.toRoman(marks) : '';
     },
 
-    /** Roman trial counter for held worship (I … III before ascension). */
+    /** Roman trial counter for held worship (I … before ascension). */
     heldTrialsRoman(heldTrials) {
         const n = Math.floor(Number(heldTrials) || 0);
         if (n <= 0) return '';
-        const need = typeof DEVOTION_TRIALS_TO_ASCEND !== 'undefined' ? DEVOTION_TRIALS_TO_ASCEND : 3;
+        const need = typeof DEVOTION_TRIALS_TO_ASCEND !== 'undefined' ? DEVOTION_TRIALS_TO_ASCEND : 1;
         return this.toRoman(Math.min(n, need));
     },
 

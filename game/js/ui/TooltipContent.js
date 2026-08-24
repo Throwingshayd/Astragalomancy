@@ -42,6 +42,7 @@ const TooltipContent = {
         if (parsed.title) html += `<div class="tooltip-title">${this.escapeHtml(parsed.title)}</div>`;
         if (parsed.stats?.length) html += this.statChips(parsed.stats);
         if (parsed.effect) html += `<div class="tooltip-effect">${this.escapeHtml(parsed.effect)}</div>`;
+        if (parsed.aside) html += `<div class="tooltip-whisper">${this.escapeHtml(parsed.aside)}</div>`;
         if (parsed.god) html += `<div class="tooltip-god">${this.escapeHtml(parsed.god)}</div>`;
         return html;
     },

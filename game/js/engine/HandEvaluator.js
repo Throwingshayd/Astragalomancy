@@ -72,27 +72,17 @@ const HandEvaluator = {
     };
 });
 
-HandEvaluator.CATEGORY_HANDLERS['Three of a Kind'] = (faces, counts, { boons }) => {
-    let threshold = SCORING_THRESHOLDS.THREE_OF_KIND_REQUIRED;
-    if (boons.some(j => j.id === 'bellows_of_war')) threshold -= 1;
+HandEvaluator.CATEGORY_HANDLERS['Three of a Kind'] = (faces, counts) => {
+    const threshold = SCORING_THRESHOLDS.THREE_OF_KIND_REQUIRED;
     if (!Object.values(counts).some(c => c >= threshold)) return { pips: 0, isValid: false };
-    let pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Three of a Kind'];
-    if (boons.some(j => j.id === 'bellows_of_war')) {
-        const matchVal = parseInt(Object.keys(counts).find(k => counts[k] >= threshold), 10);
-        pips += matchVal;
-    }
+    const pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Three of a Kind'];
     return { pips, isValid: true };
 };
 
-HandEvaluator.CATEGORY_HANDLERS['Four of a Kind'] = (faces, counts, { boons }) => {
-    let threshold = SCORING_THRESHOLDS.FOUR_OF_KIND_REQUIRED;
-    if (boons.some(j => j.id === 'bellows_of_war')) threshold -= 1;
+HandEvaluator.CATEGORY_HANDLERS['Four of a Kind'] = (faces, counts) => {
+    const threshold = SCORING_THRESHOLDS.FOUR_OF_KIND_REQUIRED;
     if (!Object.values(counts).some(c => c >= threshold)) return { pips: 0, isValid: false };
-    let pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Four of a Kind'];
-    if (boons.some(j => j.id === 'bellows_of_war')) {
-        const matchVal = parseInt(Object.keys(counts).find(k => counts[k] >= threshold), 10);
-        pips += matchVal;
-    }
+    const pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Four of a Kind'];
     return { pips, isValid: true };
 };
 

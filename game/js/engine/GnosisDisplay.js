@@ -25,14 +25,6 @@ const GnosisDisplay = {
             return (c[num] || 0) * num;
         }
         let sum = Object.entries(c).reduce((a, [k, n]) => a + Number(k) * n, 0);
-        if (['Three of a Kind', 'Four of a Kind'].includes(category)
-            && state?.boons?.some((j) => j.id === 'bellows_of_war')) {
-            const threshold = (category === 'Three of a Kind'
-                ? SCORING_THRESHOLDS.THREE_OF_KIND_REQUIRED
-                : SCORING_THRESHOLDS.FOUR_OF_KIND_REQUIRED) - 1;
-            const matchKey = Object.keys(c).find((k) => c[k] >= threshold);
-            if (matchKey) sum += parseInt(matchKey, 10);
-        }
         return sum;
     },
 

@@ -40,6 +40,20 @@ describe('tooltip content', () => {
         expect(card({ title: 'Kylix', stats: [{ value: null, type: 'pips' }] })).not.toContain('tooltip-stats');
     });
 
+    it('renders a quiet aside after the effect', () => {
+        const html = card({
+            title: 'Blessing of Artemis',
+            effect: 'Level up Ones. +1 Pips & +0.25 Favour.',
+            aside: 'Hold a Trial to consecrate.',
+            god: 'Artemis',
+        });
+        expect(html).toContain('tooltip-whisper');
+        expect(html.indexOf('tooltip-effect')).toBeLessThan(html.indexOf('tooltip-whisper'));
+        expect(html.indexOf('tooltip-whisper')).toBeLessThan(html.indexOf('tooltip-god'));
+        expect(html).toContain('Hold a Trial to consecrate.');
+        expect(card({ title: 'Kylix', effect: 'Reroll once.' })).not.toContain('tooltip-whisper');
+    });
+
     it('escapes card text and stat values', () => {
         const html = card({ title: '<script>x</script>', stats: [{ value: '<b>9</b>', type: 'pips' }] });
         expect(html).not.toContain('<script>');

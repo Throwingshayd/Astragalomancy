@@ -49,8 +49,8 @@ const WORSHIP_FAVOUR_PER_LEVEL = 25;
 /** Default times each pantheon row may be scored per trial. */
 const DEVOTION_BASE_CAPACITY = 1;
 
-/** Trials a worship card must be held to become Ascended Devotion. */
-const DEVOTION_TRIALS_TO_ASCEND = 3;
+/** Full trials (start→finish) a blessing must be held to become Ascended. Balance knob. */
+const DEVOTION_TRIALS_TO_ASCEND = 1;
 
 /**
  * Pips added per worship level when scoring that category.

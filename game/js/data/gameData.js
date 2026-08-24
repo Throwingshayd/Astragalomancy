@@ -5,623 +5,8 @@
 
 const CardData = {
     boons: [
-        // Boons from CSV database with standard timing hooks
-        { 
-            id: "hestias_hearth", 
-            name: "Hestia's Hearth", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "If all 5 of your dice are odd or all 5 are even the hand gains +3 Favour.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "charons_ferry_fare", 
-            name: "Charon's Ferry Fare", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Gain +1 Gold after scoring any hand (does not trigger on a scratch).",
-            timing: { after_score: true }
-        },
-        { id: "the_gambler", name: "The Gambler", rarity: "rustic", cost: 3, sellValue: 1, effect: "+10 Pips for every re-roll remaining.", timing: { before_score: true }, triggerPhase: "inventory" },
-        { 
-            id: "achilles_heel", 
-            name: "Achilles' Heel", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "All scores gain +15 Pips but you lose 1 Gold at the start of each roll.",
-            timing: { before_score: true, turn_start: true }
-        },
-        { 
-            id: "midas_touch", 
-            name: "Midas Touch", 
-            rarity: "rustic", 
-            cost: 4, 
-            sellValue: 2, 
-            effect: "Gain +0.1 Favour for every 5 Gold you have when scoring.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "icarus_wings", 
-            name: "Icarus' Wings", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Each unused re-roll at the end of a turn gives +10 Pips to the score. Chance to break after turn 1 in 8.",
-            timing: { before_score: true, turn_end: true }
-        },
-        { 
-            id: "lethe_waters", 
-            name: "Lethe Waters", 
-            rarity: "rustic", 
-            cost: 4, 
-            sellValue: 2, 
-            effect: "All dice with a value of 2 or less are not counted for scoring but your final score gains +25 Pips.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "forge_of_hephaestus", 
-            name: "Forge of Hephaestus", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Gain +0.5 Favour for each unused re-roll (max +1.5).",
-            timing: { before_score: true }
-        },
-        { 
-            id: "prometheus_gift", 
-            name: "Prometheus' Gift", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Gives +3 Favour to all hands but you have one less re-roll each turn.",
-            timing: { before_score: true, turn_start: true }
-        },
-        { 
-            id: "chaos_primordial", 
-            name: "Chaos Primordial", 
-            rarity: "legendary", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "Doubles all Favour gains but you have one less re-roll each turn.",
-            timing: { before_score: true, turn_start: true },
-            shopExclude: true  // Legendary - not available in shop
-        },
-        { 
-            id: "mt_olympus", 
-            name: "Mt Olympus", 
-            rarity: "epic", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "Gain +1 Favour per total worship level across the pantheon.",
-            timing: { before_score: true }
-        },
-        
-        // === EPIC TIER - Game Changers ===
-        { 
-            id: "sisyphus_boulder", 
-            name: "Sisyphus' Boulder", 
-            rarity: "vibrant", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "+5 Pips for every time you've rerolled this turn. Resets each turn.",
-            god: "Sisyphus",
-            timing: { before_score: true }
-        },
-        { 
-            id: "kronos_hourglass", 
-            name: "Kronos' Hourglass", 
-            rarity: "epic", 
-            cost: 9, 
-            sellValue: 2, 
-            effect: "Gain +1 roll at the start of each turn.",
-            god: "Kronos",
-            timing: { turn_start: true }
-        },
-        { 
-            id: "pandoras_jar", 
-            name: "Pandora's Jar", 
-            rarity: "epic", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "Every 3rd turn, randomly destroy a Boon and gain +2 Favour (stacks permanently).",
-            god: "Pandora",
-            timing: { before_score: true, turn_start: true }
-        },
-        
-        // === VIBRANT TIER - Interesting Mechanics ===
-        { 
-            id: "demeters_harvest", 
-            name: "Demeter's Harvest", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Each turn, one random die permanently gains +1 to its value (max 9).",
-            god: "Demeter",
-            timing: { turn_start: true }
-        },
-        { 
-            id: "medusas_gaze", 
-            name: "Medusa's Gaze", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Any die showing 6 cannot be rerolled (acts as automatic hold). Lower sanctum scores give +0.5 Favour.",
-            god: "Medusa",
-            timing: { after_roll: true, before_score: true }
-        },
-        { 
-            id: "dionysus_revelry", 
-            name: "Dionysus' Revelry", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "When you score The Feast, gain a random Libation. This boon gains +4 Pips when you drink a Libation.",
-            god: "Dionysus",
-            description: "The krater is the hand; the sip is the god.",
-            timing: { before_score: true, after_score: true }
-        },
-        { 
-            id: "apollos_oracle", 
-            name: "Apollo's Oracle", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "+1 reroll per turn, reduce score input by 20%.",
-            god: "Apollo",
-            description: "More chances but weakened results.",
-            timing: { turn_start: true, before_score: true }
-        },
-        { 
-            id: "hydras_heads", 
-            name: "Hydra's Heads", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Whenever you score with exactly 2 pairs (e.g. 2-2-3-3-5), gain +3 Favour.",
-            god: "Hydra",
-            timing: { before_score: true }
-        },
-        { 
-            id: "tantalus_curse", 
-            name: "Tantalus' Curse", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "+0.1 Favour for each gold you have, but cannot spend gold while active.",
-            god: "Tantalus",
-            description: "Punishment eternal: wealth you cannot touch.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "pegasus_flight", 
-            name: "Pegasus' Flight", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Dice showing 6 or more grant +0.5 Favour each when scored.",
-            god: "Pegasus",
-            timing: { before_score: true }
-        },
-        { 
-            id: "cerberus_watch", 
-            name: "Cerberus' Watch", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "The first 3 dice you hold each turn gain +3 Pips each when scored.",
-            god: "Cerberus",
-            description: "The three-headed guardian blesses what you protect.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "trojan_horse", 
-            name: "The Trojan Horse", 
-            rarity: "legendary", 
-            cost: 12, 
-            sellValue: 3, 
-            effect: "After Turn 10, all your Boons give ×2 their normal effect.",
-            description: "Hidden power revealed when the time is right.",
-            timing: { before_score: true },
-            shopExclude: true  // Legendary - not available in shop
-        },
-        
-        // === RUSTIC TIER - Simple but Effective ===
-        { 
-            id: "lucky_dice_bag", 
-            name: "Lucky Dice Bag", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Whenever you roll a 1, reroll that die automatically (once per die per turn).",
-            timing: { after_roll: true }
-        },
-        { 
-            id: "gamblers_charm", 
-            name: "Gambler's Charm", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "50% chance to gain +2 Gold when scoring, 50% chance to lose 1 gold.",
-            timing: { after_score: true }
-        },
-        { 
-            id: "marathon_runner", 
-            name: "Marathon Runner", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Gain +1 Pips per roll taken (stacks, destroyed when scratched or reaches 42+ pips).",
-            description: "Named for Pheidippides - the longer the journey, the greater the exhaustion.",
-            timing: { before_score: true, after_roll: true, after_score: true }
-        },
-        { 
-            id: "golden_touch", 
-            name: "Golden Touch", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Interest is calculated at 1 gold per 3 saved (instead of 5).",
-            god: "Midas",
-            description: "Better interest rate on saved gold.",
-            timing: { turn_start: true }
-        },
-        
-        // === NEW BOONS - Wave 2 ===
-        { 
-            id: "mathematicians_compass", 
-            name: "Mathematician's Compass", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Small and Large Straights gain +2 Favour.",
-            description: "The geometer rewards a perfect sequence.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "prime_time", 
-            name: "Prime Time", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Each die showing a prime (2, 3, 5) grants +0.3 Favour.",
-            description: "Indivisible numbers carry divine weight.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "the_locksmith", 
-            name: "The Locksmith", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Held dice gain +1 pips for each roll they were held, when scoring.",
-            description: "The longer they're locked, the more valuable they become.",
-            timing: { before_score: true, after_roll: true, turn_start: true }
-        },
-        { 
-            id: "the_merchant", 
-            name: "The Merchant", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Selling libation and worship cards gives +1 extra gold.",
-            description: "A keen trader in sacred goods.",
-            timing: { sell: true }
-        },
-        { 
-            id: "the_heretic", 
-            name: "The Heretic", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Each turn gain +2 pips (stacks, resets at end of trial or when worship card is used).",
-            description: "Growing stronger without divine intervention.",
-            timing: { before_score: true, turn_start: true, ante_end: true }
-        },
-        { 
-            id: "reckless_abandon", 
-            name: "Reckless Abandon", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Score with no dice held to gain ×2 Favour.",
-            description: "Pure chaos, no strategy - commit everything.",
-            timing: { before_score: true, after_roll: true }
-        },
-        { 
-            id: "typhon", 
-            name: "Typhon", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Each die showing a 1 when you score grants +0.5 Favour.",
-            description: "Gaia's youngest, born of Tartarus.",
-            god: "Typhon",
-            timing: { after_roll: true, before_score: true }
-        },
-        { 
-            id: "early_bird", 
-            name: "Early Bird Gets the Worm", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Turns 1-3: +20 Pips, turns 4-5 gain 2 gold, Turns 6-13: -5 Pips.",
-            description: "Front-loaded power that fades over time.",
-            timing: { before_score: true, after_score: true }
-        },
-        { 
-            id: "the_symposium", 
-            name: "The Symposium", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Each time you score 4+ matching dice, gain +0.05 Favour (stacks permanently).",
-            description: "A gathering of equals - celebrations accumulate.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "assembly_of_heroes", 
-            name: "Assembly of Heroes", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "If all boon slots are full, gain +15 Pips when scoring.",
-            description: "United heroes stand stronger together.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "divine_synergy", 
-            name: "Divine Synergy", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Boons of the same rarity amplify each other (+5 Pips per matching rarity).",
-            description: "Similar rarities harmonize together.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "first_blood", 
-            name: "First Blood", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Your first score each Trial gives +50 Pips.",
-            description: "Strike first, strike hard.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "midnight_oil", 
-            name: "Midnight Oil", 
-            rarity: "rustic", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Turn 12+ gives +24 Pips but you lose 1 roll each turn.",
-            description: "Burning the midnight oil - working harder at the end.",
-            timing: { before_score: true, turn_start: true }
-        },
-        { 
-            id: "parmenides_die", 
-            name: "Parmenides Die", 
-            rarity: "epic", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "Scores swap between upper and lower pantheon (Ones↔Three of a Kind, Twos↔Small Straight, etc.).",
-            description: "The philosopher of paradox - what you score in one sanctum appears in the other.",
-            god: "Parmenides",
-            timing: { turn_start: true }
-        },
-        { 
-            id: "doubling_season", 
-            name: "Doubling Season", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "All even numbers give +2 pips, odd numbers give -1 pip.",
-            description: "Growth and decay in balance - evens flourish, odds wither.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "symmetry", 
-            name: "Symmetry", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Each time you roll a palindrome, this card permanently gains +0.5 Favour (stacks).",
-            description: "Divine harmony accumulates with each perfect pattern.",
-            timing: { after_roll: true, before_score: true }
-        },
-        { 
-            id: "misery", 
-            name: "Misery", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "If you have 0 gold, gain +2 Favour.",
-            description: "Poverty grants divine Favour - suffering brings blessing.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "smog_of_morpheus", 
-            name: "Smog of Morpheus", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "After your final roll, all dice showing 2 or 4 become 3s.",
-            description: "The tribe of Dreams flattens the last roll.",
-            god: "Morpheus",
-            timing: { after_roll: true }
-        },
-        { 
-            id: "the_zealot", 
-            name: "The Zealot", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "When you score the pantheon row of the god you most recently Offered to this Trial, gain +1 Favour.",
-            description: "Zealous devotion to the last worshipped god.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "mortal_vineyard", 
-            name: "Mortal Vineyard", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Selling a Boon gives you a random Libation.",
-            description: "Transform the divine into sacred wine - alchemical conversion.",
-            timing: { sell: true }
-        },
-        { 
-            id: "proteus_disguise",
-            name: "Proteus' Disguise",
-            rarity: "vibrant",
-            cost: 5,
-            sellValue: 1,
-            effect: "Copies the effect of the Boon to its left.",
-            description: "The shape-shifter takes the form of its neighbour.",
-            god: "Proteus",
-            timing: { before_score: true, after_score: true, turn_start: true, turn_end: true }
-        },
-        { 
-            id: "cornucopia_of_ploutos", 
-            name: "Cornucopia of Ploutos", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "At end of Trial, gold ×1.5 (rounded down).",
-            description: "Whoever meets him, him he makes rich.",
-            god: "Ploutos",
-            timing: { ante_end: true }
-        },
-        { 
-            id: "the_odyssey", 
-            name: "The Odyssey", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "At end of Trial, if ALL categories filled with NO scratches, gain (total categories)² pips.",
-            description: "Complete the perfect journey - 13² = 169, 14² = 196, 15² = 225, 16² = 256 pips.",
-            god: "Odysseus",
-            timing: { ante_end: true }
-        },
-        { 
-            id: "message_in_a_bottle", 
-            name: "Message in a Bottle", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "If you complete Trial with no other boons for entire trial gain +50% of score threshold.",
-            description: "A solo journey - isolation brings great reward.",
-            timing: { ante_end: true }
-        },
-        { 
-            id: "judgement_of_paris", 
-            name: "Judgement of Paris", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Destroy a random Boon at end of each Trial, gain +10 Gold.",
-            description: "For the fairest — one is chosen, the rest pay.",
-            god: "Paris",
-            timing: { ante_end: true }
-        },
-        { 
-            id: "eruption_of_etna", 
-            name: "Eruption of Etna", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "If 3+ Boons trigger on same turn, +1 Favour (stacks, doesn't reset).",
-            description: "Volcanic eruption - when many boons align, explosive power!",
-            timing: { before_score: true }
-        },
-        { 
-            id: "cycle_of_seasons", 
-            name: "The Cycle of Seasons", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "When you Offer a Blessing, another god also gains +1 worship.",
-            description: "The seasons cycle - worship spreads to other gods.",
-            timing: {} // Special - triggers on worship card use
-        },
-        { 
-            id: "ascetics_vow", 
-            name: "Ascetic's Vow", 
-            rarity: "epic", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "If you have empty other Boon slots, gain +1 Favour for each.",
-            description: "Less is more - the ascetic finds power in emptiness.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "bellows_of_war", 
-            name: "Bellows of War", 
-            rarity: "epic", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "Three/Four of Kind categories score as if you had one more matching die.",
-            description: "The forge's bellows create phantom duplicates - virtual power.",
-            god: "Hephaestus",
-            timing: {} // Special - modifies scoring logic
-        },
-        { 
-            id: "night_of_nyx", 
-            name: "Night of Nyx", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Chance category gives +69 Pips, reduce a random god's worship by 1 level.",
-            description: "Night that even Zeus will not offend.",
-            god: "Nyx",
-            timing: { before_score: true }
-        },
-        { 
-            id: "gold_standard", 
-            name: "Gold Standard", 
-            rarity: "vibrant", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "While you have 20+ Gold, gain ×1.5 Favour.",
-            description: "Back every offering with a full treasury.",
-            timing: { before_score: true }
-        },
-        { 
-            id: "carillon_of_the_muses", 
-            name: "Carillon of the Muses", 
-            rarity: "epic", 
-            cost: 10, 
-            sellValue: 3, 
-            effect: "If all 5 dice have enhancements, gain +3 Favour (secret: if all same enhancement, ×2.5 Favour).",
-            description: "Perfect harmony - the bells ring when all are enhanced.",
-            god: "The Nine Muses",
-            timing: { before_score: true }
-        },
-        { 
-            id: "reflection_of_narcissus", 
-            name: "Reflection of Narcissus", 
-            rarity: "epic", 
-            cost: 11, 
-            sellValue: 3, 
-            effect: "Boons trigger twice, but you have -2 rolls per turn.",
-            description: "The reflection doubles all - but limits your chances.",
-            god: "Narcissus",
-            timing: { turn_start: true }
-        },
-        { 
-            id: "journey_of_perseus", 
-            name: "Journey of Perseus", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Every 100 total score, this Boon gains +10 Pips.",
-            description: "The hero's journey - power accumulates with achievement.",
-            god: "Perseus",
-            timing: { before_score: true }
-        },
+        // Crafted lore pool only: Wave 0 seats + Fits + near-miss redesigns (32).
+        // Gambling / Balatro leftovers and superseded stickers cut — see BOON_CATALOGUE_V2 §5.
         {
             id: "silver_bow_of_artemis",
             name: "Silver Bow of Artemis",
@@ -631,7 +16,7 @@ const CardData = {
             effect: "Scoring Ones on the first Cast of the turn: +15 Pips.",
             description: "She hits on the first shot.",
             god: "Artemis",
-            timing: { before_score: true }
+            timing: {before_score:true}
         },
         {
             id: "girdle_of_aphrodite",
@@ -642,7 +27,7 @@ const CardData = {
             effect: "+2 Pips per neighbouring pair of 2s, on any score.",
             description: "Desire sits side by side.",
             god: "Aphrodite",
-            timing: { before_score: true }
+            timing: {before_score:true}
         },
         {
             id: "triple_torch_of_hecate",
@@ -653,7 +38,7 @@ const CardData = {
             effect: "+9 Pips if at least three 3s are showing (any score).",
             description: "Honour in three realms — three 3s is the rite.",
             god: "Hecate",
-            timing: { before_score: true }
+            timing: {before_score:true}
         },
         {
             id: "yoke_of_hera",
@@ -675,7 +60,7 @@ const CardData = {
             effect: "Scoring Fives while Sixes is empty: +15 Pips.",
             description: "The shore, and the house still ahead.",
             god: "Athena",
-            timing: { before_score: true }
+            timing: {before_score:true}
         },
         {
             id: "pomegranate_of_persephone",
@@ -686,29 +71,7 @@ const CardData = {
             effect: "Even Trials: scoring Sixes +12 Pips. Odd Trials: scoring Sixes +6 Gold.",
             description: "Six seeds — she belongs to two realms.",
             god: "Demeter",
-            timing: { before_score: true, after_score: true }
-        },
-        {
-            id: "spoils_of_ares",
-            name: "Spoils of Ares",
-            rarity: "vibrant",
-            cost: 5,
-            sellValue: 1,
-            effect: "+0.5 Favour and +4 Gold when you score The Spoils.",
-            description: "Loot the field.",
-            god: "Ares",
-            timing: { before_score: true, after_score: true }
-        },
-        {
-            id: "caduceus_of_hermes",
-            name: "Caduceus of Hermes",
-            rarity: "vibrant",
-            cost: 5,
-            sellValue: 1,
-            effect: "+3 Gold when you score a Straight.",
-            description: "Walk the road, lift a fee.",
-            god: "Hermes",
-            timing: { after_score: true }
+            timing: {before_score:true,after_score:true}
         },
         {
             id: "anvil_of_hephaestus",
@@ -719,7 +82,40 @@ const CardData = {
             effect: "This boon gains +2 Pips if 3 dice are the same.",
             description: "Every strike leaves the iron hotter.",
             god: "Hephaestus",
-            timing: { before_score: true }
+            timing: {before_score:true}
+        },
+        {
+            id: "spoils_of_ares",
+            name: "Spoils of Ares",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "+0.5 Favour and +4 Gold when you score The Spoils.",
+            description: "Loot the field.",
+            god: "Ares",
+            timing: {before_score:true,after_score:true}
+        },
+        {
+            id: "dionysus_revelry",
+            name: "Dionysus' Revelry",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "When you score The Feast, gain a random Libation. This boon gains +4 Pips when you drink a Libation.",
+            description: "The krater is the hand; the sip is the god.",
+            god: "Dionysus",
+            timing: {before_score:true,after_score:true}
+        },
+        {
+            id: "caduceus_of_hermes",
+            name: "Caduceus of Hermes",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "+3 Gold when you score a Straight.",
+            description: "Walk the road, lift a fee.",
+            god: "Hermes",
+            timing: {after_score:true}
         },
         {
             id: "pythian_course",
@@ -730,7 +126,7 @@ const CardData = {
             effect: "When you score The Long Course as 2-3-4-5-6, gain a random Blessing.",
             description: "The course that climbs. Not the low run.",
             god: "Apollo",
-            timing: { after_score: true }
+            timing: {after_score:true}
         },
         {
             id: "spectrum_of_iris",
@@ -741,7 +137,7 @@ const CardData = {
             effect: "When you score The Spectrum, +1 level to every lower pantheon row.",
             description: "The arc joins the houses.",
             god: "Iris",
-            timing: { after_score: true }
+            timing: {after_score:true}
         },
         {
             id: "asphodel_of_hades",
@@ -752,7 +148,7 @@ const CardData = {
             effect: "+4 Pips per filled scorecard row when you score The House.",
             description: "The shades are many.",
             god: "Hades",
-            timing: { before_score: true }
+            timing: {before_score:true}
         },
         {
             id: "the_lots_of_zeus",
@@ -763,7 +159,7 @@ const CardData = {
             effect: "When you score Heureka, +1 level to Heureka, The House, and Eights.",
             description: "Sky, sea, and the hall below.",
             god: "Zeus",
-            timing: { after_score: true }
+            timing: {after_score:true}
         },
         {
             id: "veil_of_nyx",
@@ -774,18 +170,7 @@ const CardData = {
             effect: "+0.1 Favour per different face when you score Night.",
             description: "Everything lives in the dark.",
             god: "Nyx",
-            timing: { before_score: true }
-        },
-        {
-            id: "trident_of_poseidon",
-            name: "Trident of Poseidon",
-            rarity: "vibrant",
-            cost: 5,
-            sellValue: 1,
-            effect: "This boon gains +0.1 Favour every 8 times you score.",
-            description: "The eighth wave.",
-            god: "Poseidon",
-            timing: { before_score: true, after_score: true }
+            timing: {before_score:true}
         },
         {
             id: "seven_sisters",
@@ -796,7 +181,18 @@ const CardData = {
             effect: "7s count toward Pips even when the row ignores them.",
             description: "They appear in every house, not only their own.",
             god: "The Pleiades",
-            timing: { before_score: true }
+            timing: {before_score:true}
+        },
+        {
+            id: "trident_of_poseidon",
+            name: "Trident of Poseidon",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "This boon gains +0.1 Favour every 8 times you score.",
+            description: "The eighth wave.",
+            god: "Poseidon",
+            timing: {before_score:true,after_score:true}
         },
         {
             id: "nine_muses",
@@ -807,31 +203,179 @@ const CardData = {
             effect: "+0.5 Favour if all 5 dice are enhanced when you score.",
             description: "They only sing together.",
             god: "The Nine Muses",
-            timing: { before_score: true }
+            timing: {before_score:true}
+        },
+        {
+            id: "pandoras_jar",
+            name: "Elpis in the Jar",
+            rarity: "epic",
+            cost: 8,
+            sellValue: 2,
+            effect: "When another boon is destroyed, this boon gains +10 Pips. This boon cannot be destroyed.",
+            description: "Hope stays under the rim.",
+            god: "Pandora",
+            timing: {before_score:true}
+        },
+        {
+            id: "sisyphus_boulder",
+            name: "Sisyphus' Boulder",
+            rarity: "vibrant",
+            cost: 8,
+            sellValue: 2,
+            effect: "+5 Pips for every time you've rerolled this turn. Resets each turn.",
+            god: "Sisyphus",
+            timing: {before_score:true}
+        },
+        {
+            id: "tantalus_curse",
+            name: "Tantalus' Curse",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "+0.1 Favour for each gold you have, but cannot spend gold while active.",
+            description: "Punishment eternal: wealth you cannot touch.",
+            god: "Tantalus",
+            timing: {before_score:true}
+        },
+        {
+            id: "proteus_disguise",
+            name: "Proteus' Disguise",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "Copies the effect of the Boon to its left.",
+            description: "The shape-shifter takes the form of its neighbour.",
+            god: "Proteus",
+            timing: {before_score:true,after_score:true,turn_start:true,turn_end:true}
+        },
+        {
+            id: "icarus_wings",
+            name: "Wax Wings",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "This boon gains +0.1 Favour each time you reroll. If you use all rolls this turn, destroy this boon.",
+            timing: {after_roll:true,before_score:true}
+        },
+        {
+            id: "lethe_waters",
+            name: "Forgetfulness",
+            rarity: "rustic",
+            cost: 4,
+            sellValue: 2,
+            effect: "After you score, strip all enhancements from the dice you just cashed. This boon gains +0.1 Favour per enhancement stripped.",
+            timing: {before_score:true,after_score:true}
+        },
+        {
+            id: "medusas_gaze",
+            name: "Medusa's Gaze",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "Dice showing 6 cannot be rerolled. When you score: +6 Pips per 6 showing.",
+            god: "Medusa",
+            timing: {after_roll:true,before_score:true}
+        },
+        {
+            id: "cerberus_watch",
+            name: "Cerberus' Watch",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "The first 3 dice you hold this turn are watched. Score with all 3 still held: +9 Pips. Release or reroll any of them → no bonus.",
+            description: "The gate does not open.",
+            god: "Cerberus",
+            timing: {before_score:true,turn_start:true}
+        },
+        {
+            id: "trojan_horse",
+            name: "Horse of Troy",
+            rarity: "legendary",
+            cost: 12,
+            sellValue: 3,
+            effect: "Does nothing until Turn 10. From Turn 10, Favour is ×2.",
+            description: "Ten years, then the gates.",
+            timing: {before_score:true},
+            shopExclude: true
+        },
+        {
+            id: "typhon",
+            name: "Typhon Beneath",
+            rarity: "rustic",
+            cost: 3,
+            sellValue: 1,
+            effect: "For every 10 ones rolled this run (need not be scored), this boon gains +1 Pip.",
+            description: "A hundred serpent heads.",
+            god: "Typhon",
+            timing: {after_roll:true,before_score:true}
+        },
+        {
+            id: "cornucopia_of_ploutos",
+            name: "Ploutos",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "At end of Trial, if you have less than 10 Gold, your Gold becomes 10.",
+            description: "Whoever meets him, him he makes rich.",
+            god: "Ploutos",
+            timing: {ante_end:true}
+        },
+        {
+            id: "the_odyssey",
+            name: "Wanderings of Odysseus",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "When you fill the last empty category this Trial, gain +5 Pips per scratch this Trial.",
+            description: "The last shore after the wrecks.",
+            god: "Odysseus",
+            timing: {after_score:true}
+        },
+        {
+            id: "bellows_of_war",
+            name: "Twenty Bellows",
+            rarity: "epic",
+            cost: 8,
+            sellValue: 2,
+            effect: "Whenever you score with 3+ matching dice (any row), this boon banks +3 Pips. When you score The Anvil, add the banked Pips to that score, then clear the bank.",
+            description: "The bellows keep the forge hot.",
+            god: "Hephaestus",
+            timing: {before_score:true}
+        },
+        {
+            id: "reflection_of_narcissus",
+            name: "Reflection of Narcissus",
+            rarity: "epic",
+            cost: 11,
+            sellValue: 3,
+            effect: "At the start of each turn: +1 reroll. A random other boon is disabled. If this is your only boon, it disables itself until you gain another.",
+            description: "He only looks at himself.",
+            god: "Narcissus",
+            timing: {turn_start:true}
         }
     ],
 
     worship: [
-        // Shared package: Offer = pantheon level-up; Held 3 trials → Ascended.
-        { id: "worship_artemis", name: "Blessing of Artemis", god: "Artemis", rarity: "worship", cost: 3, effect: "Offer on Ones: +1 level (+1 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Ones/Artemis)." },
-        { id: "worship_aphrodite", name: "Blessing of Aphrodite", god: "Aphrodite", rarity: "worship", cost: 3, effect: "Offer on Twos: +1 level (+2 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Twos/Aphrodite)." },
-        { id: "worship_hecate", name: "Blessing of Hecate", god: "Hecate", rarity: "worship", cost: 3, effect: "Offer on Threes: +1 level (+3 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Threes/Hecate)." },
-        { id: "worship_hera", name: "Blessing of Hera", god: "Hera", rarity: "worship", cost: 3, effect: "Offer on Fours: +1 level (+4 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Fours/Hera)." },
-        { id: "worship_athena", name: "Blessing of Athena", god: "Athena", rarity: "worship", cost: 3, effect: "Offer on Fives: +1 level (+5 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Fives/Athena)." },
-        { id: "worship_demeter", name: "Blessing of Demeter", god: "Demeter", rarity: "worship", cost: 3, effect: "Offer on Sixes: +1 level (+6 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Sixes/Demeter)." },
-        { id: "worship_hephaestus", name: "Blessing of Hephaestus", god: "Hephaestus", rarity: "worship", cost: 3, effect: "Offer on The Anvil: +1 level (+7 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Anvil/Hephaestus)." },
-        { id: "worship_ares", name: "Blessing of Ares", god: "Ares", rarity: "worship", cost: 3, effect: "Offer on The Spoils: +1 level (+15 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Spoils/Ares)." },
-        { id: "worship_dionysus", name: "Blessing of Dionysus", god: "Dionysus", rarity: "worship", cost: 3, effect: "Offer on The Feast: +1 level (+12 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Feast/Dionysus)." },
-        { id: "worship_hermes", name: "Blessing of Hermes", god: "Hermes", rarity: "worship", cost: 3, effect: "Offer on The Short Road: +1 level (+10 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Short Road/Hermes)." },
-        { id: "worship_apollo", name: "Blessing of Apollo", god: "Apollo", rarity: "worship", cost: 3, effect: "Offer on The Long Course: +1 level (+20 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Long Course/Apollo)." },
-        { id: "worship_iris", name: "Blessing of Iris", god: "Iris", rarity: "worship", cost: 3, effect: "Offer on The Spectrum: +1 level (+30 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The Spectrum/Iris)." },
-        { id: "worship_hades", name: "Blessing of Hades", god: "Hades", rarity: "worship", cost: 3, effect: "Offer on The House: +1 level (+25 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as The House/Hades)." },
-        { id: "worship_zeus", name: "Blessing of Zeus", god: "Zeus", rarity: "worship", cost: 3, effect: "Offer on Heureka: +1 level (+40 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Heureka/Zeus)." },
-        { id: "worship_nyx", name: "Blessing of Nyx", god: "Nyx", rarity: "worship", cost: 3, effect: "Offer on Night: +1 level (+0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Night/Nyx)." },
-        { id: "worship_pleiades", name: "Blessing of the Pleiades", god: "The Pleiades", rarity: "worship", cost: 3, effect: "Offer on Sevens: +1 level (+7 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Sevens/The Pleiades)." },
-        { id: "worship_poseidon_eights", name: "Blessing of Poseidon (Eights)", god: "Poseidon", rarity: "worship", cost: 3, effect: "Offer on Eights: +1 level (+8 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Eights/Poseidon)." },
-        { id: "worship_muses", name: "Blessing of the Nine Muses", god: "The Nine Muses", rarity: "worship", cost: 3, effect: "Offer on Nines: +1 level (+9 pips & +0.25 Favour per level). Held 3 trials → Ascended (consecrate any row as Nines/The Nine Muses)." },
-        { id: "worship_pandora", name: "Blessing of Pandora's Jar", god: "Pandora's Jar", rarity: "worship", cost: 3, effect: "Offer on The Jar: +1 sanctum bonus level. Held 3 trials → Ascended (consecrate any row as The Jar/Pandora's Jar)." },
+        // Planet-style. Consecration whisper is added by WorshipCard, not this string.
+        { id: "worship_artemis", name: "Blessing of Artemis", god: "Artemis", rarity: "worship", cost: 3, effect: "Level up Ones. +1 Pips & +0.25 Favour." },
+        { id: "worship_aphrodite", name: "Blessing of Aphrodite", god: "Aphrodite", rarity: "worship", cost: 3, effect: "Level up Twos. +2 Pips & +0.25 Favour." },
+        { id: "worship_hecate", name: "Blessing of Hecate", god: "Hecate", rarity: "worship", cost: 3, effect: "Level up Threes. +3 Pips & +0.25 Favour." },
+        { id: "worship_hera", name: "Blessing of Hera", god: "Hera", rarity: "worship", cost: 3, effect: "Level up Fours. +4 Pips & +0.25 Favour." },
+        { id: "worship_athena", name: "Blessing of Athena", god: "Athena", rarity: "worship", cost: 3, effect: "Level up Fives. +5 Pips & +0.25 Favour." },
+        { id: "worship_demeter", name: "Blessing of Demeter", god: "Demeter", rarity: "worship", cost: 3, effect: "Level up Sixes. +6 Pips & +0.25 Favour." },
+        { id: "worship_hephaestus", name: "Blessing of Hephaestus", god: "Hephaestus", rarity: "worship", cost: 3, effect: "Level up The Anvil. +7 Pips & +0.25 Favour." },
+        { id: "worship_ares", name: "Blessing of Ares", god: "Ares", rarity: "worship", cost: 3, effect: "Level up The Spoils. +15 Pips & +0.25 Favour." },
+        { id: "worship_dionysus", name: "Blessing of Dionysus", god: "Dionysus", rarity: "worship", cost: 3, effect: "Level up The Feast. +12 Pips & +0.25 Favour." },
+        { id: "worship_hermes", name: "Blessing of Hermes", god: "Hermes", rarity: "worship", cost: 3, effect: "Level up The Short Road. +10 Pips & +0.25 Favour." },
+        { id: "worship_apollo", name: "Blessing of Apollo", god: "Apollo", rarity: "worship", cost: 3, effect: "Level up The Long Course. +20 Pips & +0.25 Favour." },
+        { id: "worship_iris", name: "Blessing of Iris", god: "Iris", rarity: "worship", cost: 3, effect: "Level up The Spectrum. +30 Pips & +0.25 Favour." },
+        { id: "worship_hades", name: "Blessing of Hades", god: "Hades", rarity: "worship", cost: 3, effect: "Level up The House. +25 Pips & +0.25 Favour." },
+        { id: "worship_zeus", name: "Blessing of Zeus", god: "Zeus", rarity: "worship", cost: 3, effect: "Level up Heureka. +40 Pips & +0.25 Favour." },
+        { id: "worship_nyx", name: "Blessing of Nyx", god: "Nyx", rarity: "worship", cost: 3, effect: "Level up Night. +0.25 Favour." },
+        { id: "worship_pleiades", name: "Blessing of the Pleiades", god: "The Pleiades", rarity: "worship", cost: 3, effect: "Level up Sevens. +7 Pips & +0.25 Favour." },
+        { id: "worship_poseidon_eights", name: "Blessing of Poseidon (Eights)", god: "Poseidon", rarity: "worship", cost: 3, effect: "Level up Eights. +8 Pips & +0.25 Favour." },
+        { id: "worship_muses", name: "Blessing of the Nine Muses", god: "The Nine Muses", rarity: "worship", cost: 3, effect: "Level up Nines. +9 Pips & +0.25 Favour." },
+        { id: "worship_pandora", name: "Blessing of Pandora's Jar", god: "Pandora's Jar", rarity: "worship", cost: 3, effect: "Level up The Jar." },
     ],
 
     libations: [

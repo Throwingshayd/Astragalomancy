@@ -107,6 +107,10 @@ class Boon extends Card {
             gameState.hadOtherBoonsThisAnte = true;
         }
 
+        if (typeof NearMissBoonHandlers !== 'undefined' && NearMissBoonHandlers.isDisabled(this, gameState)) {
+            return eventData;
+        }
+
         // Track boon triggers for Eruption of Etna
         if (timingEvent === 'before_score' && this.id !== 'eruption_of_etna') {
             gameState.boonTriggersThisTurn = (gameState.boonTriggersThisTurn || 0) + 1;
@@ -114,14 +118,6 @@ class Boon extends Card {
 
         // Apply the boon's effect based on timing
         let result = this.applyTimingEffect(timingEvent, gameState, eventData, game);
-        
-        // Reflection of Narcissus: Apply effect a second time (but not for narcissus itself)
-        const hasNarcissus = gameState.boons?.some(j => j.id === 'reflection_of_narcissus');
-        if (hasNarcissus && this.id !== 'reflection_of_narcissus' && !gameState.narcissusDoubling) {
-            gameState.narcissusDoubling = true; // Prevent infinite loops
-            result = this.applyTimingEffect(timingEvent, gameState, result, game);
-            gameState.narcissusDoubling = false;
-        }
         
         // Track usage
         if (result !== eventData) {
@@ -185,19 +181,7 @@ class Boon extends Card {
                 break;
         }
         
-        // Apply The Trojan Horse artifact multiplier (if active)
-        const multiplier = gameState.boonMultiplier || 1;
-        if (multiplier !== 1 && processedResult) {
-            if (processedResult.pips !== undefined) {
-                processedResult.pips = Math.max(0, Math.floor(processedResult.pips * multiplier));
-            }
-            if (processedResult.favour !== undefined) {
-                processedResult.favour = Math.max(0, processedResult.favour * multiplier);
-            }
-            if (processedResult.gold !== undefined) {
-                processedResult.gold = Math.floor(processedResult.gold * multiplier);
-            }
-        }
+        // Trojan Horse / favour multipliers applied once in ScoringEngine (Favour ×2 only).
         
         return processedResult;
     }
@@ -257,7 +241,9 @@ class Boon extends Card {
 
     applyAfterRollEffect(gameState, result, game = null) {
         const engine = game || window.game;
-        // Effects that trigger after dice are rolled
+        if (typeof NearMissBoonHandlers !== 'undefined') {
+            NearMissBoonHandlers.afterRoll(this, gameState, engine, result || {});
+        }
         switch (this.id) {
             case 'lucky_dice_bag':
                 // Reroll any 1s automatically (once per die per turn)
@@ -273,24 +259,10 @@ class Boon extends Card {
                 }
                 break;
             
-            case 'medusas_gaze':
-                // Any die showing 6 cannot be rerolled (auto-hold)
-                let medusaSixes = 0;
-                gameState.dice.forEach(die => {
-                    if (die.face === 6) {
-                        die.held = true;
-                        medusaSixes++;
-                    }
-                });
-                if (medusaSixes > 0) {
-                    engine?.showMessage?.(`Medusa's Gaze: ${medusaSixes} sixes held!`);
-                }
-                break;
-            
             case 'the_locksmith':
                 // Track rolls held for each die
                 gameState.dice.forEach(die => {
-                    if (die.held) {
+                    if (die.held || (gameState.held && gameState.held[gameState.dice.indexOf(die)])) {
                         die.rollsHeld = (die.rollsHeld || 0) + 1;
                     }
                 });
@@ -369,6 +341,10 @@ class Boon extends Card {
     }
 
     applyBeforeScoreEffect(gameState, result, game = null) {
+        const engine = game || window.game;
+        if (typeof NearMissBoonHandlers !== 'undefined') {
+            NearMissBoonHandlers.beforeScore(this, gameState, result, engine);
+        }
         if (typeof BoonTimingHandlers !== 'undefined' && typeof BoonTimingHandlers.runBeforeScore === 'function') {
             BoonTimingHandlers.runBeforeScore(this, gameState, result, game);
         } else {
@@ -382,6 +358,9 @@ class Boon extends Card {
         const engine = game || window.game;
         if (typeof SeatBoonHandlers !== 'undefined') {
             SeatBoonHandlers.afterScore(this, gameState, result, engine);
+        }
+        if (typeof NearMissBoonHandlers !== 'undefined') {
+            NearMissBoonHandlers.afterScore(this, gameState, result, engine);
         }
         switch (this.id) {
             case 'charons_ferry_fare':
@@ -435,13 +414,16 @@ class Boon extends Card {
                     this.marathonScratches = (this.marathonScratches || 0) + 1;
                     
                     if (this.marathonScratches >= 3) {
-                        // 3 scratches = destroyed!
-                        const marathonIndex = gameState.boons.findIndex(j => j.id === 'marathon_runner');
-                        if (marathonIndex !== -1) {
-                            gameState.boons.splice(marathonIndex, 1);
-                            engine?.showMessage?.("💀 Marathon Runner: 3 scratches! Exhausted and destroyed!", 4000);
-                            Logger.info("Marathon Runner destroyed - 3 scratches");
+                        if (typeof NearMissBoonHandlers !== 'undefined') {
+                            NearMissBoonHandlers.destroyBoon(
+                                gameState, this, engine,
+                                '💀 Marathon Runner: 3 scratches! Exhausted and destroyed!',
+                            );
+                        } else {
+                            const marathonIndex = gameState.boons.findIndex(j => j.id === 'marathon_runner');
+                            if (marathonIndex !== -1) gameState.boons.splice(marathonIndex, 1);
                         }
+                        Logger.info("Marathon Runner destroyed - 3 scratches");
                     } else {
                         // Show warning
                         engine?.showMessage?.(`⚠️ Marathon Runner: Scratch ${this.marathonScratches}/3!`, 3000);
@@ -509,35 +491,6 @@ class Boon extends Card {
                 engine?.showMessage?.("Kronos' Hourglass: +1 roll this turn!");
                 break;
             
-            case 'pandoras_jar': {
-                // Every 3rd turn: +2 permanent Favour (stacking) and destroy a random other Boon
-                const pandoraInterval = (typeof BOON_EFFECTS !== 'undefined' && BOON_EFFECTS.PANDORAS_JAR?.DESTROY_INTERVAL) || 3;
-                const pandoraFavourBonus = 200;
-                if (gameState.turn % pandoraInterval === 0 && gameState.boons && gameState.boons.length > 1) {
-                    if (!this.pandoraFavourStacks) {
-                        this.pandoraFavourStacks = 0;
-                    }
-                    this.pandoraFavourStacks += pandoraFavourBonus;
-                    this.dynamicStats.favour = this.pandoraFavourStacks;
-                    engine?.showMessage?.(
-                        `Pandora's Jar: +${pandoraFavourBonus} Favour (stacking)! Total +${this.pandoraFavourStacks}.`,
-                        3000
-                    );
-
-                    const otherBoons = gameState.boons.filter(j => j.id !== 'pandoras_jar');
-                    if (otherBoons.length > 0) {
-                        const randomIndex = this._randomInt(otherBoons.length, game);
-                        const destroyed = otherBoons[randomIndex];
-                        const mainIndex = gameState.boons.findIndex(j => j.id === destroyed.id);
-                        if (mainIndex !== -1) {
-                            gameState.boons.splice(mainIndex, 1);
-                            engine?.showMessage?.(`💔 Pandora's Jar: ${destroyed.name} destroyed!`, 3000);
-                        }
-                    }
-                }
-                break;
-            }
-            
             case 'demeters_harvest':
                 // Each turn, one random die permanently gains +1 (max 9)
                 const harvestDie = gameState.dice[this._randomInt(gameState.dice.length, game)];
@@ -587,9 +540,10 @@ class Boon extends Card {
                 break;
             
             case 'reflection_of_narcissus':
-                // Reduce rolls by 2
-                gameState.rollsLeft = Math.max(1, GAME_BALANCE.STARTING_ROLLS - 2);
-                engine?.showMessage?.("Reflection of Narcissus: -2 rolls (boons doubled)!");
+            case 'cerberus_watch':
+                if (typeof NearMissBoonHandlers !== 'undefined') {
+                    NearMissBoonHandlers.turnStart(this, gameState, engine);
+                }
                 break;
         }
         if (typeof SeatBoonHandlers !== 'undefined') {
@@ -598,20 +552,6 @@ class Boon extends Card {
     }
 
     applyTurnEndEffect(gameState, result, game = null) {
-        const engine = game || window.game;
-        switch (this.id) {
-            case 'icarus_wings':
-                // Chance to break after turn 1 in 8
-                if (gameState.turn > 1 && this._getPrng(game)?.random() < 1/8) {
-                    // Break the boon (remove it)
-                    const boonIndex = gameState.boons.findIndex(j => j.id === this.id);
-                    if (boonIndex !== -1) {
-                        gameState.boons.splice(boonIndex, 1);
-                        engine?.showMessage?.("Icarus' Wings: The wings broke!");
-                    }
-                }
-                break;
-        }
         return result;
     }
 
@@ -674,46 +614,8 @@ class Boon extends Card {
                 }
                 break;
             case 'cornucopia_of_ploutos':
-                // At end of Ante, multiply gold by 1.5 (rounded down)
-                const originalGold = gameState.gold;
-                const cornucopiaNew = Math.floor(gameState.gold * 1.5);
-                const cornucopiaDelta = cornucopiaNew - originalGold;
-                if (cornucopiaDelta > 0 && engine?.updateGoldAnimated) {
-                    engine.updateGoldAnimated(cornucopiaDelta, "Cornucopia");
-                } else if (cornucopiaDelta !== 0) {
-                    gameState.gold = cornucopiaNew;
-                }
-                if (cornucopiaDelta > 0) {
-                    engine?.showMessage?.(`🌽 Cornucopia of Ploutos: Gold ${originalGold} → ${cornucopiaNew}!`, 4000);
-                    Logger.info(`Cornucopia: Gold multiplied from ${originalGold} to ${cornucopiaNew}`);
-                }
-                break;
-            
-            case 'the_odyssey':
-                // If ALL categories filled with NO scratches, gain (total categories)² pips to final score
-                const allCategories = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
-                                      'Three of a Kind', 'Four of a Kind', 'Full House',
-                                      'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'];
-                
-                // Add unlocked categories
-                const availableCategories = [...allCategories];
-                if (gameState.unlockedCategories?.Sevens) availableCategories.push('Sevens');
-                if (gameState.unlockedCategories?.Eights) availableCategories.push('Eights');
-                if (gameState.unlockedCategories?.Nines) availableCategories.push('Nines');
-                
-                // Check if ALL filled and NO scratches (score = 0)
-                const allFilled = availableCategories.every(cat => gameState.scorecard[cat] !== undefined);
-                const noScratches = availableCategories.every(cat => 
-                    gameState.scorecard[cat] === undefined || gameState.scorecard[cat] > 0
-                );
-                
-                if (allFilled && noScratches) {
-                    const odysseyBonus = availableCategories.length * availableCategories.length;
-                    gameState.totalScore += odysseyBonus;
-                    engine?.showMessage?.(`⛵ The Odyssey: Perfect journey! +${odysseyBonus} points (${availableCategories.length}²)!`, 5000);
-                    Logger.info(`The Odyssey: Perfect completion bonus ${odysseyBonus} points`);
-                } else if (allFilled) {
-                    engine?.showMessage?.("⛵ The Odyssey: Journey complete, but with scratches (no bonus)", 3000);
+                if (typeof NearMissBoonHandlers !== 'undefined') {
+                    NearMissBoonHandlers.anteEnd(this, gameState, engine);
                 }
                 break;
             
@@ -743,10 +645,14 @@ class Boon extends Card {
                     if (otherBoons.length > 0) {
                         const randomIndex = this._randomInt(otherBoons.length, game);
                         const destroyed = otherBoons[randomIndex];
-                        
-                        const mainIndex = gameState.boons.findIndex(j => j.id === destroyed.id);
-                        if (mainIndex !== -1) {
-                            gameState.boons.splice(mainIndex, 1);
+                        const ok = typeof NearMissBoonHandlers !== 'undefined'
+                            ? NearMissBoonHandlers.destroyBoon(gameState, destroyed, engine, null)
+                            : (() => {
+                                const mainIndex = gameState.boons.findIndex(j => j.id === destroyed.id);
+                                if (mainIndex !== -1) { gameState.boons.splice(mainIndex, 1); return true; }
+                                return false;
+                            })();
+                        if (ok) {
                             if (engine?.updateGoldAnimated) engine.updateGoldAnimated(10, "Judgement of Paris");
                             else gameState.gold += 10;
                             engine?.showMessage?.(`Judgement of Paris: ${destroyed.name} unseated! +10 Gold`, 4000);
