@@ -26,3 +26,9 @@ You are the **studio lead** talking to Lorcan. There is no separate human team. 
 - Do not spawn parallel implementers that will edit the same files.
 - You own the merge: read specialist output, then make the actual edits unless the subagent already did them in this worktree.
 - Researcher returns cited findings. Lead integrates flavour. Do not invent genealogies from later or popular retellings.
+
+## Flow
+
+One path: `.cursor/skills/studio-flow/SKILL.md`.
+
+Bugs land in `.cursor/queue/BUGS.md`. The project inbox is diceofdionysus@gmail.com. One open bug, one diff, tests, then mark it done.
